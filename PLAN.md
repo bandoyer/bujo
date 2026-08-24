@@ -7,9 +7,9 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: PAUSED mid-slice 1.3 (2026-08-24) — spec is current with
-> all rulings folded in; the swarm is down with no 1.3 commits. See
-> `HANDOFF.md` for the exact parked state and the resume steps.**
+> **Status: slice 1.3 merged (2026-08-24). Next: the first deploy
+> (operator work — droplet, Kamal, Litestream → R2, DNS), then spec
+> slice 1.4. The swarm is up and idle.**
 
 ## What this is
 
@@ -88,11 +88,19 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       21/21 operator probes (incl. raw-SQL unique-chain-index attack),
       4/4 hand-mutations killed, parser mutation still 1105/1105,
       CRAP ≤ 6 over 57 methods, system lane green.
-- [ ] **1.3 Daily Log** — Hotwire view + rapid-log bar per the mobile
-      mock; entry actions (done, migrate, schedule, strike). Root moves
-      here from the sign-in placeholder. Establishes the theme system:
-      token-based CSS, light (paper) + dark (terminal-kin/Tokyo Night)
-      + system-follow, with the user toggle.
+- [x] **1.3 Daily Log** ✅ (2026-08-24) — Daily Log screen, rapid-log
+      bar, entry lifecycle actions, day navigation, and the token-based
+      theme system (paper light / Tokyo Night dark / system-follow,
+      cookie-backed toggle). Root moved off the sign-in placeholder.
+      Spec at `docs/slices/1.3-daily-log.md` (amended in-flight: header
+      counts the rendered tree; path-scope baseline is the accepted-spec
+      commit; schedule refuses unusable dates). Four qa verification
+      passes + operator review; review sent back two findings (schedule
+      500 on a crafted date, a surviving `.kept` hand-mutant in the
+      header count), fixed in a follow-up pass. At merge: 80 fast + 10
+      system runs green, rubocop clean, CRAP ≤ 6 over 78 methods, jscpd
+      0 clones, parser mutation 1105/1105, 4/4 hand-mutations killed,
+      both themes visually verified, tenancy probe clean.
 - [ ] **1.4 Monthly + Future Logs** — calendar/tasks toggle per mock.
 - [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
 - [ ] **1.6 Index** — search across collections and entries.
