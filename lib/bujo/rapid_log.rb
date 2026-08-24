@@ -126,8 +126,14 @@ module Bujo
 
       def consume_end_zone(content, today)
         content, later_tags = consume_tags(content)
-        content, time = consume_time(content)
-        content, date = consume_date(content, today)
+        # Index the pair with fetch so a dropped second element raises instead
+        # of silently binding nil under parallel assignment.
+        timed = consume_time(content)
+        content = timed.fetch(0)
+        time = timed.fetch(1)
+        dated = consume_date(content, today)
+        content = dated.fetch(0)
+        date = dated.fetch(1)
         content, earlier_tags = consume_tags(content)
         tags = (earlier_tags + later_tags).uniq
 
