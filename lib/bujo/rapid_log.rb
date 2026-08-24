@@ -151,14 +151,13 @@ module Bujo
       end
 
       def consume_time(content)
-        if (match = content.match(TWENTY_FOUR_HOUR_PATTERN))
-          return [ before_match(match), clock_time(integer_from(match[1]), integer_from(match[2])) ]
-        end
+        match = content.match(TWENTY_FOUR_HOUR_PATTERN)
+        return [ before_match(match), clock_time(integer_from(match[1]), integer_from(match[2])) ] if match
 
         match = content.match(TWELVE_HOUR_PATTERN)
-        return [ content, nil ] unless match
+        return [ before_match(match), clock_time(meridiem_hour(match), integer_from(match[2])) ] if match
 
-        [ before_match(match), clock_time(meridiem_hour(match), integer_from(match[2])) ]
+        [ content, nil ]
       end
 
       # Both clock notations reach their canonical form here, so neither can

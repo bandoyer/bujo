@@ -243,34 +243,17 @@ class RapidLogRenderTest < ActiveSupport::TestCase
     ]
 
     cases.each do |((kind, state, priority), expected)|
-      parsed = Bujo::RapidLog::Parsed.new(
-        kind: kind,
-        state: state,
-        priority: priority,
-        text: "words",
-        date: Date.new(2026, 9, 2),
-        time: "09:05",
-        tags: %w[home work],
-        raw: "ignored"
-      )
+      entry = entry_with(kind: kind, state: state, priority: priority,
+        date: Date.new(2026, 9, 2), time: "09:05", tags: %w[home work])
 
-      assert_equal expected, Bujo::RapidLog.render(parsed)
+      assert_equal expected, Bujo::RapidLog.render(entry)
     end
   end
 
   test "omits absent optional tokens without trailing separators" do
-    parsed = Bujo::RapidLog::Parsed.new(
-      kind: :task,
-      state: :open,
-      priority: false,
-      text: "words",
-      date: nil,
-      time: nil,
-      tags: [],
-      raw: "ignored"
-    )
+    entry = entry_with(kind: :task, state: :open)
 
-    assert_equal "• words", Bujo::RapidLog.render(parsed)
+    assert_equal "• words", Bujo::RapidLog.render(entry)
   end
 
   test "round trips every nonblank ruled example except raw" do
@@ -283,5 +266,22 @@ class RapidLogRenderTest < ActiveSupport::TestCase
 
       assert_equal original.to_h.except(:raw), reparsed.to_h.except(:raw), "row #{index + 1}"
     end
+  end
+
+  private
+
+  # Renders are checked field by field, so each case names only the fields it
+  # is about and this fills in the parts render treats identically.
+  def entry_with(kind:, state:, priority: false, date: nil, time: nil, tags: [])
+    Bujo::RapidLog::Parsed.new(
+      kind: kind,
+      state: state,
+      priority: priority,
+      text: "words",
+      date: date,
+      time: time,
+      tags: tags,
+      raw: "ignored"
+    )
   end
 end
