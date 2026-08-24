@@ -34,6 +34,28 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{deleted_child.id}", count: 0
   end
 
+  test "header count ignores nested done tasks and notes" do
+    requested_date = Date.new(2027, 1, 15)
+    root = create_open_task("root", logged_on: requested_date)
+    done_child = create_open_task("done child", logged_on: requested_date, parent: root)
+    done_child.complete!
+    note = @user.entries.create!(
+      kind: "note",
+      state: nil,
+      text: "a nested note",
+      tags: [],
+      logged_on: requested_date,
+      parent: root
+    )
+
+    get daily_log_path(date: requested_date.iso8601)
+
+    assert_response :success
+    assert_select "[data-testid='open-count']", text: "1 open"
+    assert_select "#entry_#{done_child.id}"
+    assert_select "#entry_#{note.id}"
+  end
+
   private
 
   def create_open_task(text, logged_on:, parent: nil)
