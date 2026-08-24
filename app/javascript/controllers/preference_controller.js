@@ -18,8 +18,14 @@ export default class extends Controller {
     return this.choicesValue[(currentIndex + 1) % this.choicesValue.length]
   }
 
+  // The default leads the cycle and is stored as the absence of a cookie, so
+  // the server stamps no attribute for it and neither does the optimistic pass.
+  get defaultChoice() {
+    return this.choicesValue[0]
+  }
+
   applyPreference(preference) {
-    if (preference === this.choicesValue[0]) {
+    if (preference === this.defaultChoice) {
       delete document.documentElement.dataset[this.attributeValue]
     } else {
       document.documentElement.dataset[this.attributeValue] = preference

@@ -1,8 +1,6 @@
-<% current_hand = hand_preference || "marker" %>
-<% current_label = hand_options.to_h.fetch(current_hand) %>
 <%= render "preferences/toggle",
   preference_path: lettering_path,
   preference_name: "hand",
   current_value: current_hand,
-  choices: hand_options.map(&:first),
-  label: "Hand: #{current_label}" %>
+  choices: hand_choices,
+  label: "Hand: #{hand_label(current_hand)}" %>

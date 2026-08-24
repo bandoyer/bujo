@@ -1,7 +1,6 @@
-<% current_theme = theme_preference || "system" %>
 <%= render "preferences/toggle",
   preference_path: theme_path,
   preference_name: "theme",
   current_value: current_theme,
-  choices: %w[system light dark],
+  choices: theme_choices,
   label: "Theme: #{current_theme}" %>

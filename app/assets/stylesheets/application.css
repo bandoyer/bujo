@@ -15,9 +15,15 @@
   --dark-line: #2f3549;
   --dark-accent: #7aa2f7;
   --dark-warn: #f7768e;
-  --font-body: "Permanent Marker", system-ui, sans-serif;
-  --font-serif: "Permanent Marker", Georgia, serif;
-  --font-mono: "Permanent Marker", "JetBrains Mono", ui-monospace, monospace;
+  /* Every hand keeps these behind its face. JetBrains Mono sits directly
+     behind the face in --font-mono so the glyphs a handwriting font lacks
+     (the event and note bullets) render from it rather than as tofu. */
+  --font-body-fallback: system-ui, sans-serif;
+  --font-serif-fallback: Georgia, serif;
+  --font-mono-fallback: "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Permanent Marker", var(--font-body-fallback);
+  --font-serif: "Permanent Marker", var(--font-serif-fallback);
+  --font-mono: "Permanent Marker", var(--font-mono-fallback);
   color-scheme: light;
   background-color: var(--bg);
   background-image: radial-gradient(rgba(32, 29, 24, 0.09) 1px, transparent 1.1px);
@@ -27,33 +33,33 @@
 }
 
 :root[data-hand="rock-salt"] {
-  --font-body: "Rock Salt", system-ui, sans-serif;
-  --font-serif: "Rock Salt", Georgia, serif;
-  --font-mono: "Rock Salt", "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Rock Salt", var(--font-body-fallback);
+  --font-serif: "Rock Salt", var(--font-serif-fallback);
+  --font-mono: "Rock Salt", var(--font-mono-fallback);
 }
 
 :root[data-hand="architects-daughter"] {
-  --font-body: "Architects Daughter", system-ui, sans-serif;
-  --font-serif: "Architects Daughter", Georgia, serif;
-  --font-mono: "Architects Daughter", "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Architects Daughter", var(--font-body-fallback);
+  --font-serif: "Architects Daughter", var(--font-serif-fallback);
+  --font-mono: "Architects Daughter", var(--font-mono-fallback);
 }
 
 :root[data-hand="patrick-hand"] {
-  --font-body: "Patrick Hand", system-ui, sans-serif;
-  --font-serif: "Patrick Hand", Georgia, serif;
-  --font-mono: "Patrick Hand", "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Patrick Hand", var(--font-body-fallback);
+  --font-serif: "Patrick Hand", var(--font-serif-fallback);
+  --font-mono: "Patrick Hand", var(--font-mono-fallback);
 }
 
 :root[data-hand="gochi-hand"] {
-  --font-body: "Gochi Hand", system-ui, sans-serif;
-  --font-serif: "Gochi Hand", Georgia, serif;
-  --font-mono: "Gochi Hand", "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Gochi Hand", var(--font-body-fallback);
+  --font-serif: "Gochi Hand", var(--font-serif-fallback);
+  --font-mono: "Gochi Hand", var(--font-mono-fallback);
 }
 
 :root[data-hand="serif"] {
-  --font-body: "Public Sans", system-ui, sans-serif;
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Public Sans", var(--font-body-fallback);
+  --font-serif: "Newsreader", var(--font-serif-fallback);
+  --font-mono: var(--font-mono-fallback);
 }
 
 /* The dark palette has to be applied from two places: once for the system
