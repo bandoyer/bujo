@@ -6,13 +6,7 @@ class EntriesController < ApplicationController
   DEFAULT_KINDS = %w[task event note].freeze
 
   before_action :set_entry, except: :create
-  # All three mean the same thing to the reader: the entry did not move. A
-  # crafted or incomplete form must read as a refusal, never as a 400 or a
-  # 500 - this is a form, not an API.
-  rescue_from Entry::LifecycleError,
-    Date::Error,
-    ActionController::ParameterMissing,
-    with: :refuse_lifecycle_change
+  rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
   # Captures a rapid-log line into today using an allowed default kind.
   def create
@@ -55,9 +49,12 @@ class EntriesController < ApplicationController
     redirect_to_viewed_day
   end
 
-  # Schedules an open task on the supplied ISO date.
+  # Schedules an open task on the date the form supplied.
   def schedule
-    @entry.schedule_to!(occurs_on: Date.iso8601(params.require(:date)))
+    date = requested_schedule_date
+    return refuse_lifecycle_change unless date
+
+    @entry.schedule_to!(occurs_on: date)
     redirect_to_viewed_day
   end
 
@@ -80,6 +77,19 @@ class EntriesController < ApplicationController
     redirect_to daily_log_path(date: viewed_date.iso8601), **response_options
   end
 
+  # The day the form asked for, or nil when it sent nothing usable. An absent
+  # or non-ISO date is a refusal rather than a day to fall back to:
+  # date_or_today's default belongs to choosing a screen to display, never to
+  # moving an entry.
+  def requested_schedule_date
+    Date.iso8601(params[:date].to_s)
+  rescue Date::Error
+    nil
+  end
+
+  # An illegal transition and an unusable date read the same to the reader:
+  # the entry did not move. A crafted or incomplete form must read as a
+  # refusal, never as a 400 or a 500 - this is a form, not an API.
   def refuse_lifecycle_change
     redirect_to_viewed_day(alert: "That entry can't do that.")
   end
