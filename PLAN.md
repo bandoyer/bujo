@@ -111,10 +111,13 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   1.3's deploy. Litestream backups go to a non-DO object store (R2 or
   B2) so backups don't share the host's failure domain
 - Domain: **questlog.dev** purchased 2026-08-24 (Cloudflare Registrar;
-  DNS zone lives at Cloudflare — empty until slice 1.3's deploy wires
-  `bujo.questlog.dev` to the droplet). The same Cloudflare account will
-  hold the R2 bucket for Litestream backups in 1.7. press-start gets
-  its own domain later if it launches publicly
+  DNS at Cloudflare). Zone carries the no-email lockdown (SPF `-all`,
+  DMARC reject, empty wildcard DKIM, null MX) as of 2026-08-24; app
+  records come with slice 1.3's deploy. A zone-scoped DNS API token is
+  saved locally at `~/.config/cloudflare/questlog-dns-token` (mode 600,
+  never committed) for driving deploy-day DNS. The same Cloudflare
+  account will hold the R2 bucket for Litestream backups in 1.7.
+  press-start gets its own domain later if it launches publicly
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
