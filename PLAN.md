@@ -7,9 +7,9 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.2 spec ready at
-> `docs/slices/1.2-entries-and-collections.md` — hand it to the swarm
-> ("specify and drive", not "implement"); Fable reviews before merge.**
+> **Status: slice 1.2 merged (2026-08-24) — next up: the two project
+> skills, then the slice 1.3 spec (Daily Log UI + themes + first
+> deploy).**
 
 ## What this is
 
@@ -81,9 +81,13 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       boundary test. Bonus from a qa finding: the browser acceptance
       lane (`bin/rails test:system`, headless Chrome) now exists,
       seeded with the sessions flow.
-- [ ] **1.2 Entries & collections** — UUIDv7 ids, logs-as-date-queries,
-      append-only migration chain, soft deletes, `hlc`/`server_seq`
-      columns dormant. Schema per ARCHITECTURE.md.
+- [x] **1.2 Entries & collections** ✅ (2026-08-24) — Entry/Collection
+      models, spec at `docs/slices/1.2-entries-and-collections.md`
+      (amended in-flight: integer `user_id` FK, pinned scope ordering).
+      Full six-pack run + operator review; at merge: 66 tests green,
+      21/21 operator probes (incl. raw-SQL unique-chain-index attack),
+      4/4 hand-mutations killed, parser mutation still 1105/1105,
+      CRAP ≤ 6 over 57 methods, system lane green.
 - [ ] **1.3 Daily Log** — Hotwire view + rapid-log bar per the mobile
       mock; entry actions (done, migrate, schedule, strike). Root moves
       here from the sign-in placeholder. Establishes the theme system:
