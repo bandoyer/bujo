@@ -1,0 +1,9 @@
+<%# What an entry says: its bullet, its text, and its meta column. The Daily
+    Log's rows and the Month and Future reading screens all render this, so the
+    hand glyph, the struck treatment, and the meta rules have one definition.
+    Callers that lead with something other than a signifier - a calendar day
+    number, a future runway day - wrap it rather than restate it. %>
+<% glyph_class = local_assigns[:glyph_class] %>
+<span class="<%= class_names("entry__glyph", glyph_class) %>"><%= hand_glyph(entry.glyph) %></span>
+<span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
+<%= render "entries/meta", entry: entry %>

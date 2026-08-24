@@ -1,0 +1,18 @@
+<section class="monthly-tasks" aria-label="<%= @month.strftime("%B %Y") %> tasks">
+  <% if @entries.empty? %>
+    <p class="entry-list__empty">Nothing logged this month.</p>
+  <% else %>
+    <div class="entry-list">
+      <% @entries.each do |entry| %>
+        <%= link_to daily_log_path(date: entry.logged_on.iso8601),
+                    id: "monthly_task_#{entry.id}",
+                    class: class_names("entry", "monthly-task", "entry--muted": entry.state.in?(%w[done migrated])) do %>
+          <span class="entry__line">
+            <%= render "entries/entry_line", entry: entry %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+    <p class="monthly-task-count"><%= @open_task_count %> open · <%= @logged_task_count %> logged</p>
+  <% end %>
+</section>

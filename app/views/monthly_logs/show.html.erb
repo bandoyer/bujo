@@ -1,0 +1,46 @@
+<% content_for :title, "Monthly Log · Bujo" %>
+<% month_value = @month.strftime("%Y-%m") %>
+<% tasks_view = @view == :tasks %>
+<% navigation_view = tasks_view ? "tasks" : nil %>
+
+<main class="daily-log monthly-log monthly-log--<%= @view %>">
+  <header class="daily-log__header monthly-log__header">
+    <div class="daily-log__heading">
+      <p class="daily-log__eyebrow monthly-log__eyebrow"><%= @month.strftime("%b · %Y").upcase %></p>
+      <h1>Monthly Log</h1>
+    </div>
+
+    <nav class="monthly-log__views" aria-label="Monthly Log view">
+      <%= link_to "Calendar",
+                  monthly_log_path(month: month_value),
+                  class: "monthly-log__view-link",
+                  aria: { current: ("page" unless tasks_view) } %>
+      <%= link_to "Tasks",
+                  monthly_log_path(month: month_value, view: "tasks"),
+                  class: "monthly-log__view-link",
+                  aria: { current: ("page" if tasks_view) } %>
+    </nav>
+
+    <nav class="day-navigation month-navigation" aria-label="Monthly Log months">
+      <%= link_to "‹",
+                  monthly_log_path(month: @month.prev_month.strftime("%Y-%m"), view: navigation_view),
+                  aria: { label: "Previous month" } %>
+      <% unless @month == @today.beginning_of_month %>
+        <%= link_to "this month",
+                    monthly_log_path(view: navigation_view),
+                    class: "day-navigation__today" %>
+      <% end %>
+      <%= link_to "›",
+                  monthly_log_path(month: @month.next_month.strftime("%Y-%m"), view: navigation_view),
+                  aria: { label: "Next month" } %>
+    </nav>
+  </header>
+
+  <% if tasks_view %>
+    <%= render "tasks" %>
+  <% else %>
+    <%= render "calendar" %>
+  <% end %>
+
+  <%= render "shared/tab_bar", active: :month %>
+</main>

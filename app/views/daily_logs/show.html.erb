@@ -39,10 +39,5 @@
     <%= render "entries/rapid_log_form" %>
   <% end %>
 
-  <nav class="tab-bar" aria-label="Journal sections">
-    <span class="tab-bar__item tab-bar__item--active" aria-current="page"><span>•</span>Today</span>
-    <button class="tab-bar__item" type="button" disabled><span>▦</span>Month</button>
-    <button class="tab-bar__item" type="button" disabled><span>›</span>Future</button>
-    <button class="tab-bar__item" type="button" disabled><span>⌕</span>Index</button>
-  </nav>
+  <%= render "shared/tab_bar", active: :today %>
 </main>
