@@ -10,6 +10,11 @@ class EntryTest < ActiveSupport::TestCase
     assert_invalid entry(state: "waiting"), :state
     assert_invalid entry(kind: "event", state: "open"), :state
     assert_invalid entry(kind: "note", state: "done"), :state
+    # The spec rules state to be exactly NULL on non-tasks, and an empty
+    # string is a value: sync compares field values, so "" and NULL would
+    # read as a conflict between two devices that agree.
+    assert_invalid entry(kind: "event", state: ""), :state
+    assert_invalid entry(kind: "note", state: ""), :state
     assert_predicate entry(kind: "event", state: nil), :valid?
     assert_predicate entry(kind: "note", state: nil), :valid?
     assert_predicate entry(time_of_day: nil), :valid?

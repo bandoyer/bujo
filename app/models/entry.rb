@@ -131,10 +131,14 @@ class Entry < ApplicationRecord
 
   private
 
+  # Tasks carry exactly one lifecycle state; events and notes carry exactly
+  # NULL. Blankness is not the test — an empty string is a value, and sync
+  # compares values, so "" against NULL would read as a conflict between two
+  # devices that actually agree.
   def state_matches_kind
     if kind == "task"
       errors.add(:state, :inclusion) unless TASK_STATES.include?(state)
-    elsif KINDS.include?(kind) && state.present?
+    elsif KINDS.include?(kind) && !state.nil?
       errors.add(:state, :invalid)
     end
   end
