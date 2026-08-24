@@ -13,7 +13,7 @@ module Lettering
     [ "architects-daughter", "architects" ],
     [ "patrick-hand", "patrick" ],
     [ "gochi-hand", "gochi" ],
-    [ "serif", "serif" ]
+    [ "sans", "sans" ]
   ].freeze
   # As with themes, the default leads the cycle and is stored as no cookie.
   STORED_HANDS = HAND_OPTIONS.drop(1).map(&:first).freeze

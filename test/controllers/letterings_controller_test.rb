@@ -6,7 +6,7 @@ class LetteringsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "stores every explicit hand cookie" do
-    %w[rock-salt architects-daughter patrick-hand gochi-hand serif].each do |hand|
+    %w[rock-salt architects-daughter patrick-hand gochi-hand sans].each do |hand|
       patch lettering_path, params: { hand: hand }
 
       assert_redirected_to root_path
@@ -17,8 +17,8 @@ class LetteringsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "marker clears the hand cookie" do
-    patch lettering_path, params: { hand: "serif" }
-    assert_equal "serif", cookies[:hand]
+    patch lettering_path, params: { hand: "sans" }
+    assert_equal "sans", cookies[:hand]
 
     patch lettering_path, params: { hand: "marker" }
 

@@ -56,9 +56,9 @@
   --font-mono: "Gochi Hand", var(--font-mono-fallback);
 }
 
-:root[data-hand="serif"] {
+:root[data-hand="sans"] {
   --font-body: "Public Sans", var(--font-body-fallback);
-  --font-serif: "Newsreader", var(--font-serif-fallback);
+  --font-serif: "Public Sans", var(--font-body-fallback);
   --font-mono: var(--font-mono-fallback);
 }
 

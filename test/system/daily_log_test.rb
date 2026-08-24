@@ -254,14 +254,14 @@ class DailyLogTest < ApplicationSystemTestCase
     assert_no_selector "html[data-hand]", visible: :all
     assert_button "Hand: marker", exact: true
     marker_font = title_font_family
-    serif_font = nil
+    sans_font = nil
     hand_steps = [
       [ "Hand: marker", "rock-salt", "Hand: rock salt" ],
       [ "Hand: rock salt", "architects-daughter", "Hand: architects" ],
       [ "Hand: architects", "patrick-hand", "Hand: patrick" ],
       [ "Hand: patrick", "gochi-hand", "Hand: gochi" ],
-      [ "Hand: gochi", "serif", "Hand: serif" ],
-      [ "Hand: serif", nil, "Hand: marker" ]
+      [ "Hand: gochi", "sans", "Hand: sans" ],
+      [ "Hand: sans", nil, "Hand: marker" ]
     ]
 
     hand_steps.each do |current_label, stored_hand, next_label|
@@ -269,7 +269,7 @@ class DailyLogTest < ApplicationSystemTestCase
 
       if stored_hand
         assert_selector "html[data-hand='#{stored_hand}']", visible: :all
-        serif_font = title_font_family if stored_hand == "serif"
+        sans_font = title_font_family if stored_hand == "sans"
         refresh
         assert_selector "html[data-hand='#{stored_hand}']", visible: :all
       else
@@ -278,7 +278,7 @@ class DailyLogTest < ApplicationSystemTestCase
       assert_button next_label, exact: true
     end
 
-    refute_equal marker_font, serif_font
+    refute_equal marker_font, sans_font
   end
 
   test "theme and hand choices compose" do
