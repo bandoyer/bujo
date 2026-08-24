@@ -155,8 +155,15 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   (PWA/offline) — a `TODO(1.7)` marks the link site
 - `bin/ci` does not yet run the system lane or mutation — operator
   decision on wiring, revisit before slice 1.3's deploy
-- Passkeys for web auth: nice-to-have after phase 1 (generator's
-  email/password stands in until then)
+- Auth direction (decided 2026-08-24, build later): go passwordless
+  like press-start — passkeys first, magic email links second. The
+  generator's email/password stands in until then. Two constraints to
+  design around: (1) magic links require sending mail, which the
+  questlog.dev no-email lockdown deliberately blocks — either an email
+  provider on a carved-out subdomain or passkeys-only; (2) passkeys-only
+  needs a recovery story without email — register a second passkey
+  (phone + laptop) and bootstrap the first from a signed-in session.
+  Pairs with the multi-user item below (same email decision gates both)
 - Multi-user: the data layer is already tenant-clean (assessed
   2026-08-24 — `user_id` FKs, per-user indexes/uniqueness, user-scoped
   model API; the 1.3 spec scopes all queries via `Current.user`).
