@@ -25,6 +25,21 @@ class FutureLogsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "occupied months beyond the runway render in calendar order" do
+    travel_to Time.zone.local(2027, 1, 15, 12) do
+      today = Time.zone.today
+      later = today.beginning_of_month >> 9
+      earlier = today.beginning_of_month >> 7
+      create_event("ninth month", occurs_on: later + 1.day)
+      create_event("seventh month", occurs_on: earlier + 1.day)
+
+      get future_log_path
+
+      assert_equal [ earlier, later ].map { |month| month.strftime("%Y-%m") },
+        rendered_months.last(2)
+    end
+  end
+
   test "future glyphs follow the active hand" do
     future_date = Time.zone.today.next_month.beginning_of_month + 3.days
     event = create_event("future circle", occurs_on: future_date)
