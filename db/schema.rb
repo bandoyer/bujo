@@ -10,7 +10,47 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_025319) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_154800) do
+  create_table "collections", id: :string, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "deleted_at"
+    t.string "hlc"
+    t.string "name", null: false
+    t.bigint "server_seq"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["server_seq"], name: "index_collections_on_server_seq"
+    t.index ["user_id"], name: "index_collections_on_user_id"
+  end
+
+  create_table "entries", id: :string, force: :cascade do |t|
+    t.string "collection_id"
+    t.datetime "created_at", null: false
+    t.datetime "deleted_at"
+    t.string "hlc"
+    t.string "kind", null: false
+    t.date "logged_on", null: false
+    t.string "migrated_from_id"
+    t.date "occurs_on"
+    t.string "parent_id"
+    t.boolean "priority", default: false, null: false
+    t.bigint "server_seq"
+    t.string "state"
+    t.json "tags", default: [], null: false
+    t.text "text", null: false
+    t.string "time_of_day"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["collection_id"], name: "index_entries_on_collection_id"
+    t.index ["migrated_from_id"], name: "index_entries_on_migrated_from_id", unique: true
+    t.index ["parent_id"], name: "index_entries_on_parent_id"
+    t.index ["server_seq"], name: "index_entries_on_server_seq"
+    t.index ["user_id", "logged_on"], name: "index_entries_on_user_id_and_logged_on"
+    t.index ["user_id", "occurs_on"], name: "index_entries_on_user_id_and_occurs_on"
+    t.index ["user_id", "state"], name: "index_entries_on_user_id_and_state"
+    t.index ["user_id"], name: "index_entries_on_user_id"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "ip_address"
@@ -28,5 +68,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_025319) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
+  add_foreign_key "collections", "users"
+  add_foreign_key "entries", "collections"
+  add_foreign_key "entries", "entries", column: "migrated_from_id"
+  add_foreign_key "entries", "entries", column: "parent_id"
+  add_foreign_key "entries", "users"
   add_foreign_key "sessions", "users"
 end
