@@ -7,11 +7,9 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.3 spec ready at `docs/slices/1.3-daily-log.md` —
-> hand it to the swarm ("specify and drive"). Project skills for
-> interactive sessions live in `.claude/skills/`. After 1.3 merges:
-> the operator deploy (droplet + Kamal + Litestream + DNS) puts bujo
-> on the phone.**
+> **Status: PAUSED mid-slice 1.3 (2026-08-24) — spec is current with
+> all rulings folded in; the swarm is down with no 1.3 commits. See
+> `HANDOFF.md` for the exact parked state and the resume steps.**
 
 ## What this is
 
