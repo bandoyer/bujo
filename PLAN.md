@@ -56,6 +56,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-24 | Swarm pack: `six-all-models-review` (Claude/Codex/Grok, workers isolated behind human integration) |
 | 2026-08-24 | Ruby 4.0.6 via mise (Omarchy's Rails install), Rails 8.1 |
 | 2026-08-24 | Mobile look: paper-and-ink direction from the mocks (dark "terminal-kin" alt not chosen for v1) |
+| 2026-08-24 | Host: DigitalOcean (Hetzner's 2026 price hikes closed the gap; DO wins on stability and smoothness). Droplet size decided at deploy time — 2 GB is enough for bujo alone, 4 GB once press-start shares the box |
 
 ## Phases and slices
 
@@ -105,8 +106,12 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 
 - mutant licensing: free for open source — repo is public, so should be
   fine; confirm when wiring mutant-minitest in slice 1.1
-- VPS: not yet provisioned (provider/size TBD — deployment discussion
-  pending); needed by slice 1.3's deploy
+- Droplet: DigitalOcean chosen, not yet provisioned; needed by slice
+  1.3's deploy. Litestream backups go to a non-DO object store (R2 or
+  B2) so backups don't share the host's failure domain
+- Domain: still TBD — plan is one umbrella domain (Cloudflare Registrar
+  or Porkbun), apps on subdomains; press-start gets its own later if it
+  launches publicly
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
