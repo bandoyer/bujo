@@ -6,8 +6,9 @@ changes.** A future session (human or agent) should be able to read this
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: Phase 0 complete — next up: slice 1.1, the rapid-log parser
-> (spec not yet written).**
+> **Status: slice 1.1 spec ready at
+> `docs/slices/1.1-rapid-log-parser.md` — hand it to the swarm; Fable
+> reviews the result before merge.**
 
 ## What this is
 
