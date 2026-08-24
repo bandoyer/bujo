@@ -71,17 +71,4 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{deleted_child.id}", count: 0
     assert_select "#entry_#{grandchild.id}", count: 0
   end
-
-  private
-
-  def create_open_task(text, logged_on:, parent: nil)
-    @user.entries.create!(
-      kind: "task",
-      state: "open",
-      text: text,
-      tags: [],
-      logged_on: logged_on,
-      parent: parent
-    )
-  end
 end

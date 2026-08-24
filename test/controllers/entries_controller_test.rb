@@ -42,13 +42,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "an illegal lifecycle action redirects with an alert" do
-    task = @user.entries.create!(
-      kind: "task",
-      state: "open",
-      text: "finish twice",
-      tags: [],
-      logged_on: Time.zone.today
-    )
+    task = create_open_task("finish twice", logged_on: Time.zone.today)
 
     post complete_entry_path(task), params: { viewed_on: Time.zone.today.iso8601 }
     assert_redirected_to daily_log_path(date: Time.zone.today.iso8601)
@@ -59,7 +53,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "schedule rejects an absent date without moving the task" do
-    assert_schedule_rejected({})
+    assert_schedule_rejected
   end
 
   test "schedule rejects an unparseable date without moving the task" do
@@ -68,15 +62,9 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
 
   private
 
-  def assert_schedule_rejected(schedule_params)
+  def assert_schedule_rejected(schedule_params = {})
     viewed_on = Date.new(2027, 1, 15)
-    task = @user.entries.create!(
-      kind: "task",
-      state: "open",
-      text: "stay put",
-      tags: [],
-      logged_on: viewed_on
-    )
+    task = create_open_task("stay put", logged_on: viewed_on)
     original_lifecycle = [ task.state, task.occurs_on ]
 
     post schedule_entry_path(task), params: { viewed_on: viewed_on.iso8601 }.merge(schedule_params)
