@@ -248,6 +248,49 @@ class DailyLogTest < ApplicationSystemTestCase
     assert_no_selector "html[data-theme]", visible: :all
   end
 
+  test "hand choice cycles through every face and returns to marker" do
+    sign_in
+
+    assert_no_selector "html[data-hand]", visible: :all
+    assert_button "Hand: marker", exact: true
+    marker_font = title_font_family
+    serif_font = nil
+    hand_steps = [
+      [ "Hand: marker", "rock-salt", "Hand: rock salt" ],
+      [ "Hand: rock salt", "architects-daughter", "Hand: architects" ],
+      [ "Hand: architects", "patrick-hand", "Hand: patrick" ],
+      [ "Hand: patrick", "gochi-hand", "Hand: gochi" ],
+      [ "Hand: gochi", "serif", "Hand: serif" ],
+      [ "Hand: serif", nil, "Hand: marker" ]
+    ]
+
+    hand_steps.each do |current_label, stored_hand, next_label|
+      click_button current_label, exact: true
+
+      if stored_hand
+        assert_selector "html[data-hand='#{stored_hand}']", visible: :all
+        serif_font = title_font_family if stored_hand == "serif"
+        refresh
+        assert_selector "html[data-hand='#{stored_hand}']", visible: :all
+      else
+        assert_no_selector "html[data-hand]", visible: :all
+      end
+      assert_button next_label, exact: true
+    end
+
+    refute_equal marker_font, serif_font
+  end
+
+  test "theme and hand choices compose" do
+    sign_in
+
+    click_button "Theme: system", exact: true
+    click_button "Theme: light", exact: true
+    click_button "Hand: marker", exact: true
+
+    assert_selector "html[data-theme='dark'][data-hand='rock-salt']", visible: :all
+  end
+
   test "9 an invalid daily-log date renders today" do
     sign_in
 
@@ -296,5 +339,9 @@ class DailyLogTest < ApplicationSystemTestCase
 
   def formatted_destination(date)
     date.strftime("%b %-d").upcase
+  end
+
+  def title_font_family
+    page.evaluate_script("getComputedStyle(document.querySelector('.daily-log h1')).fontFamily")
   end
 end

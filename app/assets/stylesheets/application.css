@@ -15,15 +15,45 @@
   --dark-line: #2f3549;
   --dark-accent: #7aa2f7;
   --dark-warn: #f7768e;
-  --font-body: "Public Sans", system-ui, sans-serif;
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Permanent Marker", system-ui, sans-serif;
+  --font-serif: "Permanent Marker", Georgia, serif;
+  --font-mono: "Permanent Marker", "JetBrains Mono", ui-monospace, monospace;
   color-scheme: light;
   background-color: var(--bg);
   background-image: radial-gradient(rgba(32, 29, 24, 0.09) 1px, transparent 1.1px);
   background-size: 22px 22px;
   color: var(--ink);
   font-family: var(--font-body);
+}
+
+:root[data-hand="rock-salt"] {
+  --font-body: "Rock Salt", system-ui, sans-serif;
+  --font-serif: "Rock Salt", Georgia, serif;
+  --font-mono: "Rock Salt", "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root[data-hand="architects-daughter"] {
+  --font-body: "Architects Daughter", system-ui, sans-serif;
+  --font-serif: "Architects Daughter", Georgia, serif;
+  --font-mono: "Architects Daughter", "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root[data-hand="patrick-hand"] {
+  --font-body: "Patrick Hand", system-ui, sans-serif;
+  --font-serif: "Patrick Hand", Georgia, serif;
+  --font-mono: "Patrick Hand", "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root[data-hand="gochi-hand"] {
+  --font-body: "Gochi Hand", system-ui, sans-serif;
+  --font-serif: "Gochi Hand", Georgia, serif;
+  --font-mono: "Gochi Hand", "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root[data-hand="serif"] {
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* The dark palette has to be applied from two places: once for the system
@@ -154,12 +184,18 @@ a {
   gap: 0.25rem;
 }
 
+.daily-log__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .daily-log__open-count {
   color: var(--muted);
   font-size: 0.75rem;
 }
 
-.theme-toggle__button {
+.preference-toggle__button {
   min-height: 44px;
   padding: 0 0.5rem;
   border: 0;

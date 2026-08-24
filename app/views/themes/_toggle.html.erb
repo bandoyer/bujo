@@ -1,5 +1,7 @@
 <% current_theme = theme_preference || "system" %>
-<%= form_with url: theme_path, method: :patch, class: "theme-toggle", data: { controller: "theme" } do |form| %>
-  <%= form.hidden_field :theme, value: current_theme, data: { theme_target: "preference" } %>
-  <button type="button" class="theme-toggle__button" data-action="theme#cycle">Theme: <%= current_theme %></button>
-<% end %>
+<%= render "preferences/toggle",
+  preference_path: theme_path,
+  preference_name: "theme",
+  current_value: current_theme,
+  choices: %w[system light dark],
+  label: "Theme: #{current_theme}" %>
