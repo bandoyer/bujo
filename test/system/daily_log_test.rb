@@ -64,7 +64,7 @@ class DailyLogTest < ApplicationSystemTestCase
     end
   end
 
-  test "3 the kind toggle captures an event without task actions" do
+  test "3 the kind toggle captures events and notes without task actions" do
     sign_in
 
     find("button[aria-label='Event']").click
@@ -74,6 +74,21 @@ class DailyLogTest < ApplicationSystemTestCase
     within entry_selector(event) do
       assert_text "○"
       assert_text "09:00"
+      assert_no_selector ".entry__toggle"
+      find(".entry__line").click
+      assert_no_selector ".entry__action-strip"
+      assert_no_button "Complete"
+      assert_no_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
+    end
+
+    find("button[aria-label='Note']").click
+    capture "quiet observation"
+    note = @user.entries.find_by!(text: "quiet observation")
+
+    within entry_selector(note) do
+      assert_text "–"
       assert_no_selector ".entry__toggle"
       find(".entry__line").click
       assert_no_selector ".entry__action-strip"
@@ -154,6 +169,15 @@ class DailyLogTest < ApplicationSystemTestCase
         "getComputedStyle(document.querySelector('#{entry_selector(task)} .entry__text')).textDecorationLine"
       )
       assert_includes text_decoration, "line-through"
+    end
+
+    reveal_actions(task)
+    within entry_selector(task) do
+      assert_button "Reopen"
+      assert_no_button "Complete"
+      assert_no_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
     end
   end
 
