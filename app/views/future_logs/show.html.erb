@@ -19,9 +19,7 @@
                       id: "future_entry_#{entry.id}",
                       class: "future-entry" do %>
             <span class="future-entry__day"><%= entry.occurs_on.day %></span>
-            <span class="entry__glyph"><%= hand_glyph(entry.glyph) %></span>
-            <span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
-            <%= render "entries/meta", entry: entry %>
+            <%= render "entries/entry_body", entry: entry %>
           <% end %>
         <% end %>
       </section>

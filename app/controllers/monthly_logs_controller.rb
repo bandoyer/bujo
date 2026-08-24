@@ -17,12 +17,18 @@ class MonthlyLogsController < ApplicationController
   private
 
   def month_or_current(value)
-    month = value.to_s
-    raise Date::Error unless month.match?(MONTH_PATTERN)
+    parsed_month(value.to_s) || @today.beginning_of_month
+  end
 
-    Date.strptime(month, "%Y-%m").beginning_of_month
+  # The month the URL asked for, or nil when it carried anything else. The
+  # pattern runs first because strptime accepts a prefix, so "2026-08x" would
+  # otherwise parse; absent, malformed and out-of-range all arrive here as nil.
+  def parsed_month(value)
+    return unless value.match?(MONTH_PATTERN)
+
+    Date.strptime(value, "%Y-%m").beginning_of_month
   rescue Date::Error
-    @today.beginning_of_month
+    nil
   end
 
   def load_calendar

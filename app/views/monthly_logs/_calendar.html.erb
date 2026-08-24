@@ -13,9 +13,9 @@
         <span class="monthly-calendar__number"><%= day.day if index.zero? %></span>
         <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase if index.zero? %></span>
         <% if entry %>
-          <span class="entry__glyph <%= "monthly-calendar__glyph--event" if entry.kind == "event" %>"><%= hand_glyph(entry.glyph) %></span>
-          <span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
-          <%= render "entries/meta", entry: entry %>
+          <%= render "entries/entry_body",
+                     entry: entry,
+                     glyph_class: ("monthly-calendar__glyph--event" if entry.kind == "event") %>
         <% end %>
       <% end %>
     <% end %>
