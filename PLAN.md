@@ -140,6 +140,15 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   decision on wiring, revisit before slice 1.3's deploy
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
   email/password stands in until then)
+- Multi-user: the data layer is already tenant-clean (assessed
+  2026-08-24 — `user_id` FKs, per-user indexes/uniqueness, user-scoped
+  model API; the 1.3 spec scopes all queries via `Current.user`).
+  Invite-only guests are nearly free: console-created accounts, no new
+  code. Public sign-up is one small slice (RegistrationsController +
+  abuse/rate-limit thought) **plus an email decision** — questlog.dev's
+  no-email lockdown blocks password-reset mail, so either add a
+  provider on an email subdomain and relax the lockdown, or stay
+  invite-only with manual resets. Revisit after phase 1
 
 ## How to resume (for a future session)
 
