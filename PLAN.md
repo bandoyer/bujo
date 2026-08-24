@@ -7,9 +7,8 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.1 spec ready at
-> `docs/slices/1.1-rapid-log-parser.md` — hand it to the swarm; Fable
-> reviews the result before merge.**
+> **Status: slice 1.1 merged (2026-08-24) — next up: the slice 1.2 spec
+> (entries & collections).**
 
 ## What this is
 
@@ -74,11 +73,13 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 
 ### Phase 1 — the journal (web app usable end-to-end)
 
-- [ ] **1.1 Rapid-log parser** — pure Ruby in `lib/`: the bullet grammar
-      (`•` task, `x` done, `>` migrated, `<` scheduled, `○` event, `–`
-      note, `*` priority) plus natural-language dates ("tomorrow",
-      "sep 9"). The shared core; hardest-tested code in the app.
-      Mutation testing (mutant-minitest) enters the bars here.
+- [x] **1.1 Rapid-log parser** ✅ (2026-08-24) — `Bujo::RapidLog` in
+      `lib/`, spec at `docs/slices/1.1-rapid-log-parser.md`. Full
+      six-pack run + operator review; bars at merge: 33 tests green,
+      mutation 1105/1105 killed, CRAP ≤ 6, rubocop/jscpd clean, purity
+      boundary test. Bonus from a qa finding: the browser acceptance
+      lane (`bin/rails test:system`, headless Chrome) now exists,
+      seeded with the sessions flow.
 - [ ] **1.2 Entries & collections** — UUIDv7 ids, logs-as-date-queries,
       append-only migration chain, soft deletes, `hlc`/`server_seq`
       columns dormant. Schema per ARCHITECTURE.md.
@@ -124,7 +125,14 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   account will hold the R2 bucket for Litestream backups in 1.7.
   press-start gets its own domain later if it launches publicly
 - Packwerk (boundaries bar): deferred until the app has a boundary
-  worth defending
+  worth defending (slice 1.1 added a require-graph boundary test for
+  `lib/bujo/` in its place)
+- After slice 1.2 lands: write the two project skills (`bujo-conventions`
+  with the schema invariants, `testing` with the Minitest/mutant house
+  rules) so interactive sessions get what the swarm articles already
+  encode
+- `bin/ci` does not yet run the system lane or mutation — operator
+  decision on wiring, revisit before slice 1.3's deploy
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
   email/password stands in until then)
 
