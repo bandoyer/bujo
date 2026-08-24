@@ -11,49 +11,40 @@ export default class extends Controller {
     const shouldOpen = toggle.getAttribute("aria-expanded") === "false"
 
     this.closeAll()
-    if (shouldOpen) this.open(toggle)
+    if (shouldOpen) this.setExpanded(toggle, true)
   }
 
   showSchedule(event) {
-    this.showStep(event.currentTarget, "scheduleStep")
+    this.showStep(this.stripFor(event.currentTarget), "schedule")
   }
 
   cancelSchedule(event) {
-    this.showStep(event.currentTarget, "actionsStep")
+    this.showStep(this.stripFor(event.currentTarget), "actions")
   }
 
-  open(toggle) {
-    const strip = document.getElementById(toggle.getAttribute("aria-controls"))
-
-    toggle.setAttribute("aria-expanded", "true")
-    strip.hidden = false
-    toggle.closest(".entry").classList.add("entry--selected")
-  }
-
+  // One row is open at a time, and a strip always reopens on its actions -
+  // so closing rewinds the step rather than leaving it in the date step.
   closeAll() {
-    this.toggleTargets.forEach((toggle) => {
-      toggle.setAttribute("aria-expanded", "false")
-      toggle.closest(".entry").classList.remove("entry--selected")
-    })
+    this.toggleTargets.forEach((toggle) => this.setExpanded(toggle, false))
+    this.stripTargets.forEach((strip) => this.showStep(strip, "actions"))
+  }
 
-    this.stripTargets.forEach((strip) => {
-      strip.hidden = true
-      this.resetToActions(strip)
+  // One place knows what revealed means: the control, its row, and its strip.
+  setExpanded(toggle, expanded) {
+    toggle.setAttribute("aria-expanded", String(expanded))
+    toggle.closest(".entry").classList.toggle("entry--selected", expanded)
+    document.getElementById(toggle.getAttribute("aria-controls")).hidden = !expanded
+  }
+
+  // Exactly one step of a strip shows at a time. A done or struck row has no
+  // date step, and needs no special case: it simply has one fewer to hide.
+  showStep(strip, step) {
+    strip.querySelectorAll("[data-step]").forEach((element) => {
+      element.hidden = element.dataset.step !== step
     })
   }
 
-  showStep(control, targetName) {
-    const strip = control.closest(".entry__action-strip")
-
-    strip.querySelector("[data-task-actions-target='actionsStep']").hidden = targetName !== "actionsStep"
-    strip.querySelector("[data-task-actions-target='scheduleStep']").hidden = targetName !== "scheduleStep"
-  }
-
-  resetToActions(strip) {
-    const actions = strip.querySelector("[data-task-actions-target='actionsStep']")
-    const schedule = strip.querySelector("[data-task-actions-target='scheduleStep']")
-
-    actions.hidden = false
-    if (schedule) schedule.hidden = true
+  stripFor(control) {
+    return control.closest(".entry__action-strip")
   }
 }

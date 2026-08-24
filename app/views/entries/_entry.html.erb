@@ -1,9 +1,11 @@
 <%# One journal row: its bullet line, its hidden lifecycle controls, then its children. %>
 <% muted = entry.state.in?(%w[done migrated]) %>
 <% actionable = entry.kind == "task" && entry.state.in?(%w[open done struck]) %>
-<% action_strip_id = "entry_#{entry.id}_actions" %>
 <article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
+  <%# An actionable row is a toggle and the strip it controls; anything else is
+      a plain line. The strip sits between the line and the children region. %>
   <% if actionable %>
+    <% action_strip_id = "entry_#{entry.id}_actions" %>
     <button type="button"
             class="entry__line entry__toggle"
             aria-expanded="false"
@@ -12,14 +14,11 @@
             data-action="task-actions#toggle">
       <%= render "entries/entry_line", entry: entry %>
     </button>
+    <%= render "entries/task_actions", entry: entry, viewed_on: viewed_on, action_strip_id: action_strip_id %>
   <% else %>
     <div class="entry__line">
       <%= render "entries/entry_line", entry: entry %>
     </div>
-  <% end %>
-
-  <% if actionable %>
-    <%= render "entries/task_actions", entry: entry, viewed_on: viewed_on, action_strip_id: action_strip_id %>
   <% end %>
 
   <% children = entry.children.kept %>

@@ -2,7 +2,7 @@
     redirect lands back where the reader was, not on today. %>
 <% viewed_on_iso = viewed_on.iso8601 %>
 <div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
-  <div class="entry__actions" data-task-actions-target="actionsStep">
+  <div class="entry__actions" data-step="actions">
     <% if entry.state == "open" %>
       <%= button_to "Complete", complete_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
       <%= button_to "Strike", strike_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action entry-action--warn" %>
@@ -14,7 +14,7 @@
   </div>
 
   <% if entry.state == "open" %>
-    <div class="entry__schedule-step" data-task-actions-target="scheduleStep" hidden>
+    <div class="entry__schedule-step" data-step="schedule" hidden>
       <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
         <%= form.label :date, "Schedule date", class: "visually-hidden" %>
