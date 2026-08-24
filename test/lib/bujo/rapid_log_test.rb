@@ -27,10 +27,17 @@ class RapidLogParseTest < ActiveSupport::TestCase
     [ "   ", nil, nil, false, nil, nil, nil, [] ],
     [ "o standup", :event, nil, false, "standup", nil, nil, [] ]
   ].freeze
+  DEFAULT_KIND_OVERRIDES = { "o standup" => :note }.freeze
+
+  # The default kind a ruled row is parsed with; rows are tasks unless the
+  # table row exists to prove a glyph overrides a different default.
+  def self.default_kind_for(input)
+    DEFAULT_KIND_OVERRIDES.fetch(input, :task)
+  end
 
   test "parses every ruled example" do
     RULED_CASES.each_with_index do |(input, kind, state, priority, text, date, time, tags), index|
-      default_kind = index == 19 ? :note : :task
+      default_kind = RapidLogParseTest.default_kind_for(input)
       parsed = Bujo::RapidLog.parse(input, today: TODAY, default_kind: default_kind)
 
       if kind
@@ -44,10 +51,10 @@ class RapidLogParseTest < ActiveSupport::TestCase
 
   test "recognizes every glyph and ASCII alias" do
     {
-      "•" => %i[task open],
-      "." => %i[task open],
-      "x" => %i[task done],
-      "X" => %i[task done],
+      "•" => [ :task, :open ],
+      "." => [ :task, :open ],
+      "x" => [ :task, :done ],
+      "X" => [ :task, :done ],
       "○" => [ :event, nil ],
       "o" => [ :event, nil ],
       "O" => [ :event, nil ],
@@ -130,6 +137,9 @@ class RapidLogParseTest < ActiveSupport::TestCase
       "morning 9am" => [ "morning", "09:00" ],
       "evening 09pm" => [ "evening", "21:00" ],
       "evening 11:59pm" => [ "evening", "23:59" ],
+      "evening 11:09pm" => [ "evening", "23:09" ],
+      "morning 11:08am" => [ "morning", "11:08" ],
+      "morning 1:09am" => [ "morning", "01:09" ],
       "meet 0:00" => [ "meet", "00:00" ],
       "meet 9:30" => [ "meet", "09:30" ],
       "meet 09:30" => [ "meet", "09:30" ],
@@ -267,7 +277,7 @@ class RapidLogRenderTest < ActiveSupport::TestCase
     RapidLogParseTest::RULED_CASES.each_with_index do |(input, kind, *), index|
       next unless kind
 
-      default_kind = index == 19 ? :note : :task
+      default_kind = RapidLogParseTest.default_kind_for(input)
       original = Bujo::RapidLog.parse(input, today: TODAY, default_kind: default_kind)
       reparsed = Bujo::RapidLog.parse(Bujo::RapidLog.render(original), today: Date.new(2040, 1, 1))
 
