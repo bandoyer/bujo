@@ -60,6 +60,23 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_schedule_rejected(date: "not-a-date")
   end
 
+  test "schedule with an ISO date moves the task" do
+    viewed_on = Date.new(2027, 1, 15)
+    occurs_on = Date.new(2027, 2, 1)
+    task = create_open_task("pack", logged_on: viewed_on)
+
+    post schedule_entry_path(task), params: {
+      viewed_on: viewed_on.iso8601,
+      date: occurs_on.iso8601
+    }
+
+    assert_redirected_to daily_log_path(date: viewed_on.iso8601)
+    assert_nil flash[:alert]
+    task.reload
+    assert_equal "migrated", task.state
+    assert_equal occurs_on, task.successor.occurs_on
+  end
+
   private
 
   def assert_schedule_rejected(schedule_params = {})
