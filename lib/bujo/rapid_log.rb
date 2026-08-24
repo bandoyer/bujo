@@ -124,10 +124,14 @@ module Bujo
         [ content, default_kind, state, priority ]
       end
 
+      # The end zone is consumed from the right in the order the grammar
+      # fixes: trailing tags, then a time, then a date, then any tags the
+      # date and time were hiding.
       def consume_end_zone(content, today)
         content, later_tags = consume_tags(content)
         # Index the pair with fetch so a dropped second element raises instead
-        # of silently binding nil under parallel assignment.
+        # of silently binding nil under parallel assignment. Inline on purpose:
+        # behind a helper the guard is a no-op wrapper a mutation can remove.
         timed = consume_time(content)
         content = timed.fetch(0)
         time = timed.fetch(1)
