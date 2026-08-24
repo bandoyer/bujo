@@ -20,7 +20,8 @@ module Lettering
   HAND_LABELS = HAND_OPTIONS.to_h.freeze
 
   included do
-    helper_method :hand_preference, :current_hand, :hand_choices, :hand_label
+    helper_method :hand_preference, :current_hand, :hand_choices, :hand_label,
+      :hand_glyph
   end
 
   private
@@ -48,5 +49,16 @@ module Lettering
   # Stores an explicit hand; marker and invalid values both restore the default.
   def store_hand_preference(hand)
     store_preference_cookie(:hand, hand, STORED_HANDS)
+  end
+
+  # The glyph as the active hand draws it. Handwriting faces carry no U+25CB,
+  # so the event ring would fall back to the mono face and sit geometric
+  # against lettered text; a hand-drawn circle is a letter O, so handwriting
+  # hands letter it. The sans hand keeps the true ring, and the stored "○"
+  # stays canonical — this maps display only, never data.
+  def hand_glyph(glyph)
+    return glyph if glyph != "○" || hand_preference == "sans"
+
+    "O"
   end
 end

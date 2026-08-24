@@ -56,6 +56,24 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{note.id}"
   end
 
+  test "handwriting hands letter the event circle; sans keeps the ring" do
+    requested_date = Date.new(2027, 1, 15)
+    event = @user.entries.create!(
+      kind: "event",
+      state: nil,
+      text: "standup",
+      tags: [],
+      logged_on: requested_date
+    )
+
+    get daily_log_path(date: requested_date.iso8601)
+    assert_select "#entry_#{event.id} .entry__glyph", text: "O"
+
+    patch lettering_path, params: { hand: "sans" }
+    get daily_log_path(date: requested_date.iso8601)
+    assert_select "#entry_#{event.id} .entry__glyph", text: "○"
+  end
+
   test "header traversal stops at a soft-deleted child" do
     requested_date = Date.new(2027, 1, 15)
     root = create_open_task("visible root", logged_on: requested_date)

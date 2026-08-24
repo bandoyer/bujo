@@ -72,7 +72,7 @@ class DailyLogTest < ApplicationSystemTestCase
     event = @user.entries.find_by!(text: "standup")
 
     within entry_selector(event) do
-      assert_text "○"
+      assert_text "O"
       assert_text "09:00"
       assert_no_selector ".entry__toggle"
       find(".entry__line").click

@@ -1,5 +1,5 @@
 <%# The journal line is shared by interactive task toggles and static rows. %>
 <span class="entry__signifier" aria-label="<%= entry.priority? ? "Priority" : "Not priority" %>"><%= "*" if entry.priority? %></span>
-<span class="entry__glyph"><%= entry.glyph %></span>
+<span class="entry__glyph"><%= hand_glyph(entry.glyph) %></span>
 <span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
 <%= render "entries/meta", entry: entry %>
