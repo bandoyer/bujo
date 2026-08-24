@@ -2,7 +2,8 @@ require "test_helper"
 
 class DailyLogsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    sign_in_as users(:one)
+    @user = users(:one)
+    sign_in_as @user
   end
 
   test "shows the requested day and falls back to today for invalid dates" do
@@ -15,5 +16,34 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     get daily_log_path(date: "not-a-date")
     assert_response :success
     assert_select ".daily-log__eyebrow", text: Time.zone.today.strftime("%a · %b %-d").upcase
+  end
+
+  test "counts every kept open task rendered in the day's nested tree" do
+    requested_date = Date.new(2027, 1, 15)
+    root = create_open_task("root", logged_on: requested_date)
+    child = create_open_task("child", logged_on: requested_date + 1.day, parent: root)
+    grandchild = create_open_task("grandchild", logged_on: requested_date + 2.days, parent: child)
+    deleted_child = create_open_task("deleted", logged_on: requested_date, parent: root)
+    deleted_child.update!(deleted_at: Time.current)
+
+    get daily_log_path(date: requested_date.iso8601)
+
+    assert_response :success
+    assert_select "[data-testid='open-count']", text: "3 open"
+    assert_select "#entry_#{root.id} #entry_#{child.id} #entry_#{grandchild.id}"
+    assert_select "#entry_#{deleted_child.id}", count: 0
+  end
+
+  private
+
+  def create_open_task(text, logged_on:, parent: nil)
+    @user.entries.create!(
+      kind: "task",
+      state: "open",
+      text: text,
+      tags: [],
+      logged_on: logged_on,
+      parent: parent
+    )
   end
 end

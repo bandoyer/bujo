@@ -17,8 +17,18 @@ module DailyLogging
     Current.user.entries.daily_log(date)
   end
 
-  # The header count for a day: the open tasks logged at its root level.
+  # The header count for a day: every open task in the tree the view renders.
   def open_task_count_on(date)
-    daily_log_entries(date).open_tasks.count
+    entry_ids = rendered_entry_ids(daily_log_entries(date))
+    Current.user.entries.open_tasks.where(id: entry_ids).count
+  end
+
+  # Descendants appear with their top-most root regardless of their own date,
+  # so follow the same kept child relations as the recursive entry partial.
+  def rendered_entry_ids(entries)
+    entries.each_with_object([]) do |entry, ids|
+      ids << entry.id
+      ids.concat(rendered_entry_ids(entry.children.kept))
+    end
   end
 end
