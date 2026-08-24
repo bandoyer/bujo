@@ -2,7 +2,8 @@
 
 **This document is the project's source of truth for status and intent.
 Update it whenever a slice lands, a decision is made, or the plan
-changes.** A future session (human or agent) should be able to read this
+changes — but only the operator/planning session edits it; pack roles
+never do (their slice specs bound their file scope).** A future session (human or agent) should be able to read this
 file top to bottom and know exactly where things stand and what happens
 next.
 
@@ -109,8 +110,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 
 ## Open items
 
-- mutant licensing: free for open source — repo is public, so should be
-  fine; confirm when wiring mutant-minitest in slice 1.1
+- ~~mutant licensing~~ resolved 2026-08-24: mutant 0.16.3 installs and
+  runs with no license prompt on this machine
 - Droplet: DigitalOcean chosen, not yet provisioned; needed by slice
   1.3's deploy. Litestream backups go to a non-DO object store (R2 or
   B2) so backups don't share the host's failure domain
