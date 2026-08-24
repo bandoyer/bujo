@@ -11,6 +11,8 @@ class LetteringsControllerTest < ActionDispatch::IntegrationTest
 
       assert_redirected_to root_path
       assert_equal hand, cookies[:hand]
+      assert_match(/expires=/i, response.headers.fetch("Set-Cookie"))
+      assert_match(/samesite=lax/i, response.headers.fetch("Set-Cookie"))
     end
   end
 
