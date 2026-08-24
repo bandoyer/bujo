@@ -52,6 +52,13 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Minitest style rules alongside the omakase set
+  gem "rubocop-minitest", require: false
+
+  # Coverage as lcov for the quality bars (crap4rb reads it)
+  gem "simplecov", require: false
+  gem "simplecov-lcov", require: false
 end
 
 group :development do
