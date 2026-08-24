@@ -1,7 +1,18 @@
 Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+
+  get "daily(/:date)", to: "daily_logs#show", as: :daily_log
+  resources :entries, only: :create do
+    member do
+      post :complete
+      post :reopen
+      post :strike
+      post :migrate
+      post :schedule
+    end
+  end
+  resource :theme, only: :update
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
@@ -11,6 +22,5 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  # Placeholder root until the Daily Log lands (plan slice 3)
-  root "sessions#new"
+  root "daily_logs#show"
 end

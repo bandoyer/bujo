@@ -5,6 +5,6 @@ open_task:
   state: open
   text: Fixture task
   priority: false
-  tags: '["fixture"]'
+  tags:
+    - fixture
   logged_on: 2026-08-24
-

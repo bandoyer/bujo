@@ -1,0 +1,6 @@
+<% if @entry %>
+  <%= turbo_stream.remove "empty_daily_log" %>
+  <%= turbo_stream.append "entries", partial: "entries/entry", locals: { entry: @entry, viewed_on: @today } %>
+  <%= turbo_stream.replace "open_task_count", partial: "daily_logs/open_task_count", locals: { count: @open_task_count } %>
+<% end %>
+<%= turbo_stream.replace "rapid_log_form", partial: "entries/rapid_log_form" %>

@@ -1,0 +1,21 @@
+<%# One journal row: its bullet line, its lifecycle controls, then its children. %>
+<% muted = entry.state.in?(%w[done migrated]) %>
+<article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
+  <div class="entry__line">
+    <span class="entry__signifier" aria-label="<%= entry.priority? ? "Priority" : "Not priority" %>"><%= "*" if entry.priority? %></span>
+    <span class="entry__glyph"><%= entry.glyph %></span>
+    <span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
+    <%= render "entries/meta", entry: entry %>
+  </div>
+
+  <% if entry.kind == "task" %>
+    <%= render "entries/task_actions", entry: entry, viewed_on: viewed_on %>
+  <% end %>
+
+  <% children = entry.children.kept %>
+  <% if children.any? %>
+    <div class="entry__children">
+      <%= render partial: "entries/entry", collection: children, locals: { viewed_on: viewed_on } %>
+    </div>
+  <% end %>
+</article>
