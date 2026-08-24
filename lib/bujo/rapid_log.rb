@@ -6,12 +6,12 @@ module Bujo
     # Immutable result of parsing one rapid-log line.
     Parsed = Data.define(:kind, :state, :priority, :text, :date, :time, :tags, :raw)
 
-    DEFAULT_KINDS = %i[task event note].freeze
+    ALLOWED_DEFAULT_KINDS = %i[task event note].freeze
     GLYPHS = {
-      "•" => %i[task open],
-      "." => %i[task open],
-      "x" => %i[task done],
-      "X" => %i[task done],
+      "•" => [ :task, :open ],
+      "." => [ :task, :open ],
+      "x" => [ :task, :done ],
+      "X" => [ :task, :done ],
       "○" => [ :event, nil ],
       "o" => [ :event, nil ],
       "O" => [ :event, nil ],
@@ -51,7 +51,6 @@ module Bujo
     WEEKDAY_NAMES_PATTERN = WEEKDAYS.keys.sort_by { |name| -name.length }.map { |name| Regexp.escape(name) }.join("|")
     WEEKDAY_PATTERN = /(?:\A|(?<=\s))(?:#{WEEKDAY_NAMES_PATTERN})\z/i
     RELATIVE_DATE_PATTERN = /(?:\A|(?<=\s))(?:today|tomorrow)\z/i
-    DAY_NUMBERS = (1..31).to_h { |day| [ day.to_s, day ] }.freeze
     MAXIMUM_MONTH_DAYS = [ nil, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ].freeze
     RENDER_GLYPHS = {
       [ :task, :open ] => "•",
@@ -89,14 +88,15 @@ module Bujo
         tokens.concat(parsed.tags.map { |tag| "+#{tag}" })
         tokens << parsed.date if parsed.date
         tokens << parsed.time if parsed.time
+        tokens.unshift("*") if parsed.priority
 
-        "#{"* " if parsed.priority}#{tokens.join(" ")}"
+        tokens.join(" ")
       end
 
       private
 
       def validate_default_kind!(default_kind)
-        return if DEFAULT_KINDS.include?(default_kind)
+        return if ALLOWED_DEFAULT_KINDS.include?(default_kind)
 
         raise ArgumentError
       end
@@ -124,14 +124,10 @@ module Bujo
 
       def consume_end_zone(content, today)
         content, later_tags = consume_tags(content)
-        time_result = consume_time(content)
-        content = time_result.fetch(0)
-        time = time_result.fetch(1)
-        date_result = consume_date(content, today)
-        content = date_result.fetch(0)
-        date = date_result.fetch(1)
+        content, time = consume_time(content)
+        content, date = consume_date(content, today)
         content, earlier_tags = consume_tags(content)
-        tags = unique_tags(earlier_tags + later_tags)
+        tags = (earlier_tags + later_tags).uniq
 
         [ content, date, time, tags ]
       end
@@ -185,7 +181,7 @@ module Bujo
 
       def consume_month_day(match, today)
         month = MONTHS.fetch(match[1].downcase)
-        day = DAY_NUMBERS.fetch(match[2])
+        day = Integer(match[2], 10)
         date = next_month_day(today, month, day)
         return [ match.string, nil ] unless date
 
@@ -203,12 +199,6 @@ module Bujo
         [ before_match(match), today + days_ahead ]
       end
 
-      def valid_date(year, month, day)
-        Date.new(year, month, day)
-      rescue Date::Error
-        nil
-      end
-
       def next_month_day(today, month, day)
         return if day > MAXIMUM_MONTH_DAYS.fetch(month)
 
@@ -221,10 +211,10 @@ module Bujo
         end
       end
 
-      def unique_tags(tags)
-        tags.each_with_object([]) do |tag, unique|
-          unique << tag unless unique.include?(tag)
-        end
+      def valid_date(year, month, day)
+        Date.new(year, month, day)
+      rescue Date::Error
+        nil
       end
 
       def before_match(match)
@@ -236,11 +226,11 @@ module Bujo
       end
     end
 
-    private_constant :DEFAULT_KINDS, :GLYPHS, :GLYPH_PATTERN, :TAG_PATTERN,
+    private_constant :ALLOWED_DEFAULT_KINDS, :GLYPHS, :GLYPH_PATTERN, :TAG_PATTERN,
       :TWENTY_FOUR_HOUR_PATTERN, :TWELVE_HOUR_PATTERN, :ISO_DATE_PATTERN,
       :MONTHS, :MONTH_NAMES_PATTERN, :MONTH_DAY_PATTERN, :WEEKDAYS,
       :WEEKDAY_NAMES_PATTERN, :WEEKDAY_PATTERN,
-      :RELATIVE_DATE_PATTERN, :DAY_NUMBERS, :MAXIMUM_MONTH_DAYS,
+      :RELATIVE_DATE_PATTERN, :MAXIMUM_MONTH_DAYS,
       :RENDER_GLYPHS
   end
 end
