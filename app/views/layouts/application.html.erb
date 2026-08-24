@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html <%= tag.attributes(data: { theme: theme_preference }.compact) %>>
+<html <%= tag.attributes(data: { theme: theme_preference, hand: hand_preference }.compact) %>>
   <head>
     <title><%= content_for(:title) || "Bujo" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -11,10 +11,10 @@
 
     <%= yield :head %>
 
-    <%# TODO(1.7): Vendor these fonts for the offline PWA. %>
+    <%# TODO(1.7): Vendor these eight font families for the offline PWA. %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Patrick+Hand&family=Permanent+Marker&family=Public+Sans:wght@400;500;600&family=Rock+Salt&display=swap" rel="stylesheet">
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>

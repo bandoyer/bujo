@@ -1,0 +1,13 @@
+<%= form_with url: preference_path,
+              method: :patch,
+              class: "preference-toggle",
+              data: {
+                controller: "preference",
+                preference_choices_value: choices,
+                preference_attribute_value: preference_name
+              } do |form| %>
+  <%= form.hidden_field preference_name,
+                        value: current_value,
+                        data: { preference_target: "preference" } %>
+  <button type="button" class="preference-toggle__button" data-action="preference#cycle"><%= label %></button>
+<% end %>

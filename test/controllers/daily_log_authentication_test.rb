@@ -13,7 +13,8 @@ class DailyLogAuthenticationTest < ActionDispatch::IntegrationTest
       -> { post strike_entry_path(task) },
       -> { post migrate_entry_path(task), params: { viewed_on: today } },
       -> { post schedule_entry_path(task), params: { date: today } },
-      -> { patch theme_path, params: { theme: "dark" } }
+      -> { patch theme_path, params: { theme: "dark" } },
+      -> { patch lettering_path, params: { hand: "rock-salt" } }
     ]
 
     protected_requests.each do |request|

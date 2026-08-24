@@ -10,7 +10,10 @@
     </div>
 
     <div class="daily-log__utilities">
-      <%= render "themes/toggle" %>
+      <div class="daily-log__preferences">
+        <%= render "themes/toggle" %>
+        <%= render "letterings/toggle" %>
+      </div>
       <%= render "open_task_count", count: @open_task_count %>
     </div>
 

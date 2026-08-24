@@ -1,0 +1,6 @@
+<%= render "preferences/toggle",
+  preference_path: lettering_path,
+  preference_name: "hand",
+  current_value: current_hand,
+  choices: hand_choices,
+  label: "Hand: #{hand_label(current_hand)}" %>
