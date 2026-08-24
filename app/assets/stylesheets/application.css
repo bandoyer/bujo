@@ -7,6 +7,7 @@
   --line: #e0d8c4;
   --accent: #a8722a;
   --warn: #a0524a;
+  --selected-row: color-mix(in srgb, var(--surface) 94%, var(--accent));
   --dark-bg: #16161e;
   --dark-surface: #1a1b26;
   --dark-ink: #c0caf5;
@@ -212,11 +213,36 @@ a {
   color: var(--faint);
 }
 
+.entry--selected {
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+  border-bottom-color: transparent;
+  border-radius: 0.5rem;
+  background: var(--selected-row);
+}
+
 .entry__line {
   display: grid;
+  width: 100%;
+  min-height: 44px;
   grid-template-columns: 1rem 1.25rem minmax(0, 1fr) auto;
   gap: 0.25rem;
   align-items: baseline;
+}
+
+.entry__toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.entry__toggle:focus-visible {
+  border-radius: 0.25rem;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .entry__signifier {
@@ -243,6 +269,7 @@ a {
 }
 
 .entry__actions,
+.entry__schedule-step,
 .entry__schedule {
   display: flex;
   flex-wrap: wrap;
@@ -250,12 +277,18 @@ a {
   align-items: center;
 }
 
-.entry__actions {
+.entry__action-strip {
   margin: 0.35rem 0 0 2.5rem;
 }
 
-.entry__actions form {
+.entry__action-strip form {
   margin: 0;
+}
+
+.entry__action-strip[hidden],
+.entry__actions[hidden],
+.entry__schedule-step[hidden] {
+  display: none;
 }
 
 .entry-action,
@@ -276,6 +309,11 @@ a {
 
 .entry-action--warn {
   color: var(--warn);
+}
+
+.entry-action--cancel {
+  width: 44px;
+  padding: 0;
 }
 
 .entry__schedule input[type="date"] {

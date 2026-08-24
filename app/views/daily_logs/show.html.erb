@@ -23,7 +23,7 @@
     </nav>
   </header>
 
-  <section class="entry-list" id="entries" aria-label="Entries">
+  <section class="entry-list" id="entries" aria-label="Entries" data-controller="task-actions">
     <% if @entries.empty? %>
       <p class="entry-list__empty" id="empty_daily_log">Nothing logged yet.</p>
     <% else %>
