@@ -75,6 +75,19 @@ class EntryTest < ActiveSupport::TestCase
     end
   end
 
+  test "capture maps priority and time fields from the parser" do
+    event = Entry.capture!("* o Dinner tomorrow 6pm +Home", user: users(:one), today: TODAY)
+
+    assert_equal "event", event.kind
+    assert_nil event.state
+    assert_predicate event, :priority?
+    assert_equal "Dinner", event.text
+    assert_equal TODAY, event.logged_on
+    assert_equal TODAY + 1, event.occurs_on
+    assert_equal "18:00", event.time_of_day
+    assert_equal [ "home" ], event.tags
+  end
+
   test "daily logs contain kept roots ordered by creation and id" do
     user = users(:two)
     date = Date.new(2030, 4, 3)
@@ -231,6 +244,24 @@ class EntryTest < ActiveSupport::TestCase
     end
   end
 
+  test "rejects every task transition not allowed by the lifecycle table" do
+    disallowed_transitions = {
+      "done" => %i[complete! strike!],
+      "struck" => %i[complete! strike! migrate_to! schedule_to!],
+      "migrated" => %i[complete! strike! reopen! migrate_to! schedule_to!]
+    }
+
+    disallowed_transitions.each do |state, operations|
+      operations.each do |operation|
+        task = create_entry(state: state)
+
+        assert_raises(Entry::LifecycleError, "#{operation} from #{state}") do
+          perform_lifecycle_operation(task, operation)
+        end
+      end
+    end
+  end
+
   test "derives every journal glyph from entry state and migration destination" do
     open = create_entry
     struck = create_entry(state: "struck")
@@ -318,5 +349,16 @@ class EntryTest < ActiveSupport::TestCase
   def assert_invalid(record, attribute)
     assert_not record.valid?
     assert_not_empty record.errors[attribute]
+  end
+
+  def perform_lifecycle_operation(task, operation)
+    case operation
+    when :migrate_to!
+      task.migrate_to!(logged_on: TODAY + 1)
+    when :schedule_to!
+      task.schedule_to!(occurs_on: TODAY + 1)
+    else
+      task.public_send(operation)
+    end
   end
 end
