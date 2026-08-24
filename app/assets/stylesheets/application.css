@@ -1,10 +1,381 @@
-/*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
- */
+:root {
+  --bg: #f6f1e6;
+  --surface: #fdfaf2;
+  --ink: #201d18;
+  --muted: #8d8574;
+  --faint: #a39a89;
+  --line: #e0d8c4;
+  --accent: #a8722a;
+  --warn: #a0524a;
+  --event: #a8722a;
+  --dark-bg: #16161e;
+  --dark-surface: #1a1b26;
+  --dark-ink: #c0caf5;
+  --dark-muted: #565f89;
+  --dark-line: #2f3549;
+  --dark-accent: #7aa2f7;
+  --dark-warn: #f7768e;
+  --dark-event: #7dcfff;
+  color-scheme: light;
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(32, 29, 24, 0.09) 1px, transparent 1.1px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: "Public Sans", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--dark-bg);
+    --surface: var(--dark-surface);
+    --ink: var(--dark-ink);
+    --muted: var(--dark-muted);
+    --faint: var(--dark-muted);
+    --line: var(--dark-line);
+    --accent: var(--dark-accent);
+    --warn: var(--dark-warn);
+    --event: var(--dark-event);
+    color-scheme: dark;
+    background-image: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #16161e;
+  --surface: #1a1b26;
+  --ink: #c0caf5;
+  --muted: #565f89;
+  --faint: #565f89;
+  --line: #2f3549;
+  --accent: #7aa2f7;
+  --warn: #f7768e;
+  --event: #7dcfff;
+  color-scheme: dark;
+  background-image: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.flash {
+  width: min(28rem, calc(100% - 2rem));
+  margin: 1rem auto 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.flash--alert {
+  color: var(--warn);
+}
+
+.daily-log {
+  width: min(28rem, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 8.5rem;
+}
+
+.daily-log__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.daily-log__eyebrow,
+.daily-log__open-count,
+.day-navigation,
+.entry__glyph,
+.entry__meta,
+.tab-bar {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.daily-log__eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.daily-log h1 {
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+.daily-log__utilities {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.daily-log__open-count {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.theme-toggle__button {
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.67rem;
+}
+
+.day-navigation {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-navigation a {
+  display: inline-grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.day-navigation__today {
+  color: var(--accent) !important;
+  font-size: 0.75rem;
+}
+
+.entry-list {
+  min-height: 11rem;
+  padding: 0.5rem 0;
+}
+
+.entry-list__empty {
+  margin: 4rem 0;
+  color: var(--muted);
+  text-align: center;
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+}
+
+.entry {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.entry--muted {
+  color: var(--faint);
+}
+
+.entry__line {
+  display: grid;
+  grid-template-columns: 1rem 1.25rem minmax(0, 1fr) auto;
+  gap: 0.25rem;
+  align-items: baseline;
+}
+
+.entry__signifier {
+  color: var(--accent);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.entry__glyph {
+  color: var(--ink);
+}
+
+.entry__text--struck {
+  text-decoration: line-through;
+  text-decoration-color: var(--warn);
+}
+
+.entry__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.entry__actions,
+.entry__schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.entry__actions {
+  margin: 0.35rem 0 0 2.5rem;
+}
+
+.entry__actions form {
+  margin: 0;
+}
+
+.entry-action,
+.entry__schedule input[type="date"] {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.65rem;
+}
+
+.entry-action {
+  padding: 0 0.65rem;
+  cursor: pointer;
+}
+
+.entry-action--warn {
+  color: var(--warn);
+}
+
+.entry__schedule input[type="date"] {
+  max-width: 8.6rem;
+  padding: 0 0.4rem;
+}
+
+.entry__children {
+  margin-left: 1.5rem;
+}
+
+.rapid-log {
+  position: sticky;
+  bottom: 4.75rem;
+  z-index: 2;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 0.75rem 2rem color-mix(in srgb, var(--ink) 10%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.rapid-log__kinds {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.rapid-log__kind {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.rapid-log__kind--selected {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.rapid-log__input-wrap {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.rapid-log__input-wrap input[type="text"] {
+  min-width: 0;
+  flex: 1;
+  padding: 0 1rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.rapid-log__submit {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  border: 0;
+  background: var(--accent);
+  color: var(--surface);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.tab-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 7rem));
+  justify-content: center;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.tab-bar__item {
+  display: flex;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 0.65rem;
+}
+
+.tab-bar__item span {
+  font-size: 1rem;
+}
+
+.tab-bar__item--active {
+  color: var(--accent);
+}
