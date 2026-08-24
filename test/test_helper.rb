@@ -25,6 +25,10 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # Both models mint their own ids, so both suites make the same assertion.
+    def assert_uuid_v7(id)
+      assert_equal 36, id.length
+      assert_equal "7", id[14]
+    end
   end
 end

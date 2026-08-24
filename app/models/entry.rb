@@ -2,6 +2,7 @@ class Entry < ApplicationRecord
   class LifecycleError < StandardError; end
 
   include UuidV7Id
+  include SoftDeletable
 
   KINDS = %w[task event note].freeze
   TASK_STATES = %w[open done struck migrated].freeze
@@ -16,7 +17,7 @@ class Entry < ApplicationRecord
     optional: true,
     inverse_of: :successor
   has_many :children,
-    -> { order(:created_at, :id) },
+    -> { in_capture_order },
     class_name: "Entry",
     foreign_key: :parent_id,
     inverse_of: :parent
@@ -25,23 +26,30 @@ class Entry < ApplicationRecord
     foreign_key: :migrated_from_id,
     inverse_of: :predecessor
 
-  scope :kept, -> { where(deleted_at: nil) }
+  # The UUIDv7 id breaks created_at ties in capture order rather than fighting
+  # it, so rows written in the same instant still read back in the order they
+  # were captured.
+  scope :in_capture_order, -> { order(:created_at, :id) }
+  # Both dated logs sort the same way: by day, then timed entries ahead of
+  # all-day ones, then capture order. Named once so the two cannot disagree.
+  scope :in_calendar_order, -> {
+    order(:occurs_on, arel_table[:time_of_day].asc.nulls_last, :created_at, :id)
+  }
+
   scope :daily_log, ->(date) {
-    kept.where(logged_on: date, parent_id: nil).order(:created_at, :id)
+    kept.where(logged_on: date, parent_id: nil).in_capture_order
   }
   scope :monthly_calendar, ->(month) {
-    kept.where(occurs_on: month.all_month)
-      .order(:occurs_on, arel_table[:time_of_day].asc.nulls_last, :created_at, :id)
+    kept.where(occurs_on: month.all_month).in_calendar_order
   }
   scope :monthly_tasks, ->(month) {
-    kept.where(kind: "task", logged_on: month.all_month).order(:created_at, :id)
+    kept.where(kind: "task", logged_on: month.all_month).in_capture_order
   }
   scope :future_log, ->(after:) {
-    kept.where(arel_table[:occurs_on].gt(after))
-      .order(:occurs_on, arel_table[:time_of_day].asc.nulls_last, :created_at, :id)
+    kept.where(arel_table[:occurs_on].gt(after)).in_calendar_order
   }
   scope :open_tasks, -> {
-    kept.where(kind: "task", state: "open").order(:created_at, :id)
+    kept.where(kind: "task", state: "open").in_capture_order
   }
 
   validates :text, presence: true
@@ -116,13 +124,9 @@ class Entry < ApplicationRecord
     return "○" if kind == "event"
     return "–" if kind == "note"
     return "x" if state == "done"
-    return successor&.occurs_on? ? "<" : ">" if state == "migrated"
+    return migrated_glyph if state == "migrated"
 
     "•"
-  end
-
-  def soft_delete!(at: Time.current)
-    update!(deleted_at: at)
   end
 
   private
@@ -135,6 +139,12 @@ class Entry < ApplicationRecord
     end
   end
 
+  # A migrated task points at where it went: onto the calendar as a scheduled
+  # entry, or into a month or a collection.
+  def migrated_glyph
+    successor&.occurs_on? ? "<" : ">"
+  end
+
   def parent_belongs_to_user
     return unless parent
 
@@ -142,7 +152,7 @@ class Entry < ApplicationRecord
   end
 
   def transition_to!(new_state, from:)
-    ensure_transition_from!(*Array(from))
+    ensure_transition_from!(from)
     update!(state: new_state)
   end
 
@@ -168,8 +178,8 @@ class Entry < ApplicationRecord
     }
   end
 
-  def ensure_transition_from!(*states)
-    return if kind == "task" && states.include?(state)
+  def ensure_transition_from!(states)
+    return if kind == "task" && Array(states).include?(state)
 
     raise LifecycleError
   end

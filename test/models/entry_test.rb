@@ -285,9 +285,7 @@ class EntryTest < ActiveSupport::TestCase
   test "fixture ids survive and generated ids are UUIDv7" do
     assert_equal "0198f3b9-0000-7000-8000-000000000002", entries(:open_task).id
 
-    generated = create_entry
-    assert_equal 36, generated.id.length
-    assert_equal "7", generated.id[14]
+    assert_uuid_v7 create_entry.id
   end
 
   private

@@ -46,11 +46,4 @@ class CollectionTest < ActiveSupport::TestCase
     assert_uuid_v7 generated.id
     assert_equal supplied_id, supplied.id
   end
-
-  private
-
-  def assert_uuid_v7(id)
-    assert_equal 36, id.length
-    assert_equal "7", id[14]
-  end
 end
