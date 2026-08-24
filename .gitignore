@@ -34,3 +34,5 @@
 /config/*.key
 
 /coverage/
+.swarmforge/
+.worktrees/
