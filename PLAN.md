@@ -7,9 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.2 merged (2026-08-24) — next up: the two project
-> skills, then the slice 1.3 spec (Daily Log UI + themes + first
-> deploy).**
+> **Status: slice 1.3 spec ready at `docs/slices/1.3-daily-log.md` —
+> hand it to the swarm ("specify and drive"). Project skills for
+> interactive sessions live in `.claude/skills/`. After 1.3 merges:
+> the operator deploy (droplet + Kamal + Litestream + DNS) puts bujo
+> on the phone.**
 
 ## What this is
 
@@ -132,10 +134,10 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending (slice 1.1 added a require-graph boundary test for
   `lib/bujo/` in its place)
-- After slice 1.2 lands: write the two project skills (`bujo-conventions`
-  with the schema invariants, `testing` with the Minitest/mutant house
-  rules) so interactive sessions get what the swarm articles already
-  encode
+- ~~Project skills~~ done 2026-08-24: `.claude/skills/bujo-conventions`
+  and `.claude/skills/testing`
+- Fonts served from Google Fonts as of 1.3; vendor locally in 1.7
+  (PWA/offline) — a `TODO(1.7)` marks the link site
 - `bin/ci` does not yet run the system lane or mutation — operator
   decision on wiring, revisit before slice 1.3's deploy
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
