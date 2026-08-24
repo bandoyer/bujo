@@ -86,6 +86,8 @@ module Bujo
       def render(parsed)
         tokens = [ render_glyph(parsed), parsed.text ]
         tokens.concat(parsed.tags.map { |tag| "+#{tag}" })
+        # Joining the Date itself yields its stdlib ISO-8601 form, and that is
+        # what lets a rendered line reparse to the same date under any today.
         tokens << parsed.date if parsed.date
         tokens << parsed.time if parsed.time
         tokens.unshift("*") if parsed.priority
@@ -144,17 +146,26 @@ module Bujo
 
       def consume_time(content)
         if (match = content.match(TWENTY_FOUR_HOUR_PATTERN))
-          hour = Integer(match[1], 10)
-          minute = Integer(match[2], 10)
-          return [ before_match(match), format("%02d:%02d", hour, minute) ]
+          return [ before_match(match), clock_time(integer_from(match[1]), integer_from(match[2])) ]
         end
 
         match = content.match(TWELVE_HOUR_PATTERN)
         return [ content, nil ] unless match
 
-        hour = Integer(match[1], 10) % 12
-        hour += 12 if match[3].casecmp?("pm")
-        [ before_match(match), format("%02d:%02d", hour, match[2] || 0) ]
+        [ before_match(match), clock_time(meridiem_hour(match), integer_from(match[2])) ]
+      end
+
+      # Both clock notations reach their canonical form here, so neither can
+      # drift from the other in how a matched time is written out.
+      def clock_time(hour, minute)
+        format("%02d:%02d", hour, minute)
+      end
+
+      # The reading wraps at 12 before the afternoon shift, not after it, so
+      # that 12am is hour 0 and 12pm is hour 12.
+      def meridiem_hour(match)
+        hour = integer_from(match[1]) % 12
+        match[3].casecmp?("pm") ? hour + 12 : hour
       end
 
       def consume_date(content, today)
@@ -181,7 +192,7 @@ module Bujo
 
       def consume_month_day(match, today)
         month = MONTHS.fetch(match[1].downcase)
-        day = Integer(match[2], 10)
+        day = integer_from(match[2])
         date = next_month_day(today, month, day)
         return [ match.string, nil ] unless date
 
@@ -199,6 +210,9 @@ module Bujo
         [ before_match(match), today + days_ahead ]
       end
 
+      # Rejecting a day the month can never hold (feb 30) is what bounds the
+      # search below: every day that survives this guard occurs within the
+      # next leap cycle, so the year walk always terminates.
       def next_month_day(today, month, day)
         return if day > MAXIMUM_MONTH_DAYS.fetch(month)
 
@@ -215,6 +229,14 @@ module Bujo
         Date.new(year, month, day)
       rescue Date::Error
         nil
+      end
+
+      # The only place a digit capture becomes a number, and the reason parse
+      # keeps its promise never to raise on line content: the base has to be
+      # explicit, because Kernel#Integer reads a zero-padded "08"/"09" as
+      # octal and rejects it. An absent capture counts as zero.
+      def integer_from(capture)
+        capture ? Integer(capture, 10) : 0
       end
 
       def before_match(match)
