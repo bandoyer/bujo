@@ -1,15 +1,25 @@
-<%# One journal row: its bullet line, its lifecycle controls, then its children. %>
+<%# One journal row: its bullet line, its hidden lifecycle controls, then its children. %>
 <% muted = entry.state.in?(%w[done migrated]) %>
+<% actionable = entry.kind == "task" && entry.state.in?(%w[open done struck]) %>
+<% action_strip_id = "entry_#{entry.id}_actions" %>
 <article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
-  <div class="entry__line">
-    <span class="entry__signifier" aria-label="<%= entry.priority? ? "Priority" : "Not priority" %>"><%= "*" if entry.priority? %></span>
-    <span class="entry__glyph"><%= entry.glyph %></span>
-    <span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
-    <%= render "entries/meta", entry: entry %>
-  </div>
+  <% if actionable %>
+    <button type="button"
+            class="entry__line entry__toggle"
+            aria-expanded="false"
+            aria-controls="<%= action_strip_id %>"
+            data-task-actions-target="toggle"
+            data-action="task-actions#toggle">
+      <%= render "entries/entry_line", entry: entry %>
+    </button>
+  <% else %>
+    <div class="entry__line">
+      <%= render "entries/entry_line", entry: entry %>
+    </div>
+  <% end %>
 
-  <% if entry.kind == "task" %>
-    <%= render "entries/task_actions", entry: entry, viewed_on: viewed_on %>
+  <% if actionable %>
+    <%= render "entries/task_actions", entry: entry, viewed_on: viewed_on, action_strip_id: action_strip_id %>
   <% end %>
 
   <% children = entry.children.kept %>

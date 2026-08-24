@@ -1,18 +1,30 @@
 <%# Lifecycle controls for a task row. Each posts the day being viewed so the
     redirect lands back where the reader was, not on today. %>
 <% viewed_on_iso = viewed_on.iso8601 %>
-<div class="entry__actions">
-  <% if entry.state == "open" %>
-    <%= button_to "Complete", complete_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
-    <%= button_to "Strike", strike_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action entry-action--warn" %>
-    <%= button_to "Migrate", migrate_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
-    <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
-      <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
-      <%= form.label :date, "Schedule date", class: "visually-hidden" %>
-      <%= form.date_field :date, required: true, aria: { label: "Schedule date" } %>
-      <%= form.submit "Schedule", class: "entry-action" %>
+<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
+  <div class="entry__actions" data-task-actions-target="actionsStep">
+    <% if entry.state == "open" %>
+      <%= button_to "Complete", complete_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
+      <%= button_to "Strike", strike_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action entry-action--warn" %>
+      <%= button_to "Migrate", migrate_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
+      <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
+    <% else %>
+      <%= button_to "Reopen", reopen_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
     <% end %>
-  <% elsif entry.state.in?(%w[done struck]) %>
-    <%= button_to "Reopen", reopen_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
+  </div>
+
+  <% if entry.state == "open" %>
+    <div class="entry__schedule-step" data-task-actions-target="scheduleStep" hidden>
+      <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
+        <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
+        <%= form.label :date, "Schedule date", class: "visually-hidden" %>
+        <%= form.date_field :date, required: true, aria: { label: "Schedule date" } %>
+        <%= form.submit "Schedule", class: "entry-action" %>
+      <% end %>
+      <button type="button"
+              class="entry-action entry-action--cancel"
+              aria-label="Cancel scheduling"
+              data-action="task-actions#cancelSchedule">×</button>
+    </div>
   <% end %>
 </div>

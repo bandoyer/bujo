@@ -31,10 +31,37 @@ class DailyLogTest < ApplicationSystemTestCase
       assert_text "pack for the trip"
       assert_text "14:00"
       assert_text "+camping"
+      assert_no_button "Complete"
+      assert_no_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
     end
     assert_equal open_count + 1, displayed_open_count
     assert_equal "", find_field("Rapid log…").value
     assert_equal "rapid-log-line", page.evaluate_script("document.activeElement.id")
+    action_strip_id = "entry_#{task.id}_actions"
+    assert_selector "button.entry__toggle[type='button'][aria-expanded='false'][aria-controls='#{action_strip_id}']"
+    assert_selector "##{action_strip_id}[hidden]", visible: :all
+
+    reveal_actions(task)
+    within entry_selector(task) do
+      assert_selector ".entry__toggle[aria-expanded='true']"
+      assert_selector "##{action_strip_id}:not([hidden])"
+      assert_button "Complete"
+      assert_button "Strike"
+      assert_button "Migrate"
+      assert_button "Schedule…", exact: true
+    end
+
+    reveal_actions(task)
+    within entry_selector(task) do
+      assert_selector ".entry__toggle[aria-expanded='false']"
+      assert_selector "##{action_strip_id}[hidden]", visible: :all
+      assert_no_button "Complete"
+      assert_no_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
+    end
   end
 
   test "3 the kind toggle captures an event without task actions" do
@@ -47,10 +74,42 @@ class DailyLogTest < ApplicationSystemTestCase
     within entry_selector(event) do
       assert_text "○"
       assert_text "09:00"
+      assert_no_selector ".entry__toggle"
+      find(".entry__line").click
+      assert_no_selector ".entry__action-strip"
       assert_no_button "Complete"
       assert_no_button "Strike"
       assert_no_button "Migrate"
-      assert_no_button "Schedule"
+      assert_no_button "Schedule…", exact: true
+    end
+  end
+
+  test "opening a second task closes the first task's actions" do
+    sign_in
+    capture "first calm task"
+    first_task = @user.entries.find_by!(text: "first calm task")
+    capture "second calm task"
+    second_task = @user.entries.find_by!(text: "second calm task")
+
+    reveal_actions(first_task)
+    assert_selector "#{entry_selector(first_task)}.entry--selected"
+    within entry_selector(first_task) do
+      assert_button "Complete"
+      click_button "Schedule…", exact: true
+      assert_field "Schedule date"
+    end
+
+    reveal_actions(second_task)
+    assert_no_selector "#{entry_selector(first_task)}.entry--selected"
+    within(entry_selector(first_task)) { assert_no_button "Complete" }
+    assert_selector "#{entry_selector(second_task)}.entry--selected"
+    within(entry_selector(second_task)) { assert_button "Complete" }
+
+    reveal_actions(first_task)
+    within entry_selector(first_task) do
+      assert_button "Complete"
+      assert_button "Schedule…", exact: true
+      assert_no_field "Schedule date"
     end
   end
 
@@ -60,11 +119,19 @@ class DailyLogTest < ApplicationSystemTestCase
     task = @user.entries.find_by!(text: "round trip task")
     open_count = displayed_open_count
 
+    reveal_actions(task)
     within(entry_selector(task)) { click_button "Complete" }
     assert_selector "#{entry_selector(task)}.entry--muted"
     assert_equal open_count - 1, displayed_open_count
+
+    reveal_actions(task)
     within entry_selector(task) do
       assert_text "x"
+      assert_button "Reopen"
+      assert_no_button "Complete"
+      assert_no_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
       click_button "Reopen"
     end
 
@@ -77,6 +144,7 @@ class DailyLogTest < ApplicationSystemTestCase
     capture "obsolete task"
     task = @user.entries.find_by!(text: "obsolete task")
 
+    reveal_actions(task)
     within(entry_selector(task)) { click_button "Strike" }
     assert_selector "#{entry_selector(task)} .entry__text--struck"
 
@@ -95,21 +163,33 @@ class DailyLogTest < ApplicationSystemTestCase
 
     capture "scheduled task"
     scheduled_task = @user.entries.find_by!(text: "scheduled task", migrated_from_id: nil)
+
+    reveal_actions(scheduled_task)
     within entry_selector(scheduled_task) do
+      click_button "Schedule…", exact: true
+      assert_field "Schedule date"
+      find("button[aria-label='Cancel scheduling']").click
+      assert_no_field "Schedule date"
+      assert_button "Schedule…", exact: true
+
+      click_button "Schedule…", exact: true
       set_date_field "Schedule date", scheduled_on
-      click_button "Schedule"
+      click_button "Schedule", exact: true
     end
     assert_selector "#{entry_selector(scheduled_task)} .entry__glyph", text: "<"
     within entry_selector(scheduled_task) do
+      assert_no_selector ".entry__toggle"
       assert_text "→ #{formatted_destination(scheduled_on)}"
     end
 
     capture "migrated task"
     migrated_task = @user.entries.find_by!(text: "migrated task", migrated_from_id: nil)
+    reveal_actions(migrated_task)
     within(entry_selector(migrated_task)) { click_button "Migrate" }
     migration_day = Time.zone.today.next_month.beginning_of_month
     assert_selector "#{entry_selector(migrated_task)} .entry__glyph", text: ">"
     within entry_selector(migrated_task) do
+      assert_no_selector ".entry__toggle"
       assert_text "→ #{formatted_destination(migration_day)}"
     end
   end
@@ -167,6 +247,10 @@ class DailyLogTest < ApplicationSystemTestCase
 
   def displayed_open_count
     find("[data-testid='open-count']").text.to_i
+  end
+
+  def reveal_actions(entry)
+    within(entry_selector(entry)) { find(".entry__toggle").click }
   end
 
   def set_date_field(label, date)
