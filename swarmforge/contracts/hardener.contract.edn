@@ -1,5 +1,6 @@
 {:role "hardener"
- :artifact-roots ["src/" "tests/" "test/"]
+ :artifact-roots ["src/" "tests/" "test/"
+                  "app/" "lib/" "config/" "db/" ".mutant.yml"]
  :required-evidence [{:name "coverage-fresh" :pattern "(?i)coverage|lcov"}
                      {:name "complexity" :pattern "(?i)crap"}
                      {:name "mutation" :pattern "(?i)mutat|stryker"}
