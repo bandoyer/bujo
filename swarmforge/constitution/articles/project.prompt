@@ -1,0 +1,60 @@
+# Article: Project
+
+## Language and layout
+
+- Language: Ruby 4.0 / Rails 8.1 (omakase: SQLite, Propshaft, import
+  maps, Hotwire, Solid Queue/Cache/Cable, Minitest)
+- Source layout: standard Rails — production code in `app/` and `lib/`,
+  tests in `test/` mirroring the source tree, fixtures in `test/fixtures/`
+
+## Commands
+
+- Unit tests: `bin/rails test` (fast lane — model, controller, unit;
+  never system tests)
+- Coverage: `COVERAGE=1 bin/rails test` — writes `coverage/lcov.info`
+- Acceptance suite: `bin/rails test:system` (Capybara + headless
+  browser; slow lane only)
+- Lint/format: `bin/rubocop` (omakase + rubocop-minitest)
+
+## Quality bars
+
+Universal — gate every acceptance and handoff:
+
+- All unit tests green: `bin/rails test`
+- Lint clean: `bin/rubocop`
+- CRAP within bar (fresh coverage first):
+  `COVERAGE=1 bin/rails test && crap4rb --lcov coverage/lcov.info app/ lib/`
+- No new duplication: `jscpd --min-tokens 50 --reporters console app/ lib/`
+
+Role-specific additions:
+
+- qa: acceptance flows for the slice via `bin/rails test:system`
+- hardener: none yet — mutation testing lands with the rapid-log
+  parser slice (mutant-minitest; see PLAN.md)
+
+## Code style
+
+- Rails omakase throughout; `bin/rubocop` enforces mechanically
+- Minitest as Rails ships it: plain assertions, fixtures over
+  factories, real objects against the test database. Doubles only at
+  true external edges (network, clock); Mocha if unavoidable. No
+  RSpec, no factory_bot
+- Entry ids are client-generatable UUIDv7 — never rely on
+  auto-increment identity
+
+## Notes
+
+- PLAN.md at the repo root is the living plan: current phase, slice
+  statuses, decisions. Read it before starting any task; the task's
+  slice defines your scope.
+- ARCHITECTURE.md at the repo root is the sync design. The schema
+  decisions in it (logs are date queries, migration is an append-only
+  chain, soft deletes, hlc/server_seq columns) bind even in slices
+  that do not implement sync.
+- Visual spec: the mockups in github.com/bandoyer/bujo-mockups (the
+  mobile artboards are the phone PWA's look — paper background, ink
+  text, mono bullet glyphs). Match them, including the rapid-logging
+  glyphs: • task, x done, > migrated, < scheduled, ○ event, – note,
+  * priority signifier.
+- Single-user app. No registration, no multi-tenancy; the seeded
+  user is the only account.

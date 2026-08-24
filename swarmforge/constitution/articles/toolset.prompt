@@ -1,0 +1,49 @@
+# Article: Toolset (ruby)
+
+Quality toolset for Ruby / Rails projects — Minitest, Rails-omakase flavored.
+
+These are the project's quality tools. Where a role prompt names a
+purpose (coverage, mutation, crap, dry, boundaries, acceptance), use
+exactly the command below — no substitutes.
+
+## acceptance
+
+    bin/rails test:system
+
+Rails system tests (Capybara + headless browser) are the acceptance layer — the omakase answer, no Gherkin runner. Slow by design: never fold into the unit lane, and mutation never runs against it.
+
+## boundaries
+
+    bin/packwerk check
+
+Packwerk enforces package boundaries; start as one root package and carve out a package only when a boundary is worth defending. Plain-Ruby gems: a dedicated Minitest boundary test asserting the require graph instead.
+
+## coverage
+
+    COVERAGE=1 bin/rails test
+
+SimpleCov + simplecov-lcov (enabled in test_helper when COVERAGE is set) writes lcov to coverage/lcov.info. Regenerate before reading any coverage-derived metric; stale coverage invalidates everything built on it.
+
+## crap
+
+    crap4rb --lcov coverage/lcov.info <source-dir>
+
+CRAP = complexity^2 x (1-coverage)^3 + complexity, computed per method from source + lcov — same formula and bar as crap4net: every method <= 6 (exit 2 lists offenders). Requires fresh coverage first.
+
+## dry
+
+    jscpd --min-tokens 50 --reporters console <source-dir>
+
+Language-agnostic; same tool and bar as the dotnet toolset. Duplication within the slice's scope gets removed or explicitly justified.
+
+## mutation
+
+    bundle exec mutant run --integration minitest
+
+Scope runs to the slice's subjects (e.g. -- 'Bujo::Sync*'). mutant-minitest maps tests to subjects via a cover declaration in each test class — a new test without `cover` is invisible to mutation. Surviving mutants in the slice's scope are work: kill them with better tests or record precisely why each survivor is unkillable.
+
+## test
+
+    bin/rails test
+
+Full unit suite; green before any handoff. Test stack: Minitest as Rails ships it — plain assertions, fixtures over factories, real objects against the real test database. Doubles only at true external edges (network, clock); Mocha when unavoidable. Do not use RSpec or factory_bot in new tests. rubocop-minitest + rubocop-rails-omakase clean. Plain-Ruby gems (no Rails): bundle exec rake test. Browser/system tests belong under acceptance, never here.

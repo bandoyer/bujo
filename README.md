@@ -1,24 +1,34 @@
-# README
+# bujo
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A digital Bullet Journal (Ryder Carroll's method): rapid logging,
+daily/monthly/future logs, collections, and migration as a deliberate
+ritual. Rails 8 system of record serving a Hotwire PWA for the phone,
+with a local-first TUI client (separate repo) to follow.
 
-Things you may want to cover:
+- **[PLAN.md](PLAN.md)** — living plan: current status, phases,
+  decisions. Start here.
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — how sync between the TUI and
+  the web app works.
+- **[bujo-mockups](https://github.com/bandoyer/bujo-mockups)** — the
+  design mocks this app is built to.
 
-* Ruby version
+## Development
 
-* System dependencies
+```sh
+bin/setup                      # bundle, db prepare
+BUJO_EMAIL=you@example.com BUJO_PASSWORD=... bin/rails db:seed
+bin/dev
+```
 
-* Configuration
+Quality bars (all must pass before merging):
 
-* Database creation
+```sh
+bin/rails test                                                  # fast lane
+bin/rubocop
+COVERAGE=1 bin/rails test && crap4rb --lcov coverage/lcov.info app/ lib/
+jscpd --min-tokens 50 --reporters console app/ lib/
+bin/rails test:system                                           # slow lane
+```
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Built with [swarm-forge-herdr](https://github.com/bandoyer/swarm-forge-herdr)
+agent swarms; the swarm config lives in `swarmforge/`.
