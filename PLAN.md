@@ -123,11 +123,14 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       clean qa pass + operator review; at merge: 83 fast + 13 system
       runs green, all bars, 3/3 hand-mutations killed, marker verified
       in both themes.
-- [ ] **1.4 Monthly + Future Logs** — calendar/tasks toggle per mock.
-      Rulings settled 2026-08-24 (month-grouped Future Log, full task
-      list on the Tasks toggle, tappable day rows); the two missing
-      artboards (Monthly Tasks, Future Log) are drawn and awaiting
-      operator approval on the mockups canvas. Spec next.
+- [ ] **1.4 Monthly + Future Logs** — IN FLIGHT (2026-08-24). Spec at
+      `docs/slices/1.4-monthly-and-future-logs.md`; all three mock
+      artboards operator-approved (Monthly Calendar, Monthly Tasks,
+      Future Log — the latter two added to bujo-mockups 2026-08-24).
+      Rulings: reading screens (no capture/actions off the Daily Log),
+      server-rendered Calendar|Tasks pill, tappable day rows, month-
+      grouped Future runway with six faint headers, tab bar goes live
+      with the mock's SVG icons.
 - [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
 - [ ] **1.6 Index** — search across collections and entries.
 - [ ] **1.7 PWA** — manifest/service worker, vendor the fonts for
