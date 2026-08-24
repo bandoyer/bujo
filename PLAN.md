@@ -102,11 +102,15 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       system runs green, rubocop clean, CRAP ≤ 6 over 78 methods, jscpd
       0 clones, parser mutation 1105/1105, 4/4 hand-mutations killed,
       both themes visually verified, tenancy probe clean.
-- [ ] **1.3.1 Collapsed task actions** (mini slice) — the five task
-      buttons collapse behind a row tap, per the picked "Tap to
-      reveal" mock ([canvas](https://claude.ai/code/artifact/016d3b48-d915-416c-a073-14ed1abcb7f6)).
-      Spec at `docs/slices/1.3.1-collapsed-task-actions.md`. Views/CSS/
-      Stimulus only; also the operator's first routine redeploy.
+- [x] **1.3.1 Collapsed task actions** ✅ (2026-08-24, mini slice) —
+      the five task buttons collapse behind a row tap, per the picked
+      "Tap to reveal" mock ([canvas](https://claude.ai/code/artifact/016d3b48-d915-416c-a073-14ed1abcb7f6)).
+      Spec at `docs/slices/1.3.1-collapsed-task-actions.md` (specifier
+      added four rulings at acceptance: line-only toggle, strips reopen
+      on actions, distinct Schedule…/Schedule names, one tap per
+      action). Single clean qa pass + operator review; at merge: 80
+      fast + 11 system runs green, all bars, 3/3 hand-mutations
+      killed, both themes verified against the mock.
 - [ ] **1.4 Monthly + Future Logs** — calendar/tasks toggle per mock.
 - [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
 - [ ] **1.6 Index** — search across collections and entries.
