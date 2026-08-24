@@ -10,8 +10,9 @@ export default class extends Controller {
   static targets = ["preference"]
 
   cycle() {
-    this.preferenceTarget.value = this.nextPreference()
-    this.applyPreference(this.preferenceTarget.value)
+    const preference = this.nextPreference()
+    this.preferenceTarget.value = preference
+    this.applyPreference(preference)
     this.element.requestSubmit()
   }
 

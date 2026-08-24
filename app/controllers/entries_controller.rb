@@ -10,18 +10,18 @@ class EntriesController < ApplicationController
 
   # Captures a rapid-log line into today using an allowed default kind.
   def create
-    @date = Time.zone.today
+    @today = Time.zone.today
     @entry = Entry.capture!(
       params[:line],
       user: Current.user,
-      today: @date,
+      today: @today,
       default_kind: default_kind
     )
-    @open_task_count = open_task_count_on(@date)
+    @open_task_count = open_task_count_on(@today)
 
     respond_to do |format|
       format.turbo_stream
-      format.html { redirect_to daily_log_path(date: @date.iso8601) }
+      format.html { redirect_to daily_log_path(date: @today.iso8601) }
     end
   end
 
