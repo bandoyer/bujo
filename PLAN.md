@@ -7,9 +7,10 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.3 merged (2026-08-24). Next: the first deploy
-> (operator work — droplet, Kamal, Litestream → R2, DNS), then spec
-> slice 1.4. The swarm is up and idle.**
+> **Status: DEPLOYED (2026-08-24) — slice 1.3 live at
+> https://bujo.questlog.dev with Litestream streaming to R2; dogfooding
+> begins. Next: spec slice 1.4 (Monthly + Future Logs). The swarm is
+> up and idle.**
 
 ## What this is
 
@@ -104,9 +105,10 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - [ ] **1.4 Monthly + Future Logs** — calendar/tasks toggle per mock.
 - [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
 - [ ] **1.6 Index** — search across collections and entries.
-- [ ] **1.7 PWA + deploy** — manifest/service worker, Kamal to the VPS,
-      Litestream backup. **Deploy target: after 1.3, not 1.7** — dogfood
-      as soon as the Daily Log works; 1.4–1.6 get built under real use.
+- [ ] **1.7 PWA** — manifest/service worker, vendor the fonts for
+      offline. (The deploy, Kamal, and Litestream landed early, with
+      1.3 — done 2026-08-24 per the dogfood-first ruling; 1.4–1.6 get
+      built under real use.)
 
 ### Phase 2 — the sync spine
 
@@ -126,17 +128,24 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 
 - ~~mutant licensing~~ resolved 2026-08-24: mutant 0.16.3 installs and
   runs with no license prompt on this machine
-- Droplet: DigitalOcean chosen, not yet provisioned; needed by slice
-  1.3's deploy. Litestream backups go to a non-DO object store (R2 or
-  B2) so backups don't share the host's failure domain
+- ~~Droplet~~ **deployed 2026-08-24**: droplet `bujo` (s-1vcpu-2gb,
+  nyc3, Ubuntu 24.04) at 174.138.85.202, firewall `bujo-web`
+  (22/80/443 by tag), SSH key `bujo-deploy` (`~/.ssh/id_ed25519`).
+  Kamal + kamal-proxy with Let's Encrypt; images on GHCR
+  (`ghcr.io/bandoyer/bujo`, gh CLI token with write:packages).
+  Litestream runs as a Kamal accessory replicating the primary
+  database to R2 bucket `bujo-litestream` (came forward from 1.7);
+  creds at `~/.config/cloudflare/bujo-r2-credentials` (mode 600).
+  `doctl` is authed for droplet management
 - Domain: **questlog.dev** purchased 2026-08-24 (Cloudflare Registrar;
   DNS at Cloudflare). Zone carries the no-email lockdown (SPF `-all`,
-  DMARC reject, empty wildcard DKIM, null MX) as of 2026-08-24; app
-  records come with slice 1.3's deploy. A zone-scoped DNS API token is
-  saved locally at `~/.config/cloudflare/questlog-dns-token` (mode 600,
-  never committed) for driving deploy-day DNS. The same Cloudflare
-  account will hold the R2 bucket for Litestream backups in 1.7.
-  press-start gets its own domain later if it launches publicly
+  DMARC reject, empty wildcard DKIM, null MX) as of 2026-08-24.
+  **`bujo.questlog.dev` live 2026-08-24**: A record → 174.138.85.202,
+  DNS-only/grey-cloud so Let's Encrypt HTTP-01 reaches kamal-proxy —
+  don't flip it to proxied without rethinking certs. Zone-scoped DNS
+  token at `~/.config/cloudflare/questlog-dns-token` (mode 600, never
+  committed). press-start gets its own domain later if it launches
+  publicly
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending (slice 1.1 added a require-graph boundary test for
   `lib/bujo/` in its place)
