@@ -57,4 +57,33 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to daily_log_path(date: Time.zone.today.iso8601)
     assert_equal "That entry can't do that.", flash[:alert]
   end
+
+  test "schedule rejects an absent date without moving the task" do
+    assert_schedule_rejected({})
+  end
+
+  test "schedule rejects an unparseable date without moving the task" do
+    assert_schedule_rejected(date: "not-a-date")
+  end
+
+  private
+
+  def assert_schedule_rejected(schedule_params)
+    viewed_on = Date.new(2027, 1, 15)
+    task = @user.entries.create!(
+      kind: "task",
+      state: "open",
+      text: "stay put",
+      tags: [],
+      logged_on: viewed_on
+    )
+    original_lifecycle = [ task.state, task.occurs_on ]
+
+    post schedule_entry_path(task), params: { viewed_on: viewed_on.iso8601 }.merge(schedule_params)
+
+    assert_redirected_to daily_log_path(date: viewed_on.iso8601)
+    assert_equal "That entry can't do that.", flash[:alert]
+    task.reload
+    assert_equal original_lifecycle, [ task.state, task.occurs_on ]
+  end
 end

@@ -6,7 +6,10 @@ class EntriesController < ApplicationController
   DEFAULT_KINDS = %w[task event note].freeze
 
   before_action :set_entry, except: :create
-  rescue_from Entry::LifecycleError, with: :reject_illegal_lifecycle_action
+  rescue_from Entry::LifecycleError,
+    Date::Error,
+    ActionController::ParameterMissing,
+    with: :reject_illegal_lifecycle_action
 
   # Captures a rapid-log line into today using an allowed default kind.
   def create

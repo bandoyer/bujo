@@ -56,6 +56,22 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{note.id}"
   end
 
+  test "header traversal stops at a soft-deleted child" do
+    requested_date = Date.new(2027, 1, 15)
+    root = create_open_task("visible root", logged_on: requested_date)
+    deleted_child = create_open_task("deleted child", logged_on: requested_date, parent: root)
+    grandchild = create_open_task("hidden grandchild", logged_on: requested_date, parent: deleted_child)
+    deleted_child.soft_delete!
+
+    get daily_log_path(date: requested_date.iso8601)
+
+    assert_response :success
+    assert_select "[data-testid='open-count']", text: "1 open"
+    assert_select "#entry_#{root.id}"
+    assert_select "#entry_#{deleted_child.id}", count: 0
+    assert_select "#entry_#{grandchild.id}", count: 0
+  end
+
   private
 
   def create_open_task(text, logged_on:, parent: nil)
