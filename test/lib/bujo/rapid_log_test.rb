@@ -132,6 +132,9 @@ class RapidLogParseTest < ActiveSupport::TestCase
       "evening 11:59pm" => [ "evening", "23:59" ],
       "meet 0:00" => [ "meet", "00:00" ],
       "meet 9:30" => [ "meet", "09:30" ],
+      "meet 09:30" => [ "meet", "09:30" ],
+      "meet 14:08" => [ "meet", "14:08" ],
+      "meet 14:09" => [ "meet", "14:09" ],
       "meet 23:59" => [ "meet", "23:59" ],
       "meet 24:00" => [ "meet 24:00", nil ],
       "meet 9:5" => [ "meet 9:5", nil ],
@@ -199,6 +202,20 @@ class RapidLogParseTest < ActiveSupport::TestCase
     assert_equal "note � here", parsed.text
     assert_equal "  note � here  ", parsed.raw
     assert_predicate parsed.raw, :valid_encoding?
+  end
+
+  test "forces BINARY input to UTF-8 without mutating the caller's string" do
+    malformed = "  note x here  ".b
+    malformed.setbyte(7, 0xFF)
+    original_bytes = malformed.bytes
+
+    parsed = Bujo::RapidLog.parse(malformed, today: TODAY)
+
+    assert_equal "note � here", parsed.text
+    assert_equal "  note � here  ", parsed.raw
+    assert_equal Encoding::UTF_8, parsed.raw.encoding
+    assert_equal Encoding::ASCII_8BIT, malformed.encoding
+    assert_equal original_bytes, malformed.bytes
   end
 end
 

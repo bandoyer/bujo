@@ -64,7 +64,7 @@ module Bujo
       # Parses +line+ using the caller-provided date for relative expressions.
       def parse(line, today:, default_kind: :task)
         validate_default_kind!(default_kind)
-        raw = line.to_s.scrub
+        raw = line.to_s.dup.force_encoding(Encoding::UTF_8).scrub
         content = raw.strip
 
         content, kind, state, priority = consume_prefix(content, default_kind)
@@ -148,7 +148,9 @@ module Bujo
 
       def consume_time(content)
         if (match = content.match(TWENTY_FOUR_HOUR_PATTERN))
-          return [ before_match(match), format("%02d:%02d", match[1], match[2]) ]
+          hour = Integer(match[1], 10)
+          minute = Integer(match[2], 10)
+          return [ before_match(match), format("%02d:%02d", hour, minute) ]
         end
 
         match = content.match(TWELVE_HOUR_PATTERN)
