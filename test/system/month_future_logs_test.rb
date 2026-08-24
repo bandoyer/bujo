@@ -12,17 +12,26 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
   test "1 the tab bar navigates among live logs and leaves Index disabled" do
     sign_in
 
-    assert_link "Today", exact: true
+    assert_link "Today", exact: true, href: root_path
+    assert_active_tab "Today"
+    assert_selector ".tab-bar__icon[aria-hidden='true'][focusable='false']", count: 4
     click_link "Month", exact: true
     assert_current_path monthly_log_path
     assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today)
+    assert_active_tab "Month"
+    assert_no_field "Rapid log…"
 
     click_link "Future", exact: true
     assert_current_path future_log_path
     assert_text "Future Log"
+    assert_selector ".future-log__eyebrow", text: formatted_future_start(Time.zone.today)
+    assert_active_tab "Future"
+    assert_no_selector ".monthly-log__views"
+    assert_no_selector ".month-navigation"
 
     click_link "Today", exact: true
     assert_current_path root_path
+    assert_active_tab "Today"
     assert_button "Index", exact: true, disabled: true
     assert_no_link "Index", exact: true
   end
@@ -45,7 +54,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
   test "3 a scheduled task appears in next month's calendar and the future runway" do
     sign_in
     scheduled_on = Time.zone.today.next_month.beginning_of_month + 6.days
-    capture "runway task"
+    capture "runway task 2pm"
     task = @user.entries.find_by!(text: "runway task", migrated_from_id: nil)
     schedule_task(task, scheduled_on)
 
@@ -54,12 +63,18 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     within calendar_day(scheduled_on) do
       assert_text "runway task"
       assert_text scheduled_on.day.to_s
+      assert_text "14:00"
+      assert_selector ".entry__glyph", text: "•"
+      assert_no_selector ".entry__toggle"
+      assert_no_button "Complete"
     end
 
     click_link "Future", exact: true
     within future_month(scheduled_on) do
       assert_text "runway task"
       assert_text scheduled_on.day.to_s
+      assert_text "14:00"
+      assert_selector ".entry__glyph", text: "•"
     end
   end
 
@@ -99,6 +114,10 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     sign_in
     capture "finish monthly slice"
     task = @user.entries.find_by!(text: "finish monthly slice")
+    capture "obsolete monthly task"
+    struck_task = @user.entries.find_by!(text: "obsolete monthly task")
+    reveal_actions(struck_task)
+    within(entry_selector(struck_task)) { click_button "Strike" }
 
     click_link "Month", exact: true
     click_link "Tasks", exact: true
@@ -109,17 +128,25 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       assert_no_selector ".entry__toggle"
       assert_no_button "Complete"
     end
+    within "#monthly_task_#{struck_task.id}" do
+      assert_selector ".entry__text--struck"
+      text_decoration = page.evaluate_script(
+        "getComputedStyle(document.querySelector('#monthly_task_#{struck_task.id} .entry__text')).textDecorationLine"
+      )
+      assert_includes text_decoration, "line-through"
+    end
 
     find("#monthly_task_#{task.id}").click
     reveal_actions(task)
     within(entry_selector(task)) { click_button "Complete" }
     click_link "Month", exact: true
+    assert_selector ".monthly-log__views"
     click_link "Tasks", exact: true
 
     assert_selector "#monthly_task_#{task.id}.entry--muted"
     within("#monthly_task_#{task.id}") { assert_text "x" }
     assert_equal initial_open_count - 1, displayed_month_open_count
-    assert_text "1 logged"
+    assert_text "2 logged"
   end
 
   test "7 migrated task history links to its day and shows its destination" do
@@ -219,6 +246,11 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_selector ".monthly-log__view-link[aria-current='page']", text: "Calendar"
   end
 
+  def assert_active_tab(label)
+    assert_selector ".tab-bar__item[aria-current='page']", count: 1
+    assert_selector ".tab-bar__item[aria-current='page']", text: label, count: 1
+  end
+
   def displayed_month_open_count
     find(".monthly-task-count").text.to_i
   end
@@ -241,6 +273,10 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
   def formatted_month(date)
     date.strftime("%b · %Y").upcase
+  end
+
+  def formatted_future_start(date)
+    "FROM #{(date + 1.day).strftime("%b %-d · %Y").upcase}"
   end
 
   def formatted_destination(date)
