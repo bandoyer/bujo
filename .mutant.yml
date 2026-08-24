@@ -1,0 +1,10 @@
+integration: minitest
+usage: opensource
+includes:
+  - lib
+  - test
+requires:
+  - bujo/rapid_log
+matcher:
+  subjects:
+    - "Bujo::RapidLog*"

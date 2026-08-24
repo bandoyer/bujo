@@ -56,6 +56,9 @@ group :development, :test do
   # Minitest style rules alongside the omakase set
   gem "rubocop-minitest", require: false
 
+  # Mutation testing for the shared rapid-log grammar
+  gem "mutant-minitest", "0.16.3", require: false
+
   # Coverage as lcov for the quality bars (crap4rb reads it)
   gem "simplecov", require: false
   gem "simplecov-lcov", require: false
