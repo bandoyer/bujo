@@ -110,10 +110,11 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - Droplet: DigitalOcean chosen, not yet provisioned; needed by slice
   1.3's deploy. Litestream backups go to a non-DO object store (R2 or
   B2) so backups don't share the host's failure domain
-- Domain: **questlog.dev** chosen — Dan still needs to purchase it
-  (Cloudflare Registrar or Porkbun, ~$12/yr; .dev is HTTPS-only, which
-  fits — everything is TLS). Needed by slice 1.3's deploy. press-start
-  gets its own domain later if it launches publicly
+- Domain: **questlog.dev** purchased 2026-08-24 (Cloudflare Registrar;
+  DNS zone lives at Cloudflare — empty until slice 1.3's deploy wires
+  `bujo.questlog.dev` to the droplet). The same Cloudflare account will
+  hold the R2 bucket for Litestream backups in 1.7. press-start gets
+  its own domain later if it launches publicly
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
