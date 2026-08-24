@@ -1,0 +1,8 @@
+<%# A tab's accessible name is its label alone, so the icon contributes none:
+    hidden from the accessibility tree and out of the tab order. The spec rules
+    it because an icon that names itself gives the tab a compound name and
+    breaks exact selection in the browser lane - so the rule lives here once
+    rather than in every tab, where the next one could quietly get it wrong. %>
+<svg class="tab-bar__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <%= yield %>
+</svg>
