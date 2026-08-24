@@ -1,3 +1,5 @@
 {:role "coder"
- :artifact-roots ["src/" "tests/" "test/" "features/" ".gitignore"]
- :required-evidence [{:name "tests-green" :pattern "(?i)(\\d+ )?(tests? )?passed|dotnet test|bb test"}]}
+ :artifact-roots ["src/" "tests/" "test/" "features/" ".gitignore"
+                  "app/" "lib/" "config/" "db/" "public/"
+                  "Gemfile" "Gemfile.lock" ".mutant.yml" ".rubocop.yml"]
+ :required-evidence [{:name "tests-green" :pattern "(?i)(\\d+ )?(tests? )?passed|dotnet test|bb test|rails test"}]}
