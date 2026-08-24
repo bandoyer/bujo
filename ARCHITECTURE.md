@@ -74,11 +74,11 @@ Most sync pain is self-inflicted at the schema level, so the schema does three d
 
 ```text
 # the tables that matter (server; the TUI mirrors entries + collections)
-entries         id uuidv7 · kind task|event|note · text · state open|done|struck
-                logged_on · occurs_on · signifier · collection_id? · parent_id?
-                migrated_from_id? · hlc · server_seq · deleted_at?
+entries         id uuidv7 · kind task|event|note · text · state open|done|struck|migrated
+                logged_on · occurs_on · time_of_day · priority · tags · collection_id?
+                parent_id? · migrated_from_id? (unique) · hlc · server_seq · deleted_at?
 entry_revisions entry_id · field · lost_value · lost_hlc · kept_hlc   # conflict losers
-collections     id · name · kind custom|future                        # dailies/monthlies are queries
+collections     id · name              # ALL logs — daily, monthly, future — are date queries
 devices         id · name · kind tui|web · refresh_token_digest
                 last_synced_seq · last_seen_at · revoked_at?
 applied_ops     op_id (unique) · device_id · applied_at               # idempotency ledger

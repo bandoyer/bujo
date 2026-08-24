@@ -7,8 +7,9 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.1 merged (2026-08-24) — next up: the slice 1.2 spec
-> (entries & collections).**
+> **Status: slice 1.2 spec ready at
+> `docs/slices/1.2-entries-and-collections.md` — hand it to the swarm
+> ("specify and drive", not "implement"); Fable reviews before merge.**
 
 ## What this is
 
