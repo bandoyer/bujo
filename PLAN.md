@@ -56,7 +56,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-24 | Public repo; deploy to a VPS with Kamal; app keeps the name **bujo** |
 | 2026-08-24 | Swarm pack: `six-all-models-review` (Claude/Codex/Grok, workers isolated behind human integration) |
 | 2026-08-24 | Ruby 4.0.6 via mise (Omarchy's Rails install), Rails 8.1 |
-| 2026-08-24 | Mobile look: paper-and-ink direction from the mocks (dark "terminal-kin" alt not chosen for v1) |
+| 2026-08-24 | Mobile look: paper-and-ink direction from the mocks |
+| 2026-08-24 | **Both themes ship** (supersedes the line above): light = paper dot-grid, dark = "terminal-kin" using the Tokyo Night palette from the TUI mocks, so web-dark and the TUI rhyme. Default follows the system (`prefers-color-scheme`); a user toggle overrides (light/dark/system three-state). Views are built on CSS custom-property tokens from slice 1.3 onward — theming is a foundation, not a retrofit |
 | 2026-08-24 | Host: DigitalOcean (Hetzner's 2026 price hikes closed the gap; DO wins on stability and smoothness). Droplet size decided at deploy time — 2 GB is enough for bujo alone, 4 GB once press-start shares the box |
 | 2026-08-24 | Umbrella domain: **questlog.dev** — a quest log is both a gaming term and a journal, covering the whole portfolio. Apps on subdomains: `bujo.questlog.dev`, `pressstart.questlog.dev`. Availability confirmed via registry RDAP 2026-08-24; purchase pending |
 
@@ -82,7 +83,9 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       columns dormant. Schema per ARCHITECTURE.md.
 - [ ] **1.3 Daily Log** — Hotwire view + rapid-log bar per the mobile
       mock; entry actions (done, migrate, schedule, strike). Root moves
-      here from the sign-in placeholder.
+      here from the sign-in placeholder. Establishes the theme system:
+      token-based CSS, light (paper) + dark (terminal-kin/Tokyo Night)
+      + system-follow, with the user toggle.
 - [ ] **1.4 Monthly + Future Logs** — calendar/tasks toggle per mock.
 - [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
 - [ ] **1.6 Index** — search across collections and entries.
