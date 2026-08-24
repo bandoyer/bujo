@@ -111,13 +111,18 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       action). Single clean qa pass + operator review; at merge: 80
       fast + 11 system runs green, all bars, 3/3 hand-mutations
       killed, both themes verified against the mock.
-- [ ] **1.3.2 Hand lettering** (mini slice) — Permanent Marker becomes
-      the journal's default face (full treatment), with a header
-      cycler through Rock Salt / Architects Daughter / Patrick Hand /
-      Gochi Hand / the 1.3 serif look. Faces picked on the
-      [Hand-Lettered Titles canvas](https://claude.ai/code/artifact/31d0cb57-850b-4498-95b1-9dab725ccc03);
-      spec at `docs/slices/1.3.2-hand-lettering.md`. Same cookie +
-      data-attribute + token machinery as themes.
+- [x] **1.3.2 Hand lettering** ✅ (2026-08-24, mini slice) — Permanent
+      Marker is the journal's default face (full treatment), with a
+      header cycler through Rock Salt / Architects Daughter / Patrick
+      Hand / Gochi Hand / an all-sans look (operator post-merge swap:
+      the serif stop became sans and Newsreader left the app). Faces
+      picked on the [Hand-Lettered Titles canvas](https://claude.ai/code/artifact/31d0cb57-850b-4498-95b1-9dab725ccc03);
+      spec at `docs/slices/1.3.2-hand-lettering.md`. The swarm
+      extracted a shared PreferenceCookies concern + one Stimulus
+      cycler serving both toggles; theme tests byte-identical. Single
+      clean qa pass + operator review; at merge: 83 fast + 13 system
+      runs green, all bars, 3/3 hand-mutations killed, marker verified
+      in both themes.
 - [ ] **1.4 Monthly + Future Logs** — calendar/tasks toggle per mock.
       Rulings settled 2026-08-24 (month-grouped Future Log, full task
       list on the Tasks toggle, tappable day rows); the two missing
