@@ -1,13 +1,8 @@
 # Persists the user's explicit color-theme preference in a cookie.
 class ThemesController < ApplicationController
-  # Sets light or dark explicitly; system removes the override.
+  # Records the submitted preference, then returns the reader to their screen.
   def update
-    if EXPLICIT_THEMES.include?(params[:theme])
-      cookies.permanent[:theme] = { value: params[:theme], same_site: :lax }
-    else
-      cookies.delete(:theme)
-    end
-
+    store_theme_preference(params[:theme])
     redirect_back fallback_location: root_path
   end
 end

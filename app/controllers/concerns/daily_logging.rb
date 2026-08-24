@@ -1,4 +1,4 @@
-# The day a Daily Log request is about, and what its header counts.
+# The day a Daily Log request is about, and what that day shows.
 module DailyLogging
   extend ActiveSupport::Concern
 
@@ -12,8 +12,13 @@ module DailyLogging
     Time.zone.today
   end
 
+  # The rows a day's log lists: the signed-in reader's root entries for it.
+  def daily_log_entries(date)
+    Current.user.entries.daily_log(date)
+  end
+
   # The header count for a day: the open tasks logged at its root level.
   def open_task_count_on(date)
-    Current.user.entries.daily_log(date).open_tasks.count
+    daily_log_entries(date).open_tasks.count
   end
 end
