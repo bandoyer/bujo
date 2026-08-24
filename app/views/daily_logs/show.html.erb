@@ -1,4 +1,6 @@
 <% content_for :title, "Daily Log · Bujo" %>
+<%# The controller owns the clock; the screen only asks which day it holds. %>
+<% viewing_today = @date == @today %>
 
 <main class="daily-log">
   <header class="daily-log__header">
@@ -14,8 +16,8 @@
 
     <nav class="day-navigation" aria-label="Daily Log days">
       <%= link_to "‹", daily_log_path(date: (@date - 1.day).iso8601), aria: { label: "Previous day" } %>
-      <% if @date != Time.zone.today %>
-        <%= link_to "today", daily_log_path(date: Time.zone.today.iso8601), class: "day-navigation__today" %>
+      <% unless viewing_today %>
+        <%= link_to "today", daily_log_path(date: @today.iso8601), class: "day-navigation__today" %>
       <% end %>
       <%= link_to "›", daily_log_path(date: (@date + 1.day).iso8601), aria: { label: "Next day" } %>
     </nav>
@@ -29,7 +31,8 @@
     <% end %>
   </section>
 
-  <% if @date == Time.zone.today %>
+  <%# Capture always logs into today, so the bar only appears on today. %>
+  <% if viewing_today %>
     <%= render "entries/rapid_log_form" %>
   <% end %>
 

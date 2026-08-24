@@ -1,5 +1,7 @@
 # Connects Daily Log forms to the existing entry capture and lifecycle API.
 class EntriesController < ApplicationController
+  include DailyLogging
+
   # Form values accepted as parser default kinds.
   DEFAULT_KINDS = %w[task event note].freeze
 
@@ -15,7 +17,7 @@ class EntriesController < ApplicationController
       today: @date,
       default_kind: default_kind
     )
-    @open_task_count = Current.user.entries.daily_log(@date).open_tasks.count
+    @open_task_count = open_task_count_on(@date)
 
     respond_to do |format|
       format.turbo_stream

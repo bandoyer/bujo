@@ -7,7 +7,6 @@
   --line: #e0d8c4;
   --accent: #a8722a;
   --warn: #a0524a;
-  --event: #a8722a;
   --dark-bg: #16161e;
   --dark-surface: #1a1b26;
   --dark-ink: #c0caf5;
@@ -15,15 +14,23 @@
   --dark-line: #2f3549;
   --dark-accent: #7aa2f7;
   --dark-warn: #f7768e;
-  --dark-event: #7dcfff;
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
   color-scheme: light;
   background-color: var(--bg);
   background-image: radial-gradient(rgba(32, 29, 24, 0.09) 1px, transparent 1.1px);
   background-size: 22px 22px;
   color: var(--ink);
-  font-family: "Public Sans", system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
+/* The dark palette has to be applied from two places: once for the system
+   preference and once for the explicit choice, so neither can win by accident.
+   CSS cannot share a declaration block across a media-query boundary, so the
+   two lists below are necessarily identical — but every dark value they apply
+   is defined exactly once, as --dark-* on :root, so they cannot drift apart.
+   jscpd:ignore-start */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: var(--dark-bg);
@@ -34,25 +41,24 @@
     --line: var(--dark-line);
     --accent: var(--dark-accent);
     --warn: var(--dark-warn);
-    --event: var(--dark-event);
     color-scheme: dark;
     background-image: none;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #16161e;
-  --surface: #1a1b26;
-  --ink: #c0caf5;
-  --muted: #565f89;
-  --faint: #565f89;
-  --line: #2f3549;
-  --accent: #7aa2f7;
-  --warn: #f7768e;
-  --event: #7dcfff;
+  --bg: var(--dark-bg);
+  --surface: var(--dark-surface);
+  --ink: var(--dark-ink);
+  --muted: var(--dark-muted);
+  --faint: var(--dark-muted);
+  --line: var(--dark-line);
+  --accent: var(--dark-accent);
+  --warn: var(--dark-warn);
   color-scheme: dark;
   background-image: none;
 }
+/* jscpd:ignore-end */
 
 * {
   box-sizing: border-box;
@@ -122,7 +128,7 @@ a {
 .entry__glyph,
 .entry__meta,
 .tab-bar {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .daily-log__eyebrow {
@@ -134,7 +140,7 @@ a {
 
 .daily-log h1 {
   margin: 0;
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(2rem, 9vw, 2.75rem);
   font-weight: 600;
   line-height: 0.95;
@@ -159,7 +165,7 @@ a {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.67rem;
 }
 
@@ -179,8 +185,8 @@ a {
   text-decoration: none;
 }
 
-.day-navigation__today {
-  color: var(--accent) !important;
+.day-navigation a.day-navigation__today {
+  color: var(--accent);
   font-size: 0.75rem;
 }
 
@@ -193,7 +199,7 @@ a {
   margin: 4rem 0;
   color: var(--muted);
   text-align: center;
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-serif);
   font-style: italic;
 }
 
@@ -215,7 +221,7 @@ a {
 
 .entry__signifier {
   color: var(--accent);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .entry__glyph {
@@ -259,7 +265,7 @@ a {
   border-radius: 0.5rem;
   background: var(--surface);
   color: var(--muted);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
 }
 
@@ -309,7 +315,7 @@ a {
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .rapid-log__kind--selected {

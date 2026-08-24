@@ -2,7 +2,7 @@
 class ThemesController < ApplicationController
   # Sets light or dark explicitly; system removes the override.
   def update
-    if THEME_PREFERENCES.include?(params[:theme])
+    if EXPLICIT_THEMES.include?(params[:theme])
       cookies.permanent[:theme] = { value: params[:theme], same_site: :lax }
     else
       cookies.delete(:theme)

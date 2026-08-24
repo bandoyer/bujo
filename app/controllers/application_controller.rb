@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
-  # Explicit themes supported by the cookie-backed preference.
-  THEME_PREFERENCES = %w[light dark].freeze
+  # The themes a reader can choose outright; "system" is the absence of a choice.
+  EXPLICIT_THEMES = %w[light dark].freeze
 
   include Authentication
   helper_method :theme_preference
@@ -12,13 +12,7 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def date_or_today(value)
-    Date.iso8601(value.to_s)
-  rescue Date::Error
-    Time.zone.today
-  end
-
   def theme_preference
-    cookies[:theme] if THEME_PREFERENCES.include?(cookies[:theme])
+    cookies[:theme] if EXPLICIT_THEMES.include?(cookies[:theme])
   end
 end

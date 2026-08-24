@@ -10,7 +10,7 @@ class SessionsTest < ApplicationSystemTestCase
     assert_selector "input[type=password][name=password]"
     assert_button "Sign in"
 
-    sign_in_through_browser(user, password: "wrong")
+    submit_sign_in_form(user, password: "wrong")
     assert_current_path new_session_path
     assert_text "Try another email address or password."
 
