@@ -1,6 +1,7 @@
 # The day a Daily Log request is about, and what that day shows.
 module DailyLogging
   extend ActiveSupport::Concern
+  include JournalReading
 
   private
 
@@ -10,12 +11,6 @@ module DailyLogging
     Date.iso8601(value.to_s)
   rescue Date::Error
     Time.zone.today
-  end
-
-  # Whose journal every Daily Log query reads. Named once so the ownership
-  # scope cannot be spelled out differently in two places.
-  def user_entries
-    Current.user.entries
   end
 
   # The rows a day's log lists: the signed-in reader's root entries for it.

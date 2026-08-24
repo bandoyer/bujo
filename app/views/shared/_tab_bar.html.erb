@@ -1,0 +1,34 @@
+<nav class="tab-bar" aria-label="Journal sections">
+  <%= link_to root_path,
+              class: class_names("tab-bar__item", "tab-bar__item--active": active == :today),
+              aria: { current: ("page" if active == :today) } do %>
+    <svg class="tab-bar__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="8"></circle>
+      <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+    </svg>
+    <span>Today</span>
+  <% end %>
+  <%= link_to monthly_log_path,
+              class: class_names("tab-bar__item", "tab-bar__item--active": active == :month),
+              aria: { current: ("page" if active == :month) } do %>
+    <svg class="tab-bar__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="4" y="5" width="16" height="15" rx="2"></rect>
+      <path d="M8 3v4M16 3v4M4 9h16M8 13h2M14 13h2M8 17h2M14 17h2"></path>
+    </svg>
+    <span>Month</span>
+  <% end %>
+  <%= link_to future_log_path,
+              class: class_names("tab-bar__item", "tab-bar__item--active": active == :future),
+              aria: { current: ("page" if active == :future) } do %>
+    <svg class="tab-bar__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="m5 6 6 6-6 6M13 6l6 6-6 6"></path>
+    </svg>
+    <span>Future</span>
+  <% end %>
+  <button class="tab-bar__item" type="button" disabled>
+    <svg class="tab-bar__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 6h12M6 12h12M6 18h12"></path>
+    </svg>
+    <span>Index</span>
+  </button>
+</nav>

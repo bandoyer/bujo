@@ -3,6 +3,8 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
 
   get "daily(/:date)", to: "daily_logs#show", as: :daily_log
+  get "month(/:month)", to: "monthly_logs#show", as: :monthly_log
+  get "future", to: "future_logs#show", as: :future_log
   resources :entries, only: :create do
     member do
       post :complete

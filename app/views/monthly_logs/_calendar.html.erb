@@ -1,0 +1,23 @@
+<section class="monthly-calendar" aria-label="<%= @month.strftime("%B %Y") %> calendar">
+  <% @month.all_month.each do |day| %>
+    <% day_entries = @entries_by_date.fetch(day, []) %>
+    <% (day_entries.presence || [ nil ]).each_with_index do |entry, index| %>
+      <%= link_to daily_log_path(date: day.iso8601),
+                  id: ("monthly_entry_#{entry.id}" if entry),
+                  class: class_names(
+                    "monthly-calendar__day",
+                    "monthly-calendar__day--today": day == @today,
+                    "entry--muted": entry&.state.in?(%w[done migrated])
+                  ),
+                  data: { date: day.iso8601 } do %>
+        <span class="monthly-calendar__number"><%= day.day if index.zero? %></span>
+        <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase if index.zero? %></span>
+        <% if entry %>
+          <span class="entry__glyph <%= "monthly-calendar__glyph--event" if entry.kind == "event" %>"><%= hand_glyph(entry.glyph) %></span>
+          <span class="entry__text <%= "entry__text--struck" if entry.state == "struck" %>"><%= entry.text %></span>
+          <%= render "entries/meta", entry: entry %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</section>
