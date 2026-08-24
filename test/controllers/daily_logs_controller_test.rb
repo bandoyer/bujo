@@ -24,7 +24,7 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     child = create_open_task("child", logged_on: requested_date + 1.day, parent: root)
     grandchild = create_open_task("grandchild", logged_on: requested_date + 2.days, parent: child)
     deleted_child = create_open_task("deleted", logged_on: requested_date, parent: root)
-    deleted_child.update!(deleted_at: Time.current)
+    deleted_child.soft_delete!
 
     get daily_log_path(date: requested_date.iso8601)
 
