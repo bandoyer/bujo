@@ -1,0 +1,13 @@
+# Continuous replication of the journal's system of record to R2,
+# off DigitalOcean's failure domain. Credentials come in as env vars
+# from .kamal/secrets; Litestream expands ${...} itself.
+dbs:
+  - path: /data/production.sqlite3
+    replicas:
+      - type: s3
+        bucket: bujo-litestream
+        path: production
+        endpoint: https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+        region: auto
+        access-key-id: ${LITESTREAM_ACCESS_KEY_ID}
+        secret-access-key: ${LITESTREAM_SECRET_ACCESS_KEY}
