@@ -57,6 +57,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-24 | Ruby 4.0.6 via mise (Omarchy's Rails install), Rails 8.1 |
 | 2026-08-24 | Mobile look: paper-and-ink direction from the mocks (dark "terminal-kin" alt not chosen for v1) |
 | 2026-08-24 | Host: DigitalOcean (Hetzner's 2026 price hikes closed the gap; DO wins on stability and smoothness). Droplet size decided at deploy time — 2 GB is enough for bujo alone, 4 GB once press-start shares the box |
+| 2026-08-24 | Umbrella domain: **questlog.dev** — a quest log is both a gaming term and a journal, covering the whole portfolio. Apps on subdomains: `bujo.questlog.dev`, `pressstart.questlog.dev`. Availability confirmed via registry RDAP 2026-08-24; purchase pending |
 
 ## Phases and slices
 
@@ -109,9 +110,10 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - Droplet: DigitalOcean chosen, not yet provisioned; needed by slice
   1.3's deploy. Litestream backups go to a non-DO object store (R2 or
   B2) so backups don't share the host's failure domain
-- Domain: still TBD — plan is one umbrella domain (Cloudflare Registrar
-  or Porkbun), apps on subdomains; press-start gets its own later if it
-  launches publicly
+- Domain: **questlog.dev** chosen — Dan still needs to purchase it
+  (Cloudflare Registrar or Porkbun, ~$12/yr; .dev is HTTPS-only, which
+  fits — everything is TLS). Needed by slice 1.3's deploy. press-start
+  gets its own domain later if it launches publicly
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending
 - Passkeys for web auth: nice-to-have after phase 1 (generator's
