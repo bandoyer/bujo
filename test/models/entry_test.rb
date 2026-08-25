@@ -156,6 +156,51 @@ class EntryTest < ActiveSupport::TestCase
     assert_equal [ overdue, timed, untimed ], user.entries.future_log.to_a
   end
 
+  test "Collection pages contain only kept resident roots in capture order" do
+    collection = collections(:camping)
+    other_collection = users(:one).collections.create!(name: "Other")
+    foreign_collection = users(:two).collections.create!(name: "Foreign")
+    timestamp = Time.zone.parse("2033-10-01 08:00:00")
+    later = create_entry(
+      id: "0198f3b9-0000-7000-8000-000000000052",
+      collection: collection,
+      page_kind: "collection",
+      page_on: nil,
+      occurs_on: Date.new(2033, 10, 5),
+      created_at: timestamp
+    )
+    earlier = create_entry(
+      id: "0198f3b9-0000-7000-8000-000000000051",
+      collection: collection,
+      page_kind: "collection",
+      page_on: nil,
+      created_at: timestamp
+    )
+    child = create_entry(
+      collection: collection,
+      page_kind: "collection",
+      page_on: nil,
+      parent: earlier,
+      kind: "note",
+      state: nil
+    )
+    create_entry(collection: collection, page_kind: "collection", page_on: nil,
+      deleted_at: timestamp)
+    create_entry(collection: other_collection, page_kind: "collection", page_on: nil)
+    create_entry(user: users(:two), collection: foreign_collection,
+      page_kind: "collection", page_on: nil)
+    create_entry(page_kind: "daily", page_on: Date.new(2033, 10, 5),
+      occurs_on: Date.new(2033, 10, 5))
+
+    roots = users(:one).entries.collection_page(collection.id)
+
+    assert_equal [ earlier, later ], roots.to_a
+    assert_not_includes roots, child
+    assert_equal [ child ], earlier.children.kept.to_a
+    assert_includes roots, later,
+      "occurs_on must not exclude an entry resident on the Collection page"
+  end
+
   test "open tasks return only kept open tasks in stable order" do
     user = users(:two)
     timestamp = Time.zone.parse("2034-01-01 08:00:00")

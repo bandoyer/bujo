@@ -79,6 +79,14 @@ class Entry < ApplicationRecord
   scope :future_log, -> {
     kept.where(page_kind: "future", parent_id: nil).in_calendar_order
   }
+  # Returns root residents of one Custom Collection page.
+  scope :collection_page, ->(collection_id) {
+    kept.where(
+      page_kind: "collection",
+      collection_id: collection_id,
+      parent_id: nil
+    ).in_capture_order
+  }
   # Returns every kept open task regardless of page.
   scope :open_tasks, -> {
     kept.where(kind: "task", state: "open").in_capture_order

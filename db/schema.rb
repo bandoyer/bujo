@@ -10,17 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_25_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_25_210000) do
   create_table "collections", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
     t.string "hlc"
+    t.bigint "index_position"
     t.string "name", null: false
     t.bigint "server_seq"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["server_seq"], name: "index_collections_on_server_seq"
+    t.index ["user_id", "index_position"], name: "index_collections_on_user_id_and_index_position", unique: true, where: "deleted_at IS NULL AND index_position IS NOT NULL"
     t.index ["user_id"], name: "index_collections_on_user_id"
+    t.check_constraint "index_position IS NULL OR index_position > 0", name: "collections_index_position_positive"
   end
 
   create_table "entries", id: :string, force: :cascade do |t|
