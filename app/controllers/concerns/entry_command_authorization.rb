@@ -20,14 +20,12 @@ module EntryCommandAuthorization
     "done" => %w[reopen],
     "struck" => %w[reopen]
   }.transform_values(&:freeze).freeze
-  # Events may schedule or move while notes may move; either becomes final
-  # at this residency as soon as it has a successor.
-  EVENT_COMMANDS = %w[schedule move_to_collection].freeze
-  NOTE_COMMANDS = %w[move_to_collection].freeze
+  # What an event or note supports. Neither varies by state - both carry NULL -
+  # so kind alone keys them. A note's one command is the first it has ever had.
   NON_TASK_COMMANDS_BY_KIND = {
-    "event" => EVENT_COMMANDS,
-    "note" => NOTE_COMMANDS
-  }.freeze
+    "event" => %w[schedule move_to_collection],
+    "note" => %w[move_to_collection]
+  }.transform_values(&:freeze).freeze
   NO_RESIDENCIES = [].freeze
   NO_COMMANDS = [].freeze
 
@@ -50,13 +48,12 @@ module EntryCommandAuthorization
     lifecycle_commands(entry).select { |command| entry_command_allowed?(entry, command) }
   end
 
+  # An entry that has already moved is finished wherever it sits: the successor
+  # carries the journal forward, so the predecessor offers nothing at all.
   def lifecycle_commands(entry)
-    commands = if entry.kind == "task"
-      TASK_COMMANDS_BY_STATE.fetch(entry.state, NO_COMMANDS)
-    else
-      NON_TASK_COMMANDS_BY_KIND.fetch(entry.kind, NO_COMMANDS)
-    end
+    return NO_COMMANDS if entry.successor
+    return TASK_COMMANDS_BY_STATE.fetch(entry.state, NO_COMMANDS) if entry.kind == "task"
 
-    entry.successor ? NO_COMMANDS : commands
+    NON_TASK_COMMANDS_BY_KIND.fetch(entry.kind, NO_COMMANDS)
   end
 end

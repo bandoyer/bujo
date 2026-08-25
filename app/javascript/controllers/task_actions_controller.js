@@ -22,11 +22,8 @@ export default class extends Controller {
     this.showStep(this.stripFor(event.currentTarget), "move")
   }
 
-  cancelSchedule(event) {
-    this.showStep(this.stripFor(event.currentTarget), "actions")
-  }
-
-  cancelMove(event) {
+  // Every step rewinds to the same place, so one handler serves them all.
+  cancelStep(event) {
     this.showStep(this.stripFor(event.currentTarget), "actions")
   }
 
