@@ -7,11 +7,12 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: PARKED mid-slice 1.5.1 (2026-08-24 late) — the swarm is
-> RUNNING the page-model chain and survives session restarts. See
-> `HANDOFF.md` for the exact state, the review protocol, and the
-> post-merge follow-ups. Prod runs 1.4.1; polish + realignment are
-> committed, undeployed.**
+> **Status: REVIEW HOLD before slice 1.5.1 (2026-08-25 early) — the
+> swarm is DOWN. The source-alignment correction to METHOD,
+> ARCHITECTURE, this plan, the slice spec, and HANDOFF awaits Dan's
+> review; do not start implementation yet. Prod runs 1.4.1. The
+> approved polish batch is committed but undeployed; the page
+> realignment is not built. See `HANDOFF.md` for exact state.**
 
 ## What this is
 
@@ -25,6 +26,8 @@ sharing one Rails system of record:
 
 Reference material:
 
+- `docs/METHOD.md` — the binding product interpretation of Ryder
+  Carroll's system and practice; source semantics outrank convenience.
 - `ARCHITECTURE.md` (this repo) — the sync design; its schema decisions
   bind from slice 1.2 onward.
 - [bujo-mockups](https://github.com/bandoyer/bujo-mockups) — TUI and
@@ -63,7 +66,10 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-24 | **Both themes ship** (supersedes the line above): light = paper dot-grid, dark = "terminal-kin" using the Tokyo Night palette from the TUI mocks, so web-dark and the TUI rhyme. Default follows the system (`prefers-color-scheme`); a user toggle overrides (light/dark/system three-state). Views are built on CSS custom-property tokens from slice 1.3 onward — theming is a foundation, not a retrofit |
 | 2026-08-24 | Host: DigitalOcean (Hetzner's 2026 price hikes closed the gap; DO wins on stability and smoothness). Droplet size decided at deploy time — 2 GB is enough for bujo alone, 4 GB once press-start shares the box |
 | 2026-08-24 | Umbrella domain: **questlog.dev** — a quest log is both a gaming term and a journal, covering the whole portfolio. Apps on subdomains: `bujo.questlog.dev`, `pressstart.questlog.dev`. Availability confirmed via registry RDAP 2026-08-24; purchase pending |
-| 2026-08-24 | **Book-faithful v1 — everything is a page.** After the operator's Part II/III study (`docs/METHOD.md`), all derived surfaces go: Monthly Calendar/Tasks and the Future Log become pages you write into, placement is by hand only, and future-dated content waits in the Future Log until migration carries it in (write-on-page narrows to today/past, superseding part of 1.4.1). Model-first: the page model (immutable `page_kind`/`page_on` columns, append-only movement) is drafted in ARCHITECTURE.md; staged slices follow, with 1.5's migration ritual as capstone. Start true to Ryder; add digital smartness later only where dogfooding proves pain |
+| 2026-08-24 | **Book-faithful v1 — everything resides on one page.** After the operator's Part II/III study (`docs/METHOD.md`), Monthly Calendar/Tasks, Future Log, Daily Logs, and Custom Collections become deliberate residency pages. Dates never create page membership and movement is append-only. Temporary reflection, Index, and later search lenses may reference originals without creating a second residency. Start true to Ryder; add digital smartness only where dogfooding proves pain |
+| 2026-08-25 | **The core pages keep their vocabulary and time boundary.** Daily/Custom roots accept all bullet kinds; Monthly Calendar and Future roots accept tasks/events; Monthly Tasks roots tasks. The Future Log is for dates after the current month, not merely after today. Direct writing is Daily today/past and Monthly current/past; future Monthly pages can show deliberately migrated residents but are not ordinary capture surfaces. Ryder's night-before Daily exception is consciously deferred rather than approximated with a clock rule |
+| 2026-08-25 | **Placement immutability is a domain and sync invariant, not a raw-SQL claim.** Public APIs and mass assignment refuse page changes; movement creates a successor. Database constraints defend structural facts they can express, especially the unique successor chain. Time rules receive a caller-provided `as_of` date (distinct from the parser's page-relative `today`); models do not read the clock |
+| 2026-08-25 | **Finish the method spine before convenience work.** After 1.5.1: writable Custom Collections plus a manually maintained Index; monthly migration; AM/PM reflection; then `!` inspiration and master-task completion gating. Broad search, settings polish, and PWA work follow. Dedicated modules for every Part III example are unnecessary; generic Collections and reflection carry the practice |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -141,8 +147,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - [x] **1.4.1 Placement and capture** ✅ (2026-08-24, mini slice) —
       route by gesture: the capture bar hides at rest and writes onto
       the page you opened (superseding 1.3's capture-always-today,
-      annotated in both specs); the Future Log gained
-      write-under-a-month (strictly future); relative tokens resolve
+      annotated in both specs); the Future Log gained the original
+      write-under-a-month behavior; relative tokens resolve
       against the page; submit copy is "Log"; nav shows the viewed day
       with the Today tab as the way home. Mock-first
       ([Placement Gestures](https://claude.ai/code/artifact/9299895f-f328-4910-99e3-2fe3754b4f40));
@@ -150,22 +156,44 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       passes + operator review; at merge: 102 fast + 29 system runs
       green, all bars, 3/3 hand-mutations killed. ("Place from today"
       artboard parked; grammar expansion parked unbuilt per the
-      route-by-gesture decision.)
+      route-by-gesture decision.) The 1.5.1 spec now supersedes its
+      future-day Daily writing and corrects its Future boundary from
+      after-today to after-current-month.
 - [ ] **1.5 The book-faithful realignment** (see decisions log +
       `docs/METHOD.md`):
-      - [ ] **1.5.1 The page model and its pages** — IN FLIGHT
-            (2026-08-24). Schema: immutable `page_kind`/`page_on`;
-            every log becomes a residency scope; calendar/tasks/future
-            become writable pages; movement generalizes to events and
-            notes; write-on-page narrows to today/past. Spec at
+      - [ ] **1.5.1 The page model and its pages** — REVIEW HOLD
+            (2026-08-25); swarm down. Schema: immutable-through-domain
+            `page_kind`/`page_on`; every log becomes a residency scope;
+            Calendar/Tasks/Future become semantically constrained
+            pages; future-page and future-month capture are guarded;
+            append-only movement becomes page-aware. The UI exposes
+            Future scheduling for tasks/events, not notes. Spec at
             `docs/slices/1.5.1-the-page-model.md`.
-      - [ ] **1.5.2 The migration ritual** — the capstone:
-            card-per-task monthly review per the Migration mock,
-            plus the future-log scan-in at month setup.
-- [ ] **1.6 Index** — search across collections and entries.
-- [ ] **1.7 PWA** — manifest/service worker, vendor the fonts for
+      - [ ] **1.5.2 Custom Collections + deliberate Index** — a
+            minimal writable Collection page and explicit manual
+            registration in the Index. Core logs remain fixed
+            navigation; Daily Logs are never indexed. Broad text
+            search is deferred until dogfooding asks for it.
+      - [ ] **1.5.3 Monthly migration ritual** — set up the new
+            Monthly Log and fresh mental inventory; review every
+            unresolved task on the outgoing month's Daily and Monthly
+            pages one at a time, with its tree context; strike it or
+            rewrite it to the new Tasks page, a Custom Collection, or
+            the Future Log. Then scan due Future tasks into the new
+            Tasks page and due events into the Calendar. No bulk
+            rollover and no silent carry.
+      - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
+            review: AM sees the current month's open tasks; PM walks
+            today's entries to complete, strike, or schedule and makes
+            progress visible. This is a reference lens over resident
+            entries, never a new page or automatic movement.
+      - [ ] **1.5.5 Core notation and hierarchy fidelity** — add the
+            `!` inspiration signifier and gate a master task's
+            completion until every subtask is done or struck. Keep the
+            parked date-grammar expansion separate.
+- [ ] **1.6 PWA** — manifest/service worker, vendor the fonts for
       offline. (The deploy, Kamal, and Litestream landed early, with
-      1.3 — done 2026-08-24 per the dogfood-first ruling; 1.4–1.6 get
+      1.3 — done 2026-08-24 per the dogfood-first ruling; Phase 1 gets
       built under real use.)
 
 ### Phase 2 — the sync spine
@@ -209,8 +237,15 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   `lib/bujo/` in its place)
 - ~~Project skills~~ done 2026-08-24: `.claude/skills/bujo-conventions`
   and `.claude/skills/testing`
-- Fonts served from Google Fonts as of 1.3; vendor locally in 1.7
-  (PWA/offline) — a `TODO(1.7)` marks the link site
+- Fonts served from Google Fonts as of 1.3; vendor locally in 1.6
+  (PWA/offline) — the existing `TODO(1.7)` marker must be
+  renamed when that slice touches the link site
+- Settings/session polish (`/settings`, sign-out, preference controls,
+  perhaps lines) follows the 1.5 method spine; it no longer interrupts
+  source realignment as the next UI slice
+- Broad text search is deferred until the deliberate 1.5.2 Index has
+  been dogfooded. Yearly migration gets its own later spec only after
+  the monthly ritual is proven
 - `bin/ci` does not yet run the system lane or mutation — operator
   decision on wiring, revisit before slice 1.3's deploy
 - Auth direction (decided 2026-08-24, build later): go passwordless
@@ -234,7 +269,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 
 ## How to resume (for a future session)
 
-1. Read this file, then `ARCHITECTURE.md`.
+1. Read `docs/METHOD.md`, then this file, `ARCHITECTURE.md`, and
+   `HANDOFF.md` in that authority order.
 2. `git log --oneline -15` for what actually landed.
 3. Check the **Status** line above; if a slice is mid-flight, its spec
    is in `docs/slices/` and the swarm state is visible via `swarm status`
