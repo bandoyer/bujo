@@ -4,7 +4,7 @@ How one journal stays whole across a terminal on the desk and a phone in your po
 
 Styled version with figures: https://claude.ai/code/artifact/062d1db5-9c9e-4748-9ae7-e2593626c623
 
-Status: **proposal, draft for discussion** · Aug 23, 2026
+Status: **proposal, draft for discussion** · Aug 23, 2026 · **revised Aug 24, 2026: the page model** (draft, operator review pending)
 
 ## What we're designing for
 
@@ -69,16 +69,19 @@ All journal data crosses the `/api/sync` edge. Dashed edges are wake-ups and def
 Most sync pain is self-inflicted at the schema level, so the schema does three deliberate things:
 
 - **Client-generated UUIDv7 ids.** The TUI can create entries offline with no id-collision risk and no "temporary id" bookkeeping — the id it mints is the id forever. UUIDv7 is time-ordered, so ids sort naturally and index well.
-- **Logs are queries, not containers.** The Daily Log, Monthly Log, and Future Log are date-range queries over entries, not folders that entries live inside. That removes the entire class of "moved between containers on two devices" conflicts. Only custom collections are real rows.
-- **Migration is append, not mutation.** Migrating a task writes a *new* entry in the destination and marks the old one `>`, linked by `migrated_from_id` — exactly how the paper method rewrites the task by hand. Append-only chains merge trivially, and the "carried 2×" honesty in the UI falls straight out of the chain length.
+- **Pages are columns, not containers — and placement is immutable.** Every entry is born onto exactly one page — a daily page, a month's Calendar or Tasks page, the Future Log, or a custom collection — recorded as two plain columns (`page_kind`, `page_on`) written once at creation and never updated. Logs remain scopes over those columns (no container tables, nothing to join), but they are *residency* queries now, not date-derivation: a page shows only what a hand placed there. The original design derived logs from dates to kill the "moved between containers on two devices" conflict class; immutable placement kills it just as dead, because moving is never an update —
+- **Migration is append, not mutation.** Moving any entry — between months, into the Future Log, onto a calendar — writes a *new* entry on the destination page and marks the old one, linked by `migrated_from_id`, exactly how the paper method rewrites by hand. Tasks mark the predecessor with `state: migrated`; events and notes keep their NULL state, and their moved-ness derives from the successor's existence. The glyph direction reads off the successor's page: `<` when it moved backward into the Future Log, `>` when it moved forward into a month or collection. Append-only chains merge trivially, and the "carried 2×" honesty in the UI falls straight out of the chain length.
 
 ```text
 # the tables that matter (server; the TUI mirrors entries + collections)
 entries         id uuidv7 · kind task|event|note · text · state open|done|struck|migrated
-                logged_on · occurs_on · time_of_day · priority · tags · collection_id?
+                page_kind daily|monthly_calendar|monthly_tasks|future|collection (immutable)
+                page_on? (daily: the day · monthly pages: first of month · else NULL, immutable)
+                occurs_on? (the date the entry is ABOUT: calendar slot, future-log date)
+                time_of_day · priority · tags · collection_id? (page_kind=collection only)
                 parent_id? · migrated_from_id? (unique) · hlc · server_seq · deleted_at?
 entry_revisions entry_id · field · lost_value · lost_hlc · kept_hlc   # conflict losers
-collections     id · name              # ALL logs — daily, monthly, future — are date queries
+collections     id · name              # custom collections only; core pages are column values
 devices         id · name · kind tui|web · refresh_token_digest
                 last_synced_seq · last_seen_at · revoked_at?
 applied_ops     op_id (unique) · device_id · applied_at               # idempotency ledger
@@ -140,6 +143,7 @@ Conflicts resolve per field, under rules that favor the journal's integrity over
 | `open` vs `done` | Done wins regardless of clock order — a completion is never resurrected into a todo |
 | Edit vs delete/strike | The edit wins and revives the entry — words beat tombstones |
 | Edit vs migrate | The edit lands on the live end of the migration chain |
+| Migrate vs migrate (same entry, both devices) | The unique index on `migrated_from_id` admits one successor; the second op is refused, and that device's next pull shows the winning chain — placement never merges because it never mutates |
 
 ## Real-time, without a second data path
 
