@@ -192,15 +192,16 @@ class CollectionTest < ActiveSupport::TestCase
 
   test "guarded deletion tombstones only a kept never-used Collection" do
     collection = users(:one).collections.create!(name: "Never used")
+    collection.update_columns(index_position: 12, hlc: "dormant", server_seq: 41)
     deleted_at = Time.zone.parse("2026-08-25 12:00:00")
 
     assert_predicate collection, :deletable?
     collection.soft_delete_if_unused!(at: deleted_at)
 
     assert_equal deleted_at, collection.reload.deleted_at
-    assert_nil collection.index_position
-    assert_nil collection.hlc
-    assert_nil collection.server_seq
+    assert_equal 12, collection.index_position
+    assert_equal "dormant", collection.hlc
+    assert_equal 41, collection.server_seq
     assert_not collection.deletable?
     assert_raises(Collection::LifecycleError) { collection.soft_delete_if_unused! }
   end
