@@ -135,6 +135,18 @@ class CollectionTest < ActiveSupport::TestCase
       "a server-allocated position must not reuse a rank retained by a synced tombstone"
   end
 
+  test "registration requires a kept resident not merely entry history" do
+    collection = create_filled_collection("Tombstoned residents")
+    collection.entries.each do |entry|
+      entry.soft_delete!(at: Time.zone.parse("2026-08-25 12:45:00"))
+    end
+
+    assert_not collection.registrable?,
+      "a Collection whose only entries are soft-deleted is not registrable"
+    assert_raises(Collection::LifecycleError) { collection.register! }
+    assert_nil collection.reload.index_position
+  end
+
   test "registrable predicate agrees with empty indexed and deleted transitions" do
     collection = users(:one).collections.create!(name: "Predicate")
     assert_not collection.registrable?
@@ -148,6 +160,18 @@ class CollectionTest < ActiveSupport::TestCase
     collection.unindex!
     collection.soft_delete!
     assert_not collection.reload.registrable?
+  end
+
+  test "unindex refuses a sync tombstone that retained its Index rank" do
+    tombstone = users(:one).collections.create!(name: "Indexed tombstone")
+    tombstone.update_columns(
+      index_position: 6,
+      deleted_at: Time.zone.parse("2026-08-25 11:30:00")
+    )
+
+    assert_raises(Collection::LifecycleError) { tombstone.unindex! }
+    assert_equal 6, tombstone.reload.index_position,
+      "unindex must not clear a rank on a Collection that is no longer kept"
   end
 
   test "unindex clears only the position and refuses repetition" do

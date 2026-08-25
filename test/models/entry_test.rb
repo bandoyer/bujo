@@ -189,16 +189,25 @@ class EntryTest < ActiveSupport::TestCase
     create_entry(collection: other_collection, page_kind: "collection", page_on: nil)
     create_entry(user: users(:two), collection: foreign_collection,
       page_kind: "collection", page_on: nil)
-    create_entry(page_kind: "daily", page_on: Date.new(2033, 10, 5),
+    daily_same_date = create_entry(page_kind: "daily", page_on: Date.new(2033, 10, 5),
       occurs_on: Date.new(2033, 10, 5))
+    # Domain validation forbids a Daily row from carrying collection_id; the
+    # scope still names page_kind so a stray column cannot grant membership.
+    stray_page_kind = create_entry(page_kind: "daily", page_on: Date.new(2033, 10, 5),
+      occurs_on: Date.new(2033, 10, 5))
+    stray_page_kind.update_columns(collection_id: collection.id)
 
     roots = users(:one).entries.collection_page(collection.id)
 
-    assert_equal [ earlier, later ], roots.to_a
+    assert_not_includes roots, stray_page_kind,
+      "page_kind must keep a Daily row off a Collection page even when collection_id is set"
+    assert_not_includes roots, daily_same_date,
+      "occurs_on must not grant Collection membership to a Daily resident"
     assert_not_includes roots, child
     assert_equal [ child ], earlier.children.kept.to_a
     assert_includes roots, later,
       "occurs_on must not exclude an entry resident on the Collection page"
+    assert_equal [ earlier, later ], roots.to_a
   end
 
   test "open tasks return only kept open tasks in stable order" do
