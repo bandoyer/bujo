@@ -1,4 +1,4 @@
-# Handoff — review hold before slice 1.5.1 (2026-08-25, early)
+# Handoff — slice 1.5.1 approved and ready to swarm (2026-08-25)
 
 For the next operator session — **any agent** (Claude, Codex, Grok,
 or a human). Everything needed is in this repo; nothing depends on an
@@ -43,36 +43,32 @@ log → `ARCHITECTURE.md` (schema/sync semantics) → the relevant
   header, Future eyebrow removed) is committed but not deployed.
   Deploys are `kamal deploy` from the repo root; **Dan runs deploys
   himself. Hand him the command; do not run it.**
-- **The swarm is DOWN. Do not start it before Dan approves this docs
-  correction.** The prior chain died with its assistant session; its
-  herdr workspace, daemons, role worktrees, and role branches were
-  cleaned up. Coder work was uncommitted and lost; there is no partial
-  implementation to preserve.
+- **Dan approved the revised 1.5.1 spec. The swarm is DOWN and ready
+  for him to start from his own herdr terminal.** The prior chain died
+  with its assistant session; its herdr workspace, daemons, role
+  worktrees, and role branches were cleaned up. Coder work was
+  uncommitted and lost; there is no partial implementation to preserve.
 - `recovered/1.5.1-accepted-spec` still pins dangling commit `6da3ba2`
   as historical evidence. **Do not merge or fast-forward from it.** Its
   useful acceptance rulings have been folded into the current spec;
   its after-today boundary, note-to-Future action, and raw-SQL review
   bar are superseded.
-- The working tree contains the source-alignment docs pass for review:
-  `docs/METHOD.md`, `ARCHITECTURE.md`, `PLAN.md`,
-  `docs/slices/1.5.1-the-page-model.md`, the supersession note in
-  `docs/slices/1.4.1-placement-and-capture.md`, and this handoff. No app,
-  migration, test, parser, or swarm file is part of this pass.
+- The source-alignment pass is committed and pushed on `main` at
+  `8930935`; the acceptance-state update is docs-only as well. The
+  repository is otherwise clean. No app, migration, test, parser, or
+  swarm implementation exists for 1.5.1 yet.
 
-## Approval gate and swarm restart
+## Swarm restart
 
-1. Dan reviews the docs diff. Resolve product rulings in the docs, not
-   in a swarm prompt. On approval, change 1.5.1 from review hold to
-   accepted and commit this docs-only pass separately from code.
-2. Start herdr and `swarm up` from **Dan's own terminal session**, then
+1. Start herdr and `swarm up` from **Dan's own terminal session**, then
    answer pane startup dialogs and run `swarm bootstrap`. Daemons
    launched from a short-lived assistant shell can die with that shell.
-3. Kick the chain with **"specify and drive
+2. Kick the chain with **"specify and drive
    `docs/slices/1.5.1-the-page-model.md`"**. State that METHOD, PLAN,
    and ARCHITECTURE bind in that order; `lib/` and `Gemfile` are out of
    scope; parser mutation stays exactly 1105/1105. Do not point the
    specifier at the recovered branch as a starting point.
-4. Arm `script/watch-swarm.sh` in the background. It exits 0 when the
+3. Arm `script/watch-swarm.sh` in the background. It exits 0 when the
    QA terminal broadcast reaches handoffd and 1 after 30 quiet minutes.
    On a stall, use a targeted `swarm prompt <role>` nudge, never a
    restart. `swarm status` and `swarm logs 20` show state.

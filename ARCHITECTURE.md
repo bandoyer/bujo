@@ -6,7 +6,7 @@ Styled version with figures: https://claude.ai/code/artifact/062d1db5-9c9e-4748-
 
 Status: **proposal, draft for discussion** · Aug 23, 2026 · page model
 revised Aug 24 · source-alignment correction Aug 25
-(awaiting operator review)
+(operator-approved for slice 1.5.1)
 
 ## What we're designing for
 

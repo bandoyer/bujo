@@ -7,12 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: REVIEW HOLD before slice 1.5.1 (2026-08-25 early) — the
-> swarm is DOWN. The source-alignment correction to METHOD,
-> ARCHITECTURE, this plan, the slice spec, and HANDOFF awaits Dan's
-> review; do not start implementation yet. Prod runs 1.4.1. The
-> approved polish batch is committed but undeployed; the page
-> realignment is not built. See `HANDOFF.md` for exact state.**
+> **Status: READY TO SWARM slice 1.5.1 (2026-08-25) — Dan approved
+> the source-aligned page-model spec. The swarm is DOWN, awaiting
+> startup from Dan's own herdr terminal. Prod runs 1.4.1. The approved
+> polish batch is committed but undeployed; the page realignment is
+> not built. See `HANDOFF.md` for the kickoff and review protocol.**
 
 ## What this is
 
@@ -161,9 +160,10 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       after-today to after-current-month.
 - [ ] **1.5 The book-faithful realignment** (see decisions log +
       `docs/METHOD.md`):
-      - [ ] **1.5.1 The page model and its pages** — REVIEW HOLD
-            (2026-08-25); swarm down. Schema: immutable-through-domain
-            `page_kind`/`page_on`; every log becomes a residency scope;
+      - [ ] **1.5.1 The page model and its pages** — ACCEPTED
+            (2026-08-25); ready to swarm, currently down. Schema uses
+            immutable-through-domain `page_kind`/`page_on`; every log
+            becomes a residency scope;
             Calendar/Tasks/Future become semantically constrained
             pages; future-page and future-month capture are guarded;
             append-only movement becomes page-aware. The UI exposes
