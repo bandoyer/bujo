@@ -15,8 +15,8 @@ module JournalReading
     entries.flat_map { |entry| [ entry.id, *rendered_entry_ids(entry.children.kept) ] }
   end
 
-  # Counts open tasks within the trees a page actually renders.
-  def open_task_count(entries)
-    user_entries.open_tasks.where(id: rendered_entry_ids(entries)).count
+  # Counts open tasks among the ids a page actually renders.
+  def open_task_count(rendered_ids)
+    user_entries.open_tasks.where(id: rendered_ids).count
   end
 end

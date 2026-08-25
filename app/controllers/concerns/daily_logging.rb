@@ -20,6 +20,6 @@ module DailyLogging
 
   # The header count for a day: every open task in the tree the view renders.
   def open_task_count_on(date)
-    open_task_count(daily_log_entries(date))
+    open_task_count(rendered_entry_ids(daily_log_entries(date)))
   end
 end

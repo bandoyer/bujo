@@ -3,12 +3,12 @@ class EntriesController < ApplicationController
   include DailyLogging
   include FutureLogTargets
 
-  # Parser defaults accepted from capture forms.
-  DEFAULT_KINDS = %w[task event note].freeze
   # Page placements directly writable through this web controller.
-  PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future].freeze
+  WRITABLE_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future].freeze
   # Resident pages that expose outbound movement in this slice.
   ACTION_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
+  # Placements whose capture refreshes in place instead of re-rendering a screen.
+  TURBO_CAPTURE_TEMPLATES = { "daily" => :create, "future" => :create_future }.freeze
   # One reader-facing refusal for every rejected command.
   REFUSAL_ALERT = "That entry can't do that.".freeze
 
@@ -48,7 +48,7 @@ class EntriesController < ApplicationController
 
   # Carries an eligible task to the Tasks page after its resident month.
   def migrate
-    return refuse_lifecycle_change unless @entry.page_on
+    return refuse_lifecycle_change unless @entry.page_kind.in?(ACTION_PAGE_KINDS)
 
     destination_month = @entry.page_on.next_month.beginning_of_month
     @entry.move_to!(
@@ -62,7 +62,7 @@ class EntriesController < ApplicationController
   # Schedules an eligible task or event into the Future Log.
   def schedule
     date = requested_date(:date)
-    eligible_kind = @entry.kind.in?(%w[task event])
+    eligible_kind = @entry.kind.in?(Entry::ROOT_KINDS.fetch("future"))
     eligible_page = @entry.page_kind.in?(ACTION_PAGE_KINDS)
     return refuse_lifecycle_change unless date && eligible_kind && eligible_page
 
@@ -93,7 +93,7 @@ class EntriesController < ApplicationController
   end
 
   def requested_placement
-    params[:placement].presence_in(PAGE_KINDS) || "daily"
+    params[:placement].presence_in(WRITABLE_PAGE_KINDS) || "daily"
   end
 
   def placement_attributes
@@ -115,7 +115,7 @@ class EntriesController < ApplicationController
 
   def default_kind
     candidate = params[:default_kind]
-    DEFAULT_KINDS.include?(candidate) ? candidate.to_sym : :task
+    Entry::KINDS.include?(candidate) ? candidate.to_sym : :task
   end
 
   # The request owns one clock snapshot for every admission decision.
@@ -124,8 +124,10 @@ class EntriesController < ApplicationController
   end
 
   def prepare_capture_response
-    return prepare_future_response if @placement == "future"
-    prepare_daily_response if @placement == "daily"
+    case @placement
+    when "future" then prepare_future_response
+    when "daily" then prepare_daily_response
+    end
   end
 
   def prepare_future_response
@@ -141,26 +143,29 @@ class EntriesController < ApplicationController
   def respond_to_capture
     respond_to do |format|
       format.turbo_stream do
-        if @placement.in?(%w[daily future])
-          render @placement == "future" ? :create_future : :create
-        else
-          redirect_to capture_destination, status: :see_other
-        end
+        template = TURBO_CAPTURE_TEMPLATES[@placement]
+        template ? render(template) : redirect_to(capture_destination, status: :see_other)
       end
       format.html { redirect_to capture_destination }
     end
   end
 
   def capture_destination
-    case @placement
+    page_path(@placement, @capture_date)
+  end
+
+  # The screen showing one page kind, so a reader lands back on the page the
+  # gesture belonged to. An unrecognised return_to falls back to the Daily Log.
+  def page_path(page_kind, date)
+    case page_kind
     when "future"
       future_log_path
     when "monthly_calendar"
-      monthly_log_path(month: @capture_date.strftime("%Y-%m"))
+      monthly_log_path(month: date.strftime("%Y-%m"))
     when "monthly_tasks"
-      monthly_log_path(month: @capture_date.strftime("%Y-%m"), view: "tasks")
+      monthly_log_path(month: date.strftime("%Y-%m"), view: "tasks")
     else
-      daily_log_path(date: @capture_date.iso8601)
+      daily_log_path(date: date.iso8601)
     end
   end
 
@@ -169,15 +174,8 @@ class EntriesController < ApplicationController
   end
 
   def redirect_to_viewed_page(**response_options)
-    destination = case params[:return_to]
-    when "monthly_calendar"
-      monthly_log_path(month: viewed_date.strftime("%Y-%m"))
-    when "monthly_tasks"
-      monthly_log_path(month: viewed_date.strftime("%Y-%m"), view: "tasks")
-    else
-      daily_log_path(date: viewed_date.iso8601)
-    end
-    redirect_to destination, **response_options
+    return_page = params[:return_to].presence_in(ACTION_PAGE_KINDS)
+    redirect_to page_path(return_page, viewed_date), **response_options
   end
 
   def requested_date(param_name)

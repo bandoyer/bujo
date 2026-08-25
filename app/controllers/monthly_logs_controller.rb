@@ -39,7 +39,7 @@ class MonthlyLogsController < ApplicationController
   def load_tasks
     @entries = user_entries.monthly_tasks(@month)
     rendered_ids = rendered_entry_ids(@entries)
-    @open_task_count = user_entries.open_tasks.where(id: rendered_ids).count
+    @open_task_count = open_task_count(rendered_ids)
     @logged_task_count = rendered_ids.count
   end
 end

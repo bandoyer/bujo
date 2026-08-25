@@ -217,11 +217,15 @@ class Entry < ApplicationRecord
     end
   end
 
+  # Placement shape is checked on every entry; the root-only rules follow,
+  # since a child inherits its root's placement rather than choosing one.
   def placement_shape
     validate_page_on
     validate_collection_presence
-    validate_root_kind unless parent
-    validate_required_occurrence unless parent
+    return if parent
+
+    validate_root_kind
+    validate_required_occurrence
   end
 
   def validate_page_on

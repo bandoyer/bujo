@@ -2,10 +2,12 @@
     for writing under it, the add row, and the month's entries. %>
 <% month_key = month.strftime("%Y_%m") %>
 <% add_row_id = "future_month_#{month_key}_add" %>
+<%# Only a month after the current one takes new entries; the rest render. %>
+<% add_open = month > @today.end_of_month %>
 <section class="future-log__month <%= "future-log__month--empty" if entries.empty? %>"
          data-month="<%= month.strftime("%Y-%m") %>">
   <h2>
-    <% if month > @today.end_of_month %>
+    <% if add_open %>
       <button type="button"
               id="future_month_<%= month_key %>_toggle"
               aria-expanded="false"
@@ -16,7 +18,7 @@
       <span><%= month.strftime("%B %Y").upcase %></span>
     <% end %>
   </h2>
-  <% if month > @today.end_of_month %>
+  <% if add_open %>
     <div id="<%= add_row_id %>" class="future-log__add-row" data-placement-target="panel" hidden>
       <%= form_with url: entries_path,
                     data: {
@@ -24,10 +26,7 @@
                       month: month.strftime("%Y-%m"),
                       action: "submit->placement#composeDate turbo:submit-end->placement#submitted"
                     } do |form| %>
-        <div class="rapid-log__kinds" aria-label="Entry kind">
-          <button type="button" class="rapid-log__kind rapid-log__kind--selected" aria-label="Task" aria-pressed="true" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="task">•</button>
-          <button type="button" class="rapid-log__kind" aria-label="Event" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="event"><%= hand_glyph("○") %></button>
-        </div>
+        <%= render "entries/kind_buttons", allowed_kinds: %w[task event] %>
         <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
         <%= form.hidden_field :placement, value: "future" %>
         <%= form.hidden_field :on, value: "", data: { placement_target: "on" } %>
