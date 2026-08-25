@@ -7,11 +7,12 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: READY TO SWARM slice 1.5.1 (2026-08-25) — Dan approved
-> the source-aligned page-model spec. The swarm is DOWN, awaiting
-> startup from Dan's own herdr terminal. Prod runs 1.4.1. The approved
-> polish batch is committed but undeployed; the page realignment is
-> not built. See `HANDOFF.md` for the kickoff and review protocol.**
+> **Status: slice 1.5.1 LANDED (2026-08-25); 1.5.2 is next to spec.**
+> The source-aligned page model and QA follow-up 1.5.1a are on `main`.
+> Final verification at `66566ae`: 133 fast tests, 33 system tests,
+> RuboCop/CRAP/jscpd clean, and RapidLog mutation 1105/1105. Production
+> still runs 1.4.1; all newer `main` work remains undeployed. See
+> `HANDOFF.md` for the deploy boundary and next-slice state.
 
 ## What this is
 
@@ -160,16 +161,21 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       after-today to after-current-month.
 - [ ] **1.5 The book-faithful realignment** (see decisions log +
       `docs/METHOD.md`):
-      - [ ] **1.5.1 The page model and its pages** — ACCEPTED
-            (2026-08-25); ready to swarm, currently down. Schema uses
-            immutable-through-domain `page_kind`/`page_on`; every log
-            becomes a residency scope;
+      - [x] **1.5.1 The page model and its pages** ✅ (2026-08-25) —
+            schema uses immutable-through-domain `page_kind`/`page_on`;
+            every log is a residency scope;
             Calendar/Tasks/Future become semantically constrained
             pages; future-page and future-month capture are guarded;
             append-only movement becomes page-aware. The UI exposes
-            Future scheduling for tasks/events, not notes. Spec at
+            Future scheduling for tasks/events, not notes. QA pass 1
+            found crafted lifecycle commands could bypass read-only
+            Future/Collection pages; follow-up 1.5.1a put all five
+            member commands behind one persisted-residency guard and
+            QA pass 2 verified the full slice. At merge: 133 fast + 33
+            system runs green, RuboCop clean, CRAP ≤ 6 over 126
+            methods, jscpd 0 clones, parser mutation 1105/1105. Spec at
             `docs/slices/1.5.1-the-page-model.md`.
-      - [ ] **1.5.2 Custom Collections + deliberate Index** — a
+      - [ ] **1.5.2 Custom Collections + deliberate Index** — NEXT; a
             minimal writable Collection page and explicit manual
             registration in the Index. Core logs remain fixed
             navigation; Daily Logs are never indexed. Broad text

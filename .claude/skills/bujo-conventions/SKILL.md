@@ -18,15 +18,16 @@ scope; read the relevant one before changing anything it covers.
 - **Entries and collections mint UUIDv7 string ids** via the
   `UuidV7Id` concern; caller-supplied ids must survive (`||=`).
   `users.id` stays the generator's integer — users never sync.
-- **Logs are date queries, not containers**: Daily/Monthly/Future
-  Logs are scopes on `Entry` (`daily_log`, `monthly_calendar`,
-  `monthly_tasks`, `future_log`, `open_tasks`). Never invent a
-  container table for a log. Collections are custom collections only.
-- **Migration is append-only**: `migrate_to!`/`schedule_to!` create a
-  successor and mark the predecessor `migrated`; the unique index on
-  `migrated_from_id` keeps the chain a chain. Never mutate history,
-  never delete a predecessor. Glyph `<` vs `>` derives from the
-  successor's `occurs_on`.
+- **Logs are residency queries, not containers**: Daily/Monthly/Future
+  Logs are scopes on an `Entry` root's immutable `page_kind`/`page_on`
+  placement. `occurs_on` describes content and never grants page
+  membership. Never invent a container table for a log. Collections
+  are custom collections only.
+- **Movement is append-only**: `move_to!` creates a successor and marks
+  a task predecessor `migrated`; event/note state remains NULL. The
+  unique index on `migrated_from_id` keeps the chain a chain. Never
+  mutate history or delete a predecessor. Glyph `<` vs `>` derives from the
+  successor's page residency (`future` vs Monthly/Custom).
 - **Task state is exactly** `open|done|struck|migrated`; events and
   notes carry exactly NULL (not `""` — sync compares values).
   Lifecycle changes go through the bang methods, which raise

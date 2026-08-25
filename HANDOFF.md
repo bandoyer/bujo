@@ -1,149 +1,71 @@
-# Handoff — slice 1.5.1 approved and ready to swarm (2026-08-25)
+# Handoff — slice 1.5.1 landed; 1.5.2 is next (2026-08-25)
 
-For the next operator session — **any agent** (Claude, Codex, Grok,
-or a human). Everything needed is in this repo; nothing depends on an
-assistant's memory or tooling. `PLAN.md` is the living plan and this
-file records the parked operational state. Keep it until 1.5.1 lands
-and its follow-ups are complete.
+For the next operator session — any agent or human. `PLAN.md` is the
+living status document; this file records the operational boundary and
+the next concrete work.
 
-## The one sentence that governs everything
+## Governing product rule
 
-**Dan's ruling: v1 adheres to Ryder Carroll's *The Bullet Journal
-Method*, Parts II–III, as closely as possible. Start minimal and true
-to the book; add digital smartness only where dogfooding proves the
-pain.** When a design question arises, authority is:
-`docs/METHOD.md` (source study + product rulings) → `PLAN.md` decisions
-log → `ARCHITECTURE.md` (schema/sync semantics) → the relevant
-`docs/slices/*.md` spec.
+Dan's ruling remains: v1 follows Ryder Carroll's *The Bullet Journal
+Method*, Parts II–III, as closely as possible. Start minimal and true to
+the book; add digital smartness only where dogfooding proves pain. For a
+design question, authority is `docs/METHOD.md` → `PLAN.md` →
+`ARCHITECTURE.md` → the relevant `docs/slices/*.md` spec.
 
-## Why the realignment exists
+## Exact repository state
 
-- Dogfooding caught the drift: entries appeared on Monthly Tasks
-  because a date scope derived them there. The book's Tasks page is a
-  curated mental inventory and its Future Log is a queue. The friction
-  of deliberate rewriting is the method, not a UX defect to automate.
-- Parts II–III were reviewed from
-  `~/Downloads/The Bullet Journal Method_ Trac - Carroll_ Ryder.pdf`.
-  `docs/METHOD.md` is the binding project interpretation of that study.
-- The first Fable handoff and accepted-spec recovery had the right page
-  model but several overcorrections: Future meant after-today instead
-  of outside-current-month; notes gained an invalid Future action;
-  future Monthly pages were left too writable; "no derived surfaces"
-  accidentally banned legitimate review lenses; and raw-SQL placement
-  immutability was treated as an application promise.
-- The current docs-only correction resolves those issues and moves the
-  missing method spine ahead of convenience work: Custom Collections +
-  deliberate Index, monthly migration, daily Reflection, then `!` and
-  master-task completion gating.
+- Slice 1.5.1 and follow-up 1.5.1a are integrated on `main`. The final
+  swarm candidate is `66566ae` (`Strengthen page-model verification`);
+  the post-merge commit only refreshes project status, the tracked
+  `bujo-conventions` skill, and its active local mirror.
+- The schema now records exactly one immutable root residency with
+  `page_kind`, `page_on`, and `collection_id`. Log scopes read that
+  placement; `occurs_on` describes content and never grants membership.
+  Movement is append-only through `Entry#move_to!`, and its glyph comes
+  from the successor page.
+- QA pass 1 found that crafted Complete/Strike/Reopen requests could
+  mutate read-only Future and Collection residents. Follow-up 1.5.1a
+  routes every member command through one persisted-residency guard.
+  Pass 2 verified all five commands against both read-only page kinds
+  and retained every action on Daily and Monthly residents.
+- Final receipts: `bin/rails test` 133 runs / 1120 assertions;
+  `bin/rails test:system` 33 / 378; RuboCop clean; all 126 measured
+  methods at CRAP ≤ 6; jscpd zero clones; `Bujo::RapidLog*` mutation
+  1105/1105. The migration was verified both forward from the prior
+  schema and from a fresh database. `lib/` and `Gemfile` are untouched.
+- The swarm reached its terminal QA broadcast and every queue completed
+  without failure. The reboot stopped its router/watcher; no restart is
+  needed for this slice.
 
-## Exact state
+## Deployment boundary
 
-- **Production** at https://bujo.questlog.dev runs through 1.4.1.
-  The approved polish batch (lines off, dark dot grid, centered month
-  header, Future eyebrow removed) is committed but not deployed.
-  Deploys are `kamal deploy` from the repo root; **Dan runs deploys
-  himself. Hand him the command; do not run it.**
-- **Dan approved the revised 1.5.1 spec. The swarm is DOWN and ready
-  for him to start from his own herdr terminal.** The prior chain died
-  with its assistant session; its herdr workspace, daemons, role
-  worktrees, and role branches were cleaned up. Coder work was
-  uncommitted and lost; there is no partial implementation to preserve.
-- `recovered/1.5.1-accepted-spec` still pins dangling commit `6da3ba2`
-  as historical evidence. **Do not merge or fast-forward from it.** Its
-  useful acceptance rulings have been folded into the current spec;
-  its after-today boundary, note-to-Future action, and raw-SQL review
-  bar are superseded.
-- The source-alignment pass is committed and pushed on `main` at
-  `8930935`; the acceptance-state update is docs-only as well. The
-  repository is otherwise clean. No app, migration, test, parser, or
-  swarm implementation exists for 1.5.1 yet.
+Production at https://bujo.questlog.dev still runs through 1.4.1. Dan
+runs deployments himself; hand him `kamal deploy` and do not execute it
+for him.
 
-## Swarm restart
+After deployment, inspect the few rows created by 1.4.1's Future
+month-add. The irreversible migration deliberately backfills them as
+Daily residents because it cannot guess intent. With Dan's explicit
+go-ahead, repair only confirmed Future rows to `page_kind: "future"`
+and `page_on: nil`, preserving `occurs_on`; never bulk-guess.
 
-1. Start herdr and `swarm up` from **Dan's own terminal session**, then
-   answer pane startup dialogs and run `swarm bootstrap`. Daemons
-   launched from a short-lived assistant shell can die with that shell.
-2. Kick the chain with **"specify and drive
-   `docs/slices/1.5.1-the-page-model.md`"**. State that METHOD, PLAN,
-   and ARCHITECTURE bind in that order; `lib/` and `Gemfile` are out of
-   scope; parser mutation stays exactly 1105/1105. Do not point the
-   specifier at the recovered branch as a starting point.
-3. Arm `script/watch-swarm.sh` in the background. It exits 0 when the
-   QA terminal broadcast reaches handoffd and 1 after 30 quiet minutes.
-   On a stall, use a targeted `swarm prompt <role>` nudge, never a
-   restart. `swarm status` and `swarm logs 20` show state.
+## Next slice
 
-## Review when QA broadcasts
+Spec 1.5.2, **Custom Collections + deliberate Index**, before starting
+another swarm. It is a minimal writable Custom Collection page plus
+explicit manual Index registration. Core logs remain fixed navigation,
+Daily Logs are never indexed, and broad text search stays deferred.
+Follow the project loop: source-aligned spec and any needed mock → Dan's
+approval → swarm → operator review → merge.
 
-1. Check out the converged role branch (`git switch -c review/1.5.1
-   swarmforge-all-qa`) and independently run `bin/rails test`,
-   `bin/rails test:system`, `bin/rubocop`, `COVERAGE=1 bin/rails test`
-   plus `crap4rb --lcov coverage/lcov.info app/ lib/`, `npx jscpd
-   --min-tokens 50 app/ lib/`, and `bundle exec mutant run
-   --integration minitest -- 'Bujo::RapidLog*'`. Parser mutation must
-   remain exactly 1105/1105.
-2. Measure path scope from the accepted-spec commit. The diff may touch
-   the spec-owned paths only and must not touch `lib/` or `Gemfile`.
-3. Probe the real boundaries: domain/API and mass-assignment placement
-   immutability; page-kind/root-kind compatibility; injected-`as_of`
-   month edges; overdue Future visibility; pure residency; and
-   double-move refusal. Use raw SQL to challenge the database's unique
-   successor index, **not** to demand a nonexistent SQL placement rule.
-4. Apply at least three grep-verified hand mutations before trusting
-   kills. Visually verify all changed screens in both themes and two
-   hands using the established throwaway system-test screenshot pattern.
-5. Merge `--no-ff` with a review-record message, rerun the suite on
-   main, and mark PLAN.
-
-## Post-merge follow-ups, in order
-
-1. Update the tracked `.claude/skills/bujo-conventions/SKILL.md`
-   invariant from date queries to residency scopes over immutable
-   `page_kind`/`page_on` placement and append-only movement. Refresh the
-   local `.agents` mirror too if it remains the active Codex skill.
-2. Hand Dan `kamal deploy`; do not deploy for him.
-3. After deploy, inspect the few 1.4.1-era Future month-add rows. They
-   backfilled as Daily residents. With Dan's go-ahead, deliberately
-   move the intended rows to `page_kind: "future"`, `page_on: nil`,
-   preserving `occurs_on`; do not bulk-guess.
-4. Spec **1.5.2 Custom Collections + deliberate Index**. It must be a
-   minimal writable Collection page plus explicit manual Index
-   registration, with Daily Logs excluded and broad search deferred.
-
-## Working loop
-
-Spec → swarm → operator review → merge → Dan deploys. Kickoffs say
-**"specify and drive"**, never "implement". Operator specs and plan
-commits stay docs-only; pack roles obey their accepted slice scope. UI
-changes are mocked first and Dan picks by eye. Existing canvases:
-mockups `749c4391-…`, task actions `016d3b48-…`, placement gestures
-`9299895f-…`, hand lettering `31d0cb57-…`. Trivial approved polish may
-land directly with tests updated, never weakened.
-
-## Deliberately deferred
-
-- **Settings/session polish:** `/settings`, sign-out, preference
-  controls, perhaps line toggle. It follows the method spine rather
-  than interrupting it.
-- **"Place from today" mock:** its Future scheduling portion is now
-  specified narrowly for tasks/events; the coherent review experience
-  belongs to 1.5.4 Daily Reflection.
-- **Grammar expansion** (`docs/slices/1.4.3-*`) and parse preview remain
-  parked. The narrow `!` source signifier is a separate 1.5.5 change,
-  not authorization to revive date parsing.
-- **Broad Index search** waits for dogfooding. The 1.5.2 Index is
-  deliberately maintained, not an automatic search result page.
-- **Yearly migration** should be specified after the monthly practice
-  is proven. Generic Collections and Reflection carry the rest of Part
-  III; do not create a bespoke subsystem for each chapter.
-- **Passwordless auth** and multi-user assessment remain in PLAN open
-  items. **PWA + font vendoring** is now 1.6.
+Later method-spine slices remain, in order: monthly migration ritual
+(1.5.3), Daily Reflection (1.5.4), then `!` inspiration and master-task
+completion gating (1.5.5). Settings polish, broad search, grammar
+expansion, and PWA work remain deferred as recorded in `PLAN.md`.
 
 ## Infra quick facts
 
-Droplet `bujo` (DigitalOcean nyc3, 174.138.85.202), Kamal + GHCR
-(`gh` CLI needs `write:packages`), Litestream → R2 bucket
-`bujo-litestream`, DNS token at
-`~/.config/cloudflare/questlog-dns-token`. `doctl` is authenticated.
-Cost is about $12/month flat. Use `kamal logs` / `kamal console` for
-production diagnostics.
+Droplet `bujo` is in DigitalOcean nyc3 at 174.138.85.202. Kamal pulls
+from GHCR; Litestream replicates to R2 bucket `bujo-litestream`.
+`bujo.questlog.dev` is live, `doctl` is authenticated, and production
+diagnostics use `kamal logs` / `kamal console`.
