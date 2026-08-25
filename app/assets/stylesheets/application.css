@@ -61,7 +61,7 @@
 :root[data-hand="sans"] {
   --font-body: "Public Sans", var(--font-body-fallback);
   --font-serif: "Public Sans", var(--font-body-fallback);
-  --font-mono: var(--font-mono-fallback);
+  --font-mono: "Public Sans", var(--font-mono-fallback);
 }
 
 /* The dark palette has to be applied from two places: once for the system
