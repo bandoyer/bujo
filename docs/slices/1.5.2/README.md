@@ -19,8 +19,8 @@ that order.
 | # | task name | status |
 |---|---|---|
 | 1 | `collection-domain` | **done** — verified and closed at `8159581b5a` |
-| 2 | `collection-pages` | **active, pass 2** — qa finding at `01ce36ad97`; corrections in `b2-collection-pages-corrections.md` |
-| 3 | `collection-commands` | waiting on 2 |
+| 2 | `collection-pages` | **done** — closed at `d6c18945b4` after one finding (see `b2-collection-pages-corrections.md`) |
+| 3 | `collection-commands` | **active** — handed to coder |
 | 4 | `move-to-collection` | waiting on 3 |
 
 The specifier updates this table when a slice's completion broadcast returns

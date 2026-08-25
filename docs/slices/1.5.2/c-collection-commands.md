@@ -49,6 +49,24 @@ does.
   Collection movement, no entry editing or deleting, no `lib/`, `Gemfile`, or
   `PLAN.md` edits.
 
+## The landscape `collection-pages` left you
+
+| what | where it is now |
+|---|---|
+| the page-wide allowlist you replace | `EntriesController::ACTION_PAGE_KINDS`, still `%w[daily monthly_calendar monthly_tasks]` |
+| the guard that consumes it | `require_actionable_residency`, a `before_action … except: :create` |
+| the entry lookup | `set_entry` → `user_entries.find(params[:id])` — **not** kept-scoped yet |
+| the return destination | `redirect_to_viewed_page`, which reads `params[:return_to].presence_in(ACTION_PAGE_KINDS)` |
+| the entry refusal copy | `EntriesController::REFUSAL_ALERT` — `"That entry can't do that."` |
+| the Collection refusal copy | `CollectionsController::REFUSAL_ALERT` — a different string, for Collection lifecycle refusals, not for entry commands |
+| the uniform missing response | `JournalReading#render_collection_not_found` |
+| the canonical Collection page | `collection_path(collection)` |
+| the read-only treatment you supersede | `app/views/collections/show.html.erb` renders `entries/entry` with `actions: false` |
+
+`WRITABLE_PAGE_KINDS`, `CLOCK_PARSED_PAGE_KINDS`, `placement_attributes`, and
+`capture_destination` all gained a Collection branch for capture. This slice
+does not touch any of them.
+
 ## The residency policy
 
 One command-by-persisted-residency policy that every entry member command
