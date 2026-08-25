@@ -56,6 +56,45 @@ It gains one row in the residency policy `collection-commands` shipped —
 The route-derived command-list assertion moves from five commands to six in
 this slice, and that is the only reason it changes.
 
+## Exactly where the sixth command goes
+
+`collection-commands` delivered `app/controllers/concerns/EntryCommandAuthorization`
+with three frozen tables. The gate, `entry_command_allowed?`, inspects only
+`page_kind` and denies any command with no row. The view helper,
+`offered_entry_commands`, intersects what a row's lifecycle supports with what
+its residency admits, and `_entry.html.erb` makes a row a toggle exactly when
+that list is nonempty.
+
+Add the command to all of these:
+
+| table | change |
+|---|---|
+| `COMMAND_RESIDENCIES` | one new row: `"move_to_collection" => %w[daily monthly_calendar monthly_tasks]` |
+| `TASK_COMMANDS_BY_STATE` | `"open"` gains `move_to_collection`; `"done"` and `"struck"` do not |
+| `EVENT_COMMANDS` | gains `move_to_collection`, still only for an event with no successor |
+| `lifecycle_commands` | **needs a new `when "note"` branch** — a note with no successor offers `move_to_collection`, and today notes fall through to `NO_COMMANDS` |
+
+The note branch is a new lifecycle capability, not a residency branch: it is
+the first command a note has ever had. It does not violate the open-closed
+rule `collection-commands` was held to — the residency table still grows by a
+row, and the gate is untouched.
+
+`RETURN_PAGE_KINDS` and `redirect_to_viewed_page` already send a Daily or
+Monthly command back to its param-driven page and a Collection resident to its
+persisted page. This command is offered only on Daily and Monthly residents, so
+it inherits the source return with no change to that method.
+
+The strip's two-step mechanics already exist: `_task_actions.html.erb` renders a
+`[data-step]` region and `task_actions_controller.js#showStep` reveals exactly
+one. The Schedule step is the working example; the Move step is its sibling and
+must reuse those mechanics rather than copy them — jscpd is at zero clones and
+stays there.
+
+`_meta.html.erb` currently derives a destination from
+`entry.successor.occurs_on || entry.successor.page_on`. A Collection successor
+has neither, so today it would render a bare arrow. That is the line the Topic
+destination belongs in.
+
 ## Resolving the destination
 
 The reader submits a complete Topic. The server trims it and performs one

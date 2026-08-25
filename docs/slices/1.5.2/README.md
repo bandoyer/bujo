@@ -20,8 +20,8 @@ that order.
 |---|---|---|
 | 1 | `collection-domain` | **done** — verified and closed at `8159581b5a` |
 | 2 | `collection-pages` | **done** — closed at `d6c18945b4` after one finding (see `b2-collection-pages-corrections.md`) |
-| 3 | `collection-commands` | **active** — handed to coder |
-| 4 | `move-to-collection` | waiting on 3 |
+| 3 | `collection-commands` | **done** — verified and closed at `06a88b788d` |
+| 4 | `move-to-collection` | **active** — handed to coder; last slice of 1.5.2 |
 
 The specifier updates this table when a slice's completion broadcast returns
 and the next slice is handed down.
