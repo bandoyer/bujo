@@ -19,7 +19,7 @@ that order.
 | # | task name | status |
 |---|---|---|
 | 1 | `collection-domain` | **done** — verified and closed at `8159581b5a` |
-| 2 | `collection-pages` | **active** — handed to coder |
+| 2 | `collection-pages` | **active, pass 2** — qa finding at `01ce36ad97`; corrections in `b2-collection-pages-corrections.md` |
 | 3 | `collection-commands` | waiting on 2 |
 | 4 | `move-to-collection` | waiting on 3 |
 
@@ -31,7 +31,7 @@ and the next slice is handed down.
 | # | task name | file | delivers |
 |---|---|---|---|
 | 1 | `collection-domain` | `a-collection-domain.md` | the migration, Topic normalization, `register!` / `unindex!` / guarded deletion, `Collection::LifecycleError`, the Index relation, the exact-Topic scope, the Collection root scope |
-| 2 | `collection-pages` | `b-collection-pages.md` | routes, `CollectionsController`, the Index / Collection / not-found screens, Collection capture, the live Index tab, the title-first header invariant |
+| 2 | `collection-pages` | `b-collection-pages.md`, then `b2-collection-pages-corrections.md` | routes, `CollectionsController`, the Index / Collection / not-found screens, Collection capture, the live Index tab, the title-first header invariant |
 | 3 | `collection-commands` | `c-collection-commands.md` | the command-by-residency policy replacing `ACTION_PAGE_KINDS`, Collection Complete / Strike / Reopen, the rendering matrix |
 | 4 | `move-to-collection` | `d-move-to-collection.md` | the Move to Collection… gesture and its destination meta |
 

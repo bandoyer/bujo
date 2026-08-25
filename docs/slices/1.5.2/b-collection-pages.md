@@ -276,6 +276,11 @@ hand face exactly as the rest of the app does. A slot on the mono stack still
 puts the hand face first and keeps monospace only as a glyph fallback, not as a
 second visible type treatment.
 
+**One token does not yet satisfy that last sentence.** `:root[data-hand="sans"]`
+sets `--font-mono` to the monospace fallback with no hand face in front of it,
+and has since before this slice. Fix that token rather than forking a new one
+for these screens — see `b2-collection-pages-corrections.md`, correction 1.
+
 At 390×844 and at 320 px wide, on both the Index and Collection screens: no
 horizontal scrolling, no clipped Topic, no covered writing control, and no
 collision with the fixed tab bar. Every button, link, disclosure, and input
