@@ -11,7 +11,7 @@ class MonthlyLogsControllerTest < ActionDispatch::IntegrationTest
       get month ? monthly_log_path(month: month) : monthly_log_path
 
       assert_response :success
-      assert_select ".monthly-log__eyebrow", text: formatted_month(Time.zone.today)
+      assert_select ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
       assert_select ".monthly-log__view-link[aria-current='page']", text: "Calendar"
     end
   end
@@ -21,7 +21,7 @@ class MonthlyLogsControllerTest < ActionDispatch::IntegrationTest
       get monthly_log_path(month: month.strftime("%Y-%m"), view: "tasks")
 
       assert_response :success
-      assert_select ".monthly-log__eyebrow", text: formatted_month(month)
+      assert_select ".month-navigation .day-navigation__viewed-day", text: formatted_month(month)
       assert_select ".monthly-log__view-link[aria-current='page']", text: "Tasks"
     end
 

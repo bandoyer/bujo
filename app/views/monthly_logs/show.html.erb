@@ -6,7 +6,6 @@
 <main class="daily-log monthly-log monthly-log--<%= @view %>">
   <header class="daily-log__header monthly-log__header">
     <div class="daily-log__heading">
-      <p class="daily-log__eyebrow monthly-log__eyebrow"><%= @month.strftime("%b · %Y").upcase %></p>
       <h1>Monthly Log</h1>
     </div>
 
@@ -25,11 +24,7 @@
       <%= link_to "‹",
                   monthly_log_path(month: @month.prev_month.strftime("%Y-%m"), view: navigation_view),
                   aria: { label: "Previous month" } %>
-      <% unless @month == @today.beginning_of_month %>
-        <%= link_to "this month",
-                    monthly_log_path(view: navigation_view),
-                    class: "day-navigation__today" %>
-      <% end %>
+      <span class="day-navigation__viewed-day"><%= @month.strftime("%b · %Y").upcase %></span>
       <%= link_to "›",
                   monthly_log_path(month: @month.next_month.strftime("%Y-%m"), view: navigation_view),
                   aria: { label: "Next month" } %>

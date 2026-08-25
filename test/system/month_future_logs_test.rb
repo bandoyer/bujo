@@ -17,14 +17,13 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_selector ".tab-bar__icon[aria-hidden='true'][focusable='false']", count: 4
     click_link "Month", exact: true
     assert_current_path monthly_log_path
-    assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today)
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
     assert_active_tab "Month"
     assert_no_field "Rapid log…"
 
     click_link "Future", exact: true
     assert_current_path future_log_path
     assert_text "Future Log"
-    assert_selector ".future-log__eyebrow", text: formatted_future_start(Time.zone.today)
     assert_active_tab "Future"
     assert_no_selector ".monthly-log__views"
     assert_no_selector ".month-navigation"
@@ -90,25 +89,24 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_selector ".daily-log__eyebrow", text: formatted_day(target_day)
   end
 
-  test "5 month navigation preserves the Tasks view including this month" do
+  test "5 month navigation preserves the Tasks view; the Month tab returns" do
     sign_in
     click_link "Month", exact: true
     click_link "Tasks", exact: true
     assert_tasks_view
 
     find("a[aria-label='Previous month']").click
-    assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today.prev_month)
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today.prev_month)
     assert_tasks_view
-    assert_link "this month"
+    assert_no_link "this month"
 
     find("a[aria-label='Next month']").click
     find("a[aria-label='Next month']").click
-    assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today.next_month)
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today.next_month)
     assert_tasks_view
 
-    click_link "this month"
-    assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today)
-    assert_tasks_view
+    click_link "Month", exact: true
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
   end
 
   test "6 Tasks shows full task history and a composed open count" do
@@ -196,11 +194,11 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     sign_in
 
     visit monthly_log_path(month: "not-a-month")
-    assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today)
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
     assert_calendar_view
 
     visit monthly_log_path(month: Time.zone.today.strftime("%Y-%m"), view: "garbage")
-    assert_selector ".monthly-log__eyebrow", text: formatted_month(Time.zone.today)
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
     assert_calendar_view
   end
 
@@ -283,9 +281,6 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     date.strftime("%b · %Y").upcase
   end
 
-  def formatted_future_start(date)
-    "FROM #{(date + 1.day).strftime("%b %-d · %Y").upcase}"
-  end
 
   def formatted_destination(date)
     date.strftime("%b %-d").upcase
