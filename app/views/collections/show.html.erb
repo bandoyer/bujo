@@ -1,6 +1,6 @@
 <% content_for :title, "#{@collection.name} · Bujo" %>
 
-<main class="daily-log collection-page" data-controller="placement">
+<main class="daily-log collection-page" data-controller="placement task-actions">
   <header class="daily-log__header collection-page__header">
     <div class="collection-page__heading">
       <h1><%= @collection.name %></h1>
@@ -45,7 +45,7 @@
     <% else %>
       <%= render partial: "entries/entry",
                  collection: @entries,
-                 locals: { viewed_on: @today, actions: false } %>
+                 locals: { viewed_on: @today } %>
     <% end %>
   </section>
 

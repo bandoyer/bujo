@@ -113,12 +113,14 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes bodies.first, "Foreign Topic"
   end
 
-  test "Collection page renders kept roots recursively without action controls" do
+  test "Collection page renders kept roots recursively and leaves plain rows plain" do
     collection = @user.collections.create!(name: "Rendered Topic")
     timestamp = Time.zone.parse("2026-08-25 15:00:00")
-    later = create_collection_entry(collection, text: "Later root", occurs_on: Date.new(2030, 1, 2),
+    later = create_collection_entry(collection, text: "Later root", kind: "note", state: nil,
+      occurs_on: Date.new(2030, 1, 2),
       created_at: timestamp, id: "0198f3b9-0000-7000-8000-000000000072")
-    earlier = create_collection_entry(collection, text: "Earlier root", created_at: timestamp,
+    earlier = create_collection_entry(collection, text: "Earlier root", kind: "note", state: nil,
+      created_at: timestamp,
       id: "0198f3b9-0000-7000-8000-000000000071")
     child = create_collection_entry(collection, text: "Kept child", parent: earlier,
       kind: "note", state: nil)

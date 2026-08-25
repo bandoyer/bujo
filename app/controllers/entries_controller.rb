@@ -5,8 +5,8 @@ class EntriesController < ApplicationController
 
   # Page placements directly writable through this web controller.
   WRITABLE_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future collection].freeze
-  # Resident pages that expose entry commands in this slice.
-  ACTION_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
+  # Param-driven return destinations retained for Daily and Monthly commands.
+  RETURN_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
   # Placements whose page date cannot anchor a relative date, so the parser
   # reads the wall clock instead: a Tasks page names a month rather than a day,
   # and a Custom Collection carries no date at all.
@@ -21,6 +21,7 @@ class EntriesController < ApplicationController
   # page - the shape of the hole this guard exists to close.
   before_action :set_entry, except: :create
   before_action :require_actionable_residency, except: :create
+  rescue_from ActiveRecord::RecordNotFound, with: :render_entry_not_found
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
   # Captures a rapid-log line on the page selected by the gesture.
@@ -85,12 +86,13 @@ class EntriesController < ApplicationController
   private
 
   def set_entry
-    @entry = user_entries.find(params[:id])
+    @entry = user_entries.kept.find(params[:id])
+    @collection = user_collections.kept.find(@entry.collection_id) if @entry.page_kind == "collection"
   end
 
-  # A page that renders no entry controls must also refuse crafted commands.
+  # Every routed member action crosses the policy before its body runs.
   def require_actionable_residency
-    refuse_lifecycle_change unless @entry.page_kind.in?(ACTION_PAGE_KINDS)
+    refuse_lifecycle_change unless entry_command_allowed?(@entry, action_name)
   end
 
   def capture_entry
@@ -194,8 +196,16 @@ class EntriesController < ApplicationController
   end
 
   def redirect_to_viewed_page(**response_options)
-    return_page = params[:return_to].presence_in(ACTION_PAGE_KINDS)
+    return redirect_to(collection_path(@collection), **response_options) if @entry.page_kind == "collection"
+
+    return_page = params[:return_to].presence_in(RETURN_PAGE_KINDS)
     redirect_to page_path(return_page, viewed_date), **response_options
+  end
+
+  def render_entry_not_found
+    return render_collection_not_found if @entry&.page_kind == "collection"
+
+    head :not_found
   end
 
   def requested_date(param_name)

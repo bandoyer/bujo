@@ -2,8 +2,19 @@
 <% muted = entry.state.in?(%w[done migrated]) %>
 <% actions = local_assigns.fetch(:actions, true) %>
 <% return_to = local_assigns[:return_to] %>
-<% actionable_task = entry.kind == "task" && entry.state.in?(%w[open done struck]) %>
-<% actionable_event = entry.kind == "event" && entry.successor.nil? %>
+<% actionable_task = if entry.kind == "task"
+     if entry.state == "open"
+       %w[complete strike migrate schedule].any? { |command| entry_command_allowed?(entry, command) }
+     elsif entry.state.in?(%w[done struck])
+       entry_command_allowed?(entry, "reopen")
+     else
+       false
+     end
+   else
+     false
+   end %>
+<% actionable_event = entry.kind == "event" && entry.successor.nil? &&
+     entry_command_allowed?(entry, "schedule") %>
 <% actionable = actions && (actionable_task || actionable_event) %>
 <article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
   <%# An actionable row is a toggle and the strip it controls; anything else is

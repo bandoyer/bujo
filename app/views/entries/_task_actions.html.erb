@@ -5,18 +5,26 @@
 <div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
   <div class="entry__actions" data-step="actions">
     <% if entry.kind == "task" && entry.state == "open" %>
-      <%= button_to "Complete", complete_entry_path(entry), params: return_params, class: "entry-action" %>
-      <%= button_to "Strike", strike_entry_path(entry), params: return_params, class: "entry-action entry-action--warn" %>
-      <%= button_to "Migrate", migrate_entry_path(entry), params: return_params, class: "entry-action" %>
-      <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
-    <% elsif entry.kind == "task" %>
+      <% if entry_command_allowed?(entry, "complete") %>
+        <%= button_to "Complete", complete_entry_path(entry), params: return_params, class: "entry-action" %>
+      <% end %>
+      <% if entry_command_allowed?(entry, "strike") %>
+        <%= button_to "Strike", strike_entry_path(entry), params: return_params, class: "entry-action entry-action--warn" %>
+      <% end %>
+      <% if entry_command_allowed?(entry, "migrate") %>
+        <%= button_to "Migrate", migrate_entry_path(entry), params: return_params, class: "entry-action" %>
+      <% end %>
+      <% if entry_command_allowed?(entry, "schedule") %>
+        <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
+      <% end %>
+    <% elsif entry.kind == "task" && entry_command_allowed?(entry, "reopen") %>
       <%= button_to "Reopen", reopen_entry_path(entry), params: return_params, class: "entry-action" %>
-    <% elsif entry.kind == "event" %>
+    <% elsif entry.kind == "event" && entry_command_allowed?(entry, "schedule") %>
       <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
     <% end %>
   </div>
 
-  <% if entry.state == "open" || entry.kind == "event" %>
+  <% if entry_command_allowed?(entry, "schedule") && (entry.state == "open" || entry.kind == "event") %>
     <div class="entry__schedule-step" data-step="schedule" hidden>
       <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>

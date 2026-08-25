@@ -33,8 +33,8 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_text "campfire"
     assert_text "call after five"
     assert_button "Add to Index"
-    assert_no_selector ".entry__toggle"
-    assert_no_selector ".entry__action-strip"
+    assert_selector ".entry__toggle", count: 1
+    assert_selector ".entry__action-strip", count: 1, visible: :all
   end
 
   test "2 register rename unindex and re-register in deliberate order" do
@@ -285,6 +285,79 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_public_sans ".day-navigation"
   end
 
+  test "10 Collection task lifecycle stays on its page and refuses outbound commands" do
+    collection = @user.collections.create!(name: "Lifecycle Commands")
+    task = create_collection_task(collection, "Command resident")
+    sign_in
+    visit collection_path(collection)
+
+    assert_collapsed_collection_actions(task)
+    reveal_entry_actions(task)
+    within entry_selector(task) do
+      assert_button "Complete"
+      assert_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
+      click_button "Complete"
+    end
+    assert_current_path collection_path(collection)
+    assert_selector "#{entry_selector(task)} form[action='#{reopen_entry_path(task)}']", visible: :all
+    assert_equal "done", task.reload.state
+
+    refused_attributes = task.attributes
+    submit_crafted_request(complete_entry_path(task), method: :post)
+    assert_current_path collection_path(collection)
+    assert_text "That entry can't do that."
+    assert_equal refused_attributes, task.reload.attributes
+
+    reveal_entry_actions(task)
+    within(entry_selector(task)) { click_button "Reopen" }
+    assert_current_path collection_path(collection)
+    assert_selector "#{entry_selector(task)} form[action='#{complete_entry_path(task)}']", visible: :all
+    assert_equal "open", task.reload.state
+
+    reveal_entry_actions(task)
+    within(entry_selector(task)) { click_button "Strike" }
+    assert_current_path collection_path(collection)
+    assert_selector "#{entry_selector(task)} form[action='#{reopen_entry_path(task)}']", visible: :all
+    assert_equal "struck", task.reload.state
+
+    reveal_entry_actions(task)
+    within(entry_selector(task)) { click_button "Reopen" }
+    assert_current_path collection_path(collection)
+    assert_selector "#{entry_selector(task)} form[action='#{complete_entry_path(task)}']", visible: :all
+    assert_equal "open", task.reload.state
+
+    [
+      [ migrate_entry_path(task), {} ],
+      [ schedule_entry_path(task), { "date" => Time.zone.today.next_month.beginning_of_month.iso8601 } ]
+    ].each do |path, params|
+      original_attributes = task.attributes
+      submit_crafted_request(path, method: :post, params: params)
+      assert_current_path collection_path(collection)
+      assert_text "That entry can't do that."
+      assert_equal original_attributes, task.reload.attributes
+      assert_nil task.successor
+    end
+  end
+
+  test "11 open Collection actions fit both themed phone treatments" do
+    collection = @user.collections.create!(name: "Phone Command Layout")
+    task = create_collection_task(collection, "A command row long enough to wrap on a narrow phone")
+    sign_in
+    click_button "Theme: system", exact: true
+    click_button "Hand: marker", exact: true
+
+    assert_collection_action_layout(collection, task, width: 390, theme: "light", hand: "rock-salt")
+
+    visit root_path
+    click_button "Theme: light", exact: true
+    click_button "Hand: rock salt", exact: true
+    assert_collection_action_layout(collection, task, width: 320, theme: "dark", hand: "architects-daughter")
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   private
 
   def sign_in
@@ -313,6 +386,46 @@ class CollectionPagesTest < ApplicationSystemTestCase
       page_kind: "collection", page_on: nil
     )
     collection
+  end
+
+  def create_collection_task(collection, text)
+    collection.entries.create!(
+      user: @user, kind: "task", state: "open", text: text, tags: [],
+      page_kind: "collection", page_on: nil
+    )
+  end
+
+  def entry_selector(entry)
+    "#entry_#{entry.id}"
+  end
+
+  def assert_collapsed_collection_actions(entry)
+    within entry_selector(entry) do
+      assert_selector ".entry__toggle[aria-expanded='false']"
+      assert_selector ".entry__action-strip[hidden]", visible: :all
+    end
+  end
+
+  def reveal_entry_actions(entry)
+    within(entry_selector(entry)) { find(".entry__toggle").click }
+    within entry_selector(entry) do
+      assert_selector ".entry__toggle[aria-expanded='true']"
+      assert_selector ".entry__action-strip:not([hidden])"
+    end
+  end
+
+  def assert_collection_action_layout(collection, task, width:, theme:, hand:)
+    page.current_window.resize_to(width, 844)
+    visit collection_path(collection)
+    assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+    reveal_entry_actions(task)
+    within entry_selector(task) do
+      assert_button "Complete"
+      assert_button "Strike"
+      assert_no_button "Migrate"
+      assert_no_button "Schedule…", exact: true
+    end
+    assert_reader_layout_safe
   end
 
   def assert_active_tab(label)
