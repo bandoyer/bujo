@@ -138,7 +138,75 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "task lifecycle commands refuse Future and Collection residents without changes" do
+    [ future_placement, collection_placement ].each do |placement|
+      %i[complete strike reopen].each do |command|
+        task = create_lifecycle_task(command, **placement)
+        original_attributes = task.attributes
+
+        assert_no_difference -> { @user.entries.count } do
+          post lifecycle_path(command, task), params: { viewed_on: Time.zone.today.iso8601 }
+        end
+
+        assert_redirected_to daily_log_path(date: Time.zone.today.iso8601)
+        assert_equal "That entry can't do that.", flash[:alert]
+        assert_equal original_attributes, task.reload.attributes
+        assert_nil task.successor
+      end
+    end
+  end
+
+  test "task lifecycle commands remain admitted on every actionable page" do
+    actionable_placements.each do |placement|
+      { complete: "done", strike: "struck", reopen: "open" }.each do |command, expected_state|
+        task = create_lifecycle_task(command, **placement)
+
+        assert_no_difference -> { @user.entries.count } do
+          post lifecycle_path(command, task), params: { viewed_on: Time.zone.today.iso8601 }
+        end
+
+        assert_nil flash[:alert]
+        assert_equal expected_state, task.reload.state
+        assert_nil task.successor
+      end
+    end
+  end
+
   private
+
+  def future_placement
+    {
+      page_kind: "future", page_on: nil,
+      occurs_on: Time.zone.today.next_month.beginning_of_month
+    }
+  end
+
+  def collection_placement
+    { page_kind: "collection", page_on: nil, collection: collections(:camping) }
+  end
+
+  def actionable_placements
+    month = Time.zone.today.beginning_of_month
+    [
+      { page_kind: "daily", page_on: Time.zone.today },
+      { page_kind: "monthly_calendar", page_on: month, occurs_on: Time.zone.today },
+      { page_kind: "monthly_tasks", page_on: month }
+    ]
+  end
+
+  def create_lifecycle_task(command, **placement)
+    @user.entries.create!(
+      kind: "task",
+      state: command == :reopen ? "done" : "open",
+      text: "#{placement.fetch(:page_kind)} #{command}",
+      tags: [],
+      **placement
+    )
+  end
+
+  def lifecycle_path(command, task)
+    public_send("#{command}_entry_path", task)
+  end
 
   def capture_page(line, on, **placement)
     post entries_path, params: { line: line, on: on.iso8601, **placement }

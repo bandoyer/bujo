@@ -5,7 +5,7 @@ class EntriesController < ApplicationController
 
   # Page placements directly writable through this web controller.
   WRITABLE_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future].freeze
-  # Resident pages that expose outbound movement in this slice.
+  # Resident pages that expose entry commands in this slice.
   ACTION_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
   # Placements whose capture refreshes in place instead of re-rendering a screen.
   TURBO_CAPTURE_TEMPLATES = { "daily" => :create, "future" => :create_future }.freeze
@@ -13,6 +13,7 @@ class EntriesController < ApplicationController
   REFUSAL_ALERT = "That entry can't do that.".freeze
 
   before_action :set_entry, except: :create
+  before_action :require_actionable_residency, only: %i[complete reopen strike migrate schedule]
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
   # Captures a rapid-log line on the page selected by the gesture.
@@ -48,8 +49,6 @@ class EntriesController < ApplicationController
 
   # Carries an eligible task to the Tasks page after its resident month.
   def migrate
-    return refuse_lifecycle_change unless @entry.page_kind.in?(ACTION_PAGE_KINDS)
-
     destination_month = @entry.page_on.next_month.beginning_of_month
     @entry.move_to!(
       page_kind: "monthly_tasks",
@@ -63,8 +62,7 @@ class EntriesController < ApplicationController
   def schedule
     date = requested_date(:date)
     eligible_kind = @entry.kind.in?(Entry::ROOT_KINDS.fetch("future"))
-    eligible_page = @entry.page_kind.in?(ACTION_PAGE_KINDS)
-    return refuse_lifecycle_change unless date && eligible_kind && eligible_page
+    return refuse_lifecycle_change unless date && eligible_kind
 
     @entry.move_to!(
       page_kind: "future",
@@ -79,6 +77,11 @@ class EntriesController < ApplicationController
 
   def set_entry
     @entry = user_entries.find(params[:id])
+  end
+
+  # A page that renders no entry controls must also refuse crafted commands.
+  def require_actionable_residency
+    refuse_lifecycle_change unless @entry.page_kind.in?(ACTION_PAGE_KINDS)
   end
 
   def capture_entry

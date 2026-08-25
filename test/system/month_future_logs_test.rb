@@ -259,7 +259,71 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     end
   end
 
+  test "13 Future residents refuse all crafted entry commands hidden by the page" do
+    open_task = create_future_task("open future resident", state: "open")
+    done_task = create_future_task("done future resident", state: "done")
+    sign_in
+    click_link "Future", exact: true
+
+    [ open_task, done_task ].each do |task|
+      within "#future_entry_#{task.id}" do
+        assert_no_selector ".entry__toggle"
+        assert_no_selector "form"
+      end
+    end
+
+    crafted_commands(open_task, done_task).each do |path, task, params|
+      original_attributes = task.reload.attributes
+      submit_crafted_command(path, params)
+
+      assert_current_path daily_log_path(date: Time.zone.today.iso8601)
+      assert_text "That entry can't do that."
+      assert_equal original_attributes, task.reload.attributes
+      assert_nil task.successor
+      visit future_log_path
+    end
+  end
+
   private
+
+  def create_future_task(text, state:)
+    @user.entries.create!(
+      kind: "task", state: state, text: text, tags: [],
+      page_kind: "future", page_on: nil,
+      occurs_on: Time.zone.today.next_month.beginning_of_month
+    )
+  end
+
+  def crafted_commands(open_task, done_task)
+    scheduled_on = Time.zone.today.next_month.beginning_of_month
+    [
+      [ complete_entry_path(open_task), open_task, {} ],
+      [ strike_entry_path(open_task), open_task, {} ],
+      [ reopen_entry_path(done_task), done_task, {} ],
+      [ migrate_entry_path(open_task), open_task, {} ],
+      [ schedule_entry_path(open_task), open_task, { date: scheduled_on.iso8601 } ]
+    ]
+  end
+
+  def submit_crafted_command(path, params)
+    page.execute_script(<<~JAVASCRIPT, path, params.to_json)
+      const form = document.createElement("form")
+      form.method = "post"
+      form.action = arguments[0]
+      const fields = JSON.parse(arguments[1])
+      const csrfToken = document.querySelector("meta[name='csrf-token']")
+      if (csrfToken) fields.authenticity_token = csrfToken.content
+      Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement("input")
+        input.type = "hidden"
+        input.name = name
+        input.value = value
+        form.appendChild(input)
+      })
+      document.body.appendChild(form)
+      form.submit()
+    JAVASCRIPT
+  end
 
   def sign_in
     sign_in_through_browser(@user)
