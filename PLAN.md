@@ -136,6 +136,19 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       fixed its own flaky-wait) + operator review; at merge: 94 fast +
       22 system runs green, all bars, 3/3 hand-mutations killed,
       screens verified against the mocks in both themes.
+- [x] **1.4.1 Placement and capture** ✅ (2026-08-24, mini slice) —
+      route by gesture: the capture bar hides at rest and writes onto
+      the page you opened (superseding 1.3's capture-always-today,
+      annotated in both specs); the Future Log gained
+      write-under-a-month (strictly future); relative tokens resolve
+      against the page; submit copy is "Log"; nav shows the viewed day
+      with the Today tab as the way home. Mock-first
+      ([Placement Gestures](https://claude.ai/code/artifact/9299895f-f328-4910-99e3-2fe3754b4f40));
+      spec at `docs/slices/1.4.1-placement-and-capture.md`. Two qa
+      passes + operator review; at merge: 102 fast + 29 system runs
+      green, all bars, 3/3 hand-mutations killed. ("Place from today"
+      artboard parked; grammar expansion parked unbuilt per the
+      route-by-gesture decision.)
 - [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
 - [ ] **1.6 Index** — search across collections and entries.
 - [ ] **1.7 PWA** — manifest/service worker, vendor the fonts for
