@@ -1,0 +1,5 @@
+<% if @entry %>
+  <%= turbo_stream.append "future_month_entries_#{@capture_date.strftime('%Y_%m')}",
+                          partial: "future_logs/entry",
+                          locals: { entry: @entry } %>
+<% end %>

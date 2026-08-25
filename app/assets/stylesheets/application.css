@@ -145,8 +145,10 @@ a {
 }
 
 .daily-log {
+  display: flex;
   width: min(28rem, 100%);
   min-height: 100vh;
+  flex-direction: column;
   margin: 0 auto;
   padding: 1.5rem 1rem 8.5rem;
 }
@@ -229,7 +231,7 @@ a {
   text-decoration: none;
 }
 
-.day-navigation a.day-navigation__today {
+.day-navigation__viewed-day {
   color: var(--accent);
   font-size: 0.75rem;
 }
@@ -326,14 +328,63 @@ a {
 
 .future-log__month h2 {
   margin: 0 0 0.25rem;
-  color: var(--accent);
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.12em;
 }
 
-.future-log__month--empty h2 {
+.future-log__month h2 button {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  letter-spacing: inherit;
+}
+
+.future-log__month--empty h2 button {
   color: var(--faint);
+}
+
+.future-log__add-row form {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.future-log__add-row input,
+.future-log__add-row button,
+.future-log__add-row input[type="submit"] {
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.future-log__add-row input[type="number"] {
+  width: 100%;
+  padding: 0 0.6rem;
+  border-right: 1px solid var(--line);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+.future-log__add-row input[type="text"] {
+  padding: 0 0.75rem;
+}
+
+.future-log__add-row input[type="submit"] {
+  padding: 0 0.8rem;
+  background: var(--accent);
+  color: var(--surface);
+  cursor: pointer;
 }
 
 .future-entry {
@@ -362,6 +413,39 @@ a {
   text-align: center;
   font-family: var(--font-serif);
   font-style: italic;
+}
+
+.daily-log__capture {
+  display: flex;
+  min-height: 44px;
+  flex: 1;
+  flex-direction: column;
+}
+
+.daily-log__capture-reveal {
+  min-height: 44px;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+}
+
+.daily-log__capture-reveal:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.daily-log__capture-cue {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.daily-log__capture-panel[hidden],
+.future-log__add-row[hidden] {
+  display: none;
 }
 
 .entry {

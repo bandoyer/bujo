@@ -18,7 +18,7 @@ class DailyLogTest < ApplicationSystemTestCase
     assert_selector "[data-testid='open-count']", text: /\A\d+ open\z/
   end
 
-  test "2 rapid logging a priority task appends it and preserves capture focus" do
+  test "2 rapid logging a priority task appends it and returns focus to capture reveal" do
     sign_in
     open_count = displayed_open_count
 
@@ -37,8 +37,8 @@ class DailyLogTest < ApplicationSystemTestCase
       assert_no_button "Schedule…", exact: true
     end
     assert_equal open_count + 1, displayed_open_count
-    assert_equal "", find_field("Rapid log…").value
-    assert_equal "rapid-log-line", page.evaluate_script("document.activeElement.id")
+    assert_selector "#rapid_log_panel[hidden]", visible: :all
+    assert_equal "capture_reveal", page.evaluate_script("document.activeElement.id")
     action_strip_id = "entry_#{task.id}_actions"
     assert_selector "button.entry__toggle[type='button'][aria-expanded='false'][aria-controls='#{action_strip_id}']"
     assert_selector "##{action_strip_id}[hidden]", visible: :all
@@ -67,6 +67,7 @@ class DailyLogTest < ApplicationSystemTestCase
   test "3 the kind toggle captures events and notes without task actions" do
     sign_in
 
+    reveal_capture
     find("button[aria-label='Event']").click
     capture "standup 9am"
     event = @user.entries.find_by!(text: "standup")
@@ -83,6 +84,7 @@ class DailyLogTest < ApplicationSystemTestCase
       assert_no_button "Schedule…", exact: true
     end
 
+    reveal_capture
     find("button[aria-label='Note']").click
     capture "quiet observation"
     note = @user.entries.find_by!(text: "quiet observation")
@@ -218,7 +220,7 @@ class DailyLogTest < ApplicationSystemTestCase
     end
   end
 
-  test "7 previous-day navigation hides capture and offers today" do
+  test "7 previous-day navigation captures on that page and uses the Today tab to return" do
     sign_in
     previous_day = Time.zone.today - 1.day
 
@@ -226,8 +228,19 @@ class DailyLogTest < ApplicationSystemTestCase
 
     assert_selector ".daily-log__eyebrow", text: formatted_day(previous_day)
     assert_text "Nothing logged yet."
-    assert_link "today", href: daily_log_path(date: Time.zone.today.iso8601)
-    assert_no_field "Rapid log…"
+    assert_selector ".day-navigation__viewed-day", text: formatted_day(previous_day)
+    assert_no_link "today", exact: true
+
+    reveal_capture
+    assert_text "→ logging to #{formatted_destination(previous_day)}"
+    capture "written on yesterday"
+    captured = @user.entries.find_by!(text: "written on yesterday")
+    assert_equal previous_day, captured.logged_on
+    assert_text "written on yesterday"
+
+    click_link "Today", exact: true
+    assert_current_path root_path
+    assert_no_text "written on yesterday"
   end
 
   test "8 theme choice cycles through dark and persists before returning to system" do
@@ -307,9 +320,16 @@ class DailyLogTest < ApplicationSystemTestCase
   end
 
   def capture(line)
+    reveal_capture unless page.has_field?("Rapid log…")
     fill_in "Rapid log…", with: line
     find_field("Rapid log…").send_keys(:enter)
-    assert_field "Rapid log…", with: ""
+    assert_selector "#rapid_log_panel[hidden]", visible: :all
+    assert_field "Rapid log…", with: "", visible: :all
+  end
+
+  def reveal_capture
+    find("button[aria-label='Write on this page']").click
+    assert_field "Rapid log…"
   end
 
   def displayed_open_count

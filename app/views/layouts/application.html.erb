@@ -29,9 +29,7 @@
   </head>
 
   <body>
-    <% if flash[:alert] %>
-      <div class="flash flash--alert" role="alert"><%= flash[:alert] %></div>
-    <% end %>
+    <div id="flash_messages"><%= render "shared/flash_messages" %></div>
     <%= yield %>
   </body>
 </html>

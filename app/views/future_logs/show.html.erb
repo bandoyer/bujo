@@ -1,6 +1,6 @@
 <% content_for :title, "Future Log · Bujo" %>
 
-<main class="daily-log future-log">
+<main class="daily-log future-log" data-controller="placement">
   <header class="daily-log__header future-log__header">
     <div class="daily-log__heading">
       <p class="daily-log__eyebrow future-log__eyebrow">FROM <%= (@today + 1.day).strftime("%b %-d · %Y").upcase %></p>
@@ -13,15 +13,38 @@
       <% entries = @entries_by_month.fetch(month, []) %>
       <section class="future-log__month <%= "future-log__month--empty" if entries.empty? %>"
                data-month="<%= month.strftime("%Y-%m") %>">
-        <h2><%= month.strftime("%B %Y").upcase %></h2>
-        <% entries.each do |entry| %>
-          <%= link_to daily_log_path(date: entry.occurs_on.iso8601),
-                      id: "future_entry_#{entry.id}",
-                      class: "future-entry" do %>
-            <span class="future-entry__day"><%= entry.occurs_on.day %></span>
-            <%= render "entries/entry_body", entry: entry %>
+        <% month_key = month.strftime("%Y_%m") %>
+        <% add_row_id = "future_month_#{month_key}_add" %>
+        <h2>
+          <button type="button"
+                  id="future_month_<%= month_key %>_toggle"
+                  aria-expanded="false"
+                  aria-controls="<%= add_row_id %>"
+                  data-placement-target="toggle"
+                  data-action="placement#toggle"><%= month.strftime("%B %Y").upcase %></button>
+        </h2>
+        <div id="<%= add_row_id %>" class="future-log__add-row" data-placement-target="panel" hidden>
+          <%= form_with url: entries_path,
+                        data: { month: month.strftime("%Y-%m"), action: "submit->placement#composeDate turbo:submit-end->placement#submitted" } do |form| %>
+            <%= form.hidden_field :placement, value: "future" %>
+            <%= form.hidden_field :on, value: "", data: { placement_target: "on" } %>
+            <%= form.number_field :day,
+                                  id: "future_month_#{month_key}_day",
+                                  inputmode: "numeric",
+                                  required: true,
+                                  aria: { label: "Day of the month" },
+                                  data: { placement_target: "day focus" } %>
+            <%= form.text_field :line,
+                                id: "future_month_#{month_key}_line",
+                                required: true,
+                                autocomplete: "off",
+                                aria: { label: "Entry text" } %>
+            <%= form.submit "Log" %>
           <% end %>
-        <% end %>
+        </div>
+        <div id="future_month_entries_<%= month_key %>">
+          <%= render partial: "future_logs/entry", collection: entries %>
+        </div>
       </section>
     <% end %>
   </section>

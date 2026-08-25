@@ -8,20 +8,23 @@ class EntriesController < ApplicationController
   before_action :set_entry, except: :create
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
-  # Captures a rapid-log line into today using an allowed default kind.
+  # Captures a rapid-log line onto the explicitly requested journal page.
   def create
-    @today = Time.zone.today
+    @capture_date = requested_capture_date
+    return refuse_capture unless @capture_date
+
     @entry = Entry.capture!(
       params[:line],
       user: Current.user,
-      today: @today,
+      today: @capture_date,
       default_kind: default_kind
     )
-    @open_task_count = open_task_count_on(@today)
+    place_entry_in_future_log
+    @open_task_count = open_task_count_on(@capture_date)
 
     respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to daily_log_path(date: @today.iso8601) }
+      format.turbo_stream { render future_placement? ? :create_future : :create }
+      format.html { redirect_to capture_destination }
     end
   end
 
@@ -69,6 +72,30 @@ class EntriesController < ApplicationController
     DEFAULT_KINDS.include?(candidate) ? candidate.to_sym : :task
   end
 
+  # A missing or malformed page date is rejected: falling back to the clock
+  # would silently write a valid entry onto the wrong journal page.
+  def requested_capture_date
+    Date.iso8601(params[:on].to_s)
+  rescue Date::Error
+    nil
+  end
+
+  def future_placement?
+    params[:placement] == "future"
+  end
+
+  # Future placement uses the same parser and capture bridge as a Daily Log,
+  # then pins the calendar date to the month-header gesture's chosen day.
+  def place_entry_in_future_log
+    @entry&.update!(occurs_on: @capture_date) if future_placement?
+  end
+
+  def capture_destination
+    return future_log_path if future_placement?
+
+    daily_log_path(date: @capture_date.iso8601)
+  end
+
   def viewed_date
     @viewed_date ||= date_or_today(params[:viewed_on])
   end
@@ -92,5 +119,19 @@ class EntriesController < ApplicationController
   # refusal, never as a 400 or a 500 - this is a form, not an API.
   def refuse_lifecycle_change
     redirect_to_viewed_day(alert: "That entry can't do that.")
+  end
+
+  # Turbo refusals leave the submitting reveal open; ordinary form fallbacks
+  # return to the request's page because the rejected value cannot route them.
+  def refuse_capture
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "That entry can't do that."
+        render :capture_refused, status: :unprocessable_entity
+      end
+      format.html do
+        redirect_back fallback_location: root_path, alert: "That entry can't do that."
+      end
+    end
   end
 end
