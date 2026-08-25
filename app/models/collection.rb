@@ -8,6 +8,11 @@ class Collection < ApplicationRecord
   include UuidV7Id
   include SoftDeletable
 
+  # Two registrations racing for the same rank collide on the kept-position
+  # unique index; the loser re-reads the greatest position and appends again,
+  # so only a run of collisions this long is treated as a refusal.
+  REGISTRATION_ATTEMPTS = 3
+
   belongs_to :user
   has_many :entries
 
@@ -38,7 +43,7 @@ class Collection < ApplicationRecord
 
   # Answers whether this Collection can be deliberately added to the Index.
   def registrable?
-    deleted_at.nil? && index_position.nil? && entries.kept.exists?
+    kept? && index_position.nil? && entries.kept.exists?
   end
 
   # Appends this nonempty Collection to the user's manual Index order.
@@ -49,7 +54,7 @@ class Collection < ApplicationRecord
       attempts += 1
       register_once!
     rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-      retry if attempts < 3
+      retry if attempts < REGISTRATION_ATTEMPTS
 
       raise LifecycleError
     end
@@ -59,7 +64,7 @@ class Collection < ApplicationRecord
   # residents.
   def unindex!
     with_lock do
-      raise LifecycleError unless deleted_at.nil? && index_position.present?
+      raise LifecycleError unless kept? && index_position.present?
 
       write_index_position!(nil)
     end
@@ -68,7 +73,7 @@ class Collection < ApplicationRecord
   # Answers whether the Collection has never held an entry and can therefore
   # be tombstoned without stranding journal history.
   def deletable?
-    deleted_at.nil? && !entries.exists?
+    kept? && !entries.exists?
   end
 
   # Soft-deletes a kept, never-used Collection while preserving every other
@@ -102,6 +107,9 @@ class Collection < ApplicationRecord
     end
   end
 
+  # Soft-deleted rows count too. A phase-2 pull can deliver a tombstone that
+  # still carries the rank another device gave it, and no rank may be issued
+  # twice; no gesture in this app can reach that state on its own.
   def next_index_position
     user.collections.maximum(:index_position).to_i + 1
   end
