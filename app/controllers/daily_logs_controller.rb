@@ -8,5 +8,6 @@ class DailyLogsController < ApplicationController
     @today = Time.zone.today
     @entries = daily_log_entries(@date)
     @open_task_count = open_task_count_on(@date)
+    @capture_open = Entry.capture_admitted?(page_kind: "daily", page_on: @date, as_of: @today)
   end
 end

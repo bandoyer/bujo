@@ -96,6 +96,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_no_link "this month"
 
     find("a[aria-label='Next month']").click
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
     find("a[aria-label='Next month']").click
     assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today.next_month)
     assert_tasks_view
@@ -148,6 +149,9 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
     click_link "Month", exact: true
     find("a[aria-label='Next month']").click
+    # The Tasks link exists on both months, so wait for the month to land
+    # before following it or the click can resolve against the old page.
+    assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(destination)
     click_link "Tasks", exact: true
 
     assert_no_selector "#monthly_task_#{task.id}"

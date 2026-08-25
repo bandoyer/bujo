@@ -121,26 +121,43 @@ class Entry < ApplicationRecord
       entry
     end
 
+    # Answers whether a page admits ordinary capture on the supplied date.
+    # Reading screens ask this before offering a writing affordance, so the
+    # control a reader sees and the guard the command enforces are one rule
+    # rather than two that have to be kept in step by hand.
+    def capture_admitted?(page_kind:, as_of:, page_on: nil, occurs_on: nil)
+      admission_method = CAPTURE_ADMISSION_METHODS[page_kind]
+      return true unless admission_method
+
+      send(admission_method, page_on: page_on, occurs_on: occurs_on, as_of: as_of)
+    end
+
     private
 
     def enforce_capture_admission!(entry, as_of)
-      admission_method = CAPTURE_ADMISSION_METHODS[entry.page_kind]
-      return if !admission_method || send(admission_method, entry, as_of)
+      return if capture_admitted?(
+        page_kind: entry.page_kind,
+        page_on: entry.page_on,
+        occurs_on: entry.occurs_on,
+        as_of: as_of
+      )
 
       entry.errors.add(:base, :invalid)
       raise ActiveRecord::RecordInvalid, entry
     end
 
-    def daily_capture_admitted?(entry, as_of)
-      entry.page_on && entry.page_on <= as_of
+    # Each admission rule names only the placement dates it judges and ignores
+    # the rest, so the dispatch table can call them all the same way.
+    def daily_capture_admitted?(page_on:, as_of:, **)
+      page_on && page_on <= as_of
     end
 
-    def monthly_capture_admitted?(entry, as_of)
-      entry.page_on && entry.page_on <= as_of.beginning_of_month
+    def monthly_capture_admitted?(page_on:, as_of:, **)
+      page_on && page_on <= as_of.beginning_of_month
     end
 
-    def future_capture_admitted?(entry, as_of)
-      entry.occurs_on && entry.occurs_on > as_of.end_of_month
+    def future_capture_admitted?(occurs_on:, as_of:, **)
+      occurs_on && occurs_on > as_of.end_of_month
     end
   end
 

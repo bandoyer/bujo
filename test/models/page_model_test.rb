@@ -94,6 +94,35 @@ class PageModelTest < ActiveSupport::TestCase
     assert_capture_refused(page_kind: "future", page_on: nil, occurs_on: next_month, today: next_month, as_of: next_month)
   end
 
+  # The reading screens offer a writing affordance only where this predicate
+  # says a page is open, so a disagreement between it and the command would
+  # either hide a legal gesture or show one the server then refuses.
+  test "the affordance predicate and the capture guard answer as one rule" do
+    next_month = AS_OF.next_month.beginning_of_month
+    placements = {
+      "today's Daily page" => [ true, { page_kind: "daily", page_on: AS_OF } ],
+      "a future Daily page" => [ false, { page_kind: "daily", page_on: AS_OF.next_day } ],
+      "the current Tasks page" => [ true, { page_kind: "monthly_tasks", page_on: PAGE_ON } ],
+      "a future Tasks page" => [ false, { page_kind: "monthly_tasks", page_on: PAGE_ON.next_month } ],
+      "the current Calendar page" => [ true, { page_kind: "monthly_calendar", page_on: PAGE_ON, occurs_on: AS_OF } ],
+      "a future Calendar page" => [ false, { page_kind: "monthly_calendar", page_on: PAGE_ON.next_month, occurs_on: next_month } ],
+      "a Future month after this one" => [ true, { page_kind: "future", page_on: nil, occurs_on: next_month } ],
+      "a Future date still inside this month" => [ false, { page_kind: "future", page_on: nil, occurs_on: AS_OF.next_day } ]
+    }
+
+    placements.each do |page, (admitted, placement)|
+      assert_equal admitted, Entry.capture_admitted?(as_of: AS_OF, **placement),
+        "capture_admitted? misjudged #{page}"
+
+      if admitted
+        assert Entry.capture!("check", user: users(:one), today: AS_OF, as_of: AS_OF, **placement),
+          "capture! refused #{page}, which the predicate admitted"
+      else
+        assert_capture_refused(today: AS_OF, **placement)
+      end
+    end
+  end
+
   test "old Future residents remain structurally valid when their month arrives" do
     resident = create(page_kind: "future", page_on: nil, occurs_on: AS_OF)
 

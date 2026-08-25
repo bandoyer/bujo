@@ -6,6 +6,8 @@ class FutureLogsController < ApplicationController
   # Empty month headers keep this much runway visible beyond today.
   RUNWAY_MONTH_COUNT = 6
 
+  helper_method :month_add_open?
+
   # Shows every occupied month plus six writable months after the current one.
   def show
     @today = Time.zone.today
@@ -14,6 +16,12 @@ class FutureLogsController < ApplicationController
   end
 
   private
+
+  # Whether a runway month takes new entries, asked of the domain so the add
+  # control and the server's refusal cannot answer the question differently.
+  def month_add_open?(month)
+    Entry.capture_admitted?(page_kind: "future", occurs_on: month, as_of: @today)
+  end
 
   def future_entries
     user_entries.future_log

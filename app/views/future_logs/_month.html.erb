@@ -3,7 +3,7 @@
 <% month_key = month.strftime("%Y_%m") %>
 <% add_row_id = "future_month_#{month_key}_add" %>
 <%# Only a month after the current one takes new entries; the rest render. %>
-<% add_open = month > @today.end_of_month %>
+<% add_open = month_add_open?(month) %>
 <section class="future-log__month <%= "future-log__month--empty" if entries.empty? %>"
          data-month="<%= month.strftime("%Y-%m") %>">
   <h2>

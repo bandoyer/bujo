@@ -10,12 +10,17 @@ class MonthlyLogsController < ApplicationController
     @today = Time.zone.today
     @month = month_or_current(params[:month])
     @view = params[:view] == "tasks" ? :tasks : :calendar
-    @capture_open = @month <= @today.beginning_of_month
+    @capture_open = Entry.capture_admitted?(page_kind: viewed_page_kind, page_on: @month, as_of: @today)
 
     @view == :tasks ? load_tasks : load_calendar
   end
 
   private
+
+  # The residency this month's selected view writes to and renders.
+  def viewed_page_kind
+    @view == :tasks ? "monthly_tasks" : "monthly_calendar"
+  end
 
   def month_or_current(value)
     parsed_month(value.to_s) || @today.beginning_of_month
