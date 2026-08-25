@@ -2,24 +2,13 @@
 <% muted = entry.state.in?(%w[done migrated]) %>
 <% actions = local_assigns.fetch(:actions, true) %>
 <% return_to = local_assigns[:return_to] %>
-<% actionable_task = if entry.kind == "task"
-     if entry.state == "open"
-       %w[complete strike migrate schedule].any? { |command| entry_command_allowed?(entry, command) }
-     elsif entry.state.in?(%w[done struck])
-       entry_command_allowed?(entry, "reopen")
-     else
-       false
-     end
-   else
-     false
-   end %>
-<% actionable_event = entry.kind == "event" && entry.successor.nil? &&
-     entry_command_allowed?(entry, "schedule") %>
-<% actionable = actions && (actionable_task || actionable_event) %>
+<%# One list decides both the toggle and the strip's contents, so a row is a
+    toggle exactly when there is something behind it to reach. %>
+<% offered_commands = actions ? offered_entry_commands(entry) : [] %>
 <article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
   <%# An actionable row is a toggle and the strip it controls; anything else is
       a plain line. The strip sits between the line and the children region. %>
-  <% if actionable %>
+  <% if offered_commands.any? %>
     <% action_strip_id = "entry_#{entry.id}_actions" %>
     <button type="button"
             class="entry__line entry__toggle"
@@ -33,6 +22,7 @@
                entry: entry,
                viewed_on: viewed_on,
                return_to: return_to,
+               offered_commands: offered_commands,
                action_strip_id: action_strip_id %>
   <% else %>
     <div class="entry__line">

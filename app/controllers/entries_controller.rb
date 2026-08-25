@@ -85,6 +85,10 @@ class EntriesController < ApplicationController
 
   private
 
+  # Resolves the command's subject: the entry, and for a Collection resident
+  # the Collection it persists in. Both lookups happen before any action body,
+  # so a foreign or tombstoned row on either side is a missing resource rather
+  # than a refusal, and the return destination is already in hand.
   def set_entry
     @entry = user_entries.kept.find(params[:id])
     @collection = user_collections.kept.find(@entry.collection_id) if @entry.page_kind == "collection"
@@ -195,6 +199,9 @@ class EntriesController < ApplicationController
     @viewed_date ||= date_or_today(params[:viewed_on])
   end
 
+  # A Collection resident returns to its own canonical page, derived from what
+  # it persists, so no crafted parameter can send the reader elsewhere. Dated
+  # pages keep the parameter-driven destination the reader navigated from.
   def redirect_to_viewed_page(**response_options)
     return redirect_to(collection_path(@collection), **response_options) if @entry.page_kind == "collection"
 
@@ -202,6 +209,9 @@ class EntriesController < ApplicationController
     redirect_to page_path(return_page, viewed_date), **response_options
   end
 
+  # Which lookup failed decides the response. A resolved Collection resident
+  # whose Collection is gone gets the themed page that screen already shows;
+  # a missing entry has no screen to theme, so it answers with the bare status.
   def render_entry_not_found
     return render_collection_not_found if @entry&.page_kind == "collection"
 

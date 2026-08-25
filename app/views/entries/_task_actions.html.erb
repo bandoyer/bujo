@@ -1,30 +1,30 @@
 <%# Lifecycle controls for a task row. Each posts the day being viewed so the
-    redirect lands back where the reader was, not on today. %>
+    redirect lands back where the reader was, not on today. The row already
+    resolved which commands it may offer; this strip only renders them. %>
 <% viewed_on_iso = viewed_on.iso8601 %>
 <% return_params = { viewed_on: viewed_on_iso, return_to: return_to }.compact %>
 <div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
   <div class="entry__actions" data-step="actions">
-    <% if entry.kind == "task" && entry.state == "open" %>
-      <% if entry_command_allowed?(entry, "complete") %>
-        <%= button_to "Complete", complete_entry_path(entry), params: return_params, class: "entry-action" %>
-      <% end %>
-      <% if entry_command_allowed?(entry, "strike") %>
-        <%= button_to "Strike", strike_entry_path(entry), params: return_params, class: "entry-action entry-action--warn" %>
-      <% end %>
-      <% if entry_command_allowed?(entry, "migrate") %>
-        <%= button_to "Migrate", migrate_entry_path(entry), params: return_params, class: "entry-action" %>
-      <% end %>
-      <% if entry_command_allowed?(entry, "schedule") %>
-        <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
-      <% end %>
-    <% elsif entry.kind == "task" && entry_command_allowed?(entry, "reopen") %>
+    <% if offered_commands.include?("complete") %>
+      <%= button_to "Complete", complete_entry_path(entry), params: return_params, class: "entry-action" %>
+    <% end %>
+    <% if offered_commands.include?("strike") %>
+      <%= button_to "Strike", strike_entry_path(entry), params: return_params, class: "entry-action entry-action--warn" %>
+    <% end %>
+    <% if offered_commands.include?("migrate") %>
+      <%= button_to "Migrate", migrate_entry_path(entry), params: return_params, class: "entry-action" %>
+    <% end %>
+    <% if offered_commands.include?("reopen") %>
       <%= button_to "Reopen", reopen_entry_path(entry), params: return_params, class: "entry-action" %>
-    <% elsif entry.kind == "event" && entry_command_allowed?(entry, "schedule") %>
+    <% end %>
+    <% if offered_commands.include?("schedule") %>
       <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
     <% end %>
   </div>
 
-  <% if entry_command_allowed?(entry, "schedule") && (entry.state == "open" || entry.kind == "event") %>
+  <%# The date step belongs only to a row that may actually schedule, so a
+      Collection row never carries a hidden second step it can never reach. %>
+  <% if offered_commands.include?("schedule") %>
     <div class="entry__schedule-step" data-step="schedule" hidden>
       <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
