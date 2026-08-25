@@ -83,6 +83,21 @@ class EntriesController < ApplicationController
     redirect_to_viewed_page
   end
 
+  # Rewrites one eligible Daily or Monthly resident into an exact known
+  # Collection while keeping the reader on the persisted source page.
+  def move_to_collection
+    destination = user_collections.kept.with_exact_topic(params[:topic]).first
+    return refuse_lifecycle_change unless destination
+
+    @entry.move_to!(
+      page_kind: "collection",
+      page_on: nil,
+      collection: destination,
+      as_of: @today
+    )
+    redirect_to_viewed_page
+  end
+
   private
 
   # Resolves the command's subject: the entry, and for a Collection resident

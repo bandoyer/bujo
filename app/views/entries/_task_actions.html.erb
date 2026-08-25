@@ -20,6 +20,9 @@
     <% if offered_commands.include?("schedule") %>
       <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
     <% end %>
+    <% if offered_commands.include?("move_to_collection") %>
+      <button type="button" class="entry-action" data-action="task-actions#showMove">Move to Collection…</button>
+    <% end %>
   </div>
 
   <%# The date step belongs only to a row that may actually schedule, so a
@@ -37,6 +40,22 @@
               class="entry-action entry-action--cancel"
               aria-label="Cancel scheduling"
               data-action="task-actions#cancelSchedule">×</button>
+    </div>
+  <% end %>
+
+  <% if offered_commands.include?("move_to_collection") %>
+    <div class="entry__move-step" data-step="move" hidden>
+      <%= form_with url: move_to_collection_entry_path(entry), class: "entry__move" do |form| %>
+        <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
+        <%= form.hidden_field :return_to, value: return_to if return_to %>
+        <%= form.label :topic, "Exact Topic", class: "visually-hidden" %>
+        <%= form.text_field :topic, required: true, autocomplete: "off" %>
+        <%= form.submit "Move", class: "entry-action" %>
+      <% end %>
+      <button type="button"
+              class="entry-action entry-action--cancel"
+              aria-label="Cancel moving to Collection"
+              data-action="task-actions#cancelMove">×</button>
     </div>
   <% end %>
 </div>

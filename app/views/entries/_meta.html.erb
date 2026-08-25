@@ -3,9 +3,10 @@
   <% if entry.time_of_day.present? %><span><%= entry.time_of_day %></span><% end %>
   <% entry.tags.each do |tag| %><span>+<%= tag %></span><% end %>
   <% if entry.successor %>
-    <%# The destination is why a migrated predecessor stays on the day at all:
-        scheduled successors carry occurs_on, migrated ones carry page_on. %>
-    <% destination = entry.successor.occurs_on || entry.successor.page_on %>
-    <span>→<%= " #{destination.strftime("%b %-d").upcase}" if destination %></span>
+    <%# Dated successors name their day; a Collection successor instead names
+        the Topic that gives its new page meaning. %>
+    <% destination_date = entry.successor.occurs_on || entry.successor.page_on %>
+    <% destination = entry.successor.collection&.name || destination_date&.strftime("%b %-d")&.upcase %>
+    <span>→<%= " #{destination}" if destination %></span>
   <% end %>
 </span>

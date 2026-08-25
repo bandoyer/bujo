@@ -64,7 +64,7 @@ class DailyLogTest < ApplicationSystemTestCase
     end
   end
 
-  test "3 events expose scheduling while notes remain actionless" do
+  test "3 events and notes expose only their eligible movement actions" do
     sign_in
 
     reveal_capture
@@ -82,6 +82,7 @@ class DailyLogTest < ApplicationSystemTestCase
       assert_no_button "Strike"
       assert_no_button "Migrate"
       assert_button "Schedule…", exact: true
+      assert_button "Move to Collection…", exact: true
     end
 
     reveal_capture
@@ -91,13 +92,14 @@ class DailyLogTest < ApplicationSystemTestCase
 
     within entry_selector(note) do
       assert_text "–"
-      assert_no_selector ".entry__toggle"
-      find(".entry__line").click
-      assert_no_selector ".entry__action-strip"
+      assert_selector ".entry__toggle"
+      find(".entry__toggle").click
+      assert_selector ".entry__action-strip:not([hidden])"
       assert_no_button "Complete"
       assert_no_button "Strike"
       assert_no_button "Migrate"
       assert_no_button "Schedule…", exact: true
+      assert_button "Move to Collection…", exact: true
     end
   end
 

@@ -9,19 +9,25 @@ module EntryCommandAuthorization
     "reopen" => %w[daily monthly_calendar monthly_tasks collection],
     "strike" => %w[daily monthly_calendar monthly_tasks collection],
     "migrate" => %w[daily monthly_calendar monthly_tasks],
-    "schedule" => %w[daily monthly_calendar monthly_tasks]
+    "schedule" => %w[daily monthly_calendar monthly_tasks],
+    "move_to_collection" => %w[daily monthly_calendar monthly_tasks]
   }.transform_values(&:freeze).freeze
   # What a task's own lifecycle could support, before residency narrows it, in
   # the order a strip renders them. A state absent here - a migrated task -
   # supports nothing.
   TASK_COMMANDS_BY_STATE = {
-    "open" => %w[complete strike migrate schedule],
+    "open" => %w[complete strike migrate schedule move_to_collection],
     "done" => %w[reopen],
     "struck" => %w[reopen]
   }.transform_values(&:freeze).freeze
-  # An event may be scheduled onward until it has a successor; a note never
-  # carries a command of its own.
-  EVENT_COMMANDS = %w[schedule].freeze
+  # Events may schedule or move while notes may move; either becomes final
+  # at this residency as soon as it has a successor.
+  EVENT_COMMANDS = %w[schedule move_to_collection].freeze
+  NOTE_COMMANDS = %w[move_to_collection].freeze
+  NON_TASK_COMMANDS_BY_KIND = {
+    "event" => EVENT_COMMANDS,
+    "note" => NOTE_COMMANDS
+  }.freeze
   NO_RESIDENCIES = [].freeze
   NO_COMMANDS = [].freeze
 
@@ -45,10 +51,12 @@ module EntryCommandAuthorization
   end
 
   def lifecycle_commands(entry)
-    case entry.kind
-    when "task" then TASK_COMMANDS_BY_STATE.fetch(entry.state, NO_COMMANDS)
-    when "event" then entry.successor ? NO_COMMANDS : EVENT_COMMANDS
-    else NO_COMMANDS
+    commands = if entry.kind == "task"
+      TASK_COMMANDS_BY_STATE.fetch(entry.state, NO_COMMANDS)
+    else
+      NON_TASK_COMMANDS_BY_KIND.fetch(entry.kind, NO_COMMANDS)
     end
+
+    entry.successor ? NO_COMMANDS : commands
   end
 end

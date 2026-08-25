@@ -4,7 +4,7 @@ require "test_helper"
 # persisted residency and Entry's lifecycle, with the same rules behind
 # crafted requests when no control is rendered.
 class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
-  COMMANDS = %w[complete reopen strike migrate schedule].freeze
+  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection].freeze
 
   setup do
     @user = users(:one)

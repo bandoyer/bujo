@@ -4,7 +4,7 @@ require "test_helper"
 # lives. Request parameters may choose an established reader return only for
 # Daily and Monthly pages; they never grant a command.
 class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
-  COMMANDS = %w[complete reopen strike migrate schedule].freeze
+  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection].freeze
   PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future collection].freeze
   ALLOWED_COMMANDS = {
     "daily" => COMMANDS,
@@ -120,13 +120,18 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
   def assert_command_succeeds(command, entry)
     expected_destination = command_destination(entry)
 
-    if command.in?(%w[migrate schedule])
+    if command.in?(%w[migrate schedule move_to_collection])
       assert_difference -> { Entry.count }, 1 do
         post_command(command, entry, standard_params(command, entry.page_kind))
       end
       assert_equal "migrated", entry.reload.state
       assert_not_nil entry.successor
-      assert_equal(command == "migrate" ? "monthly_tasks" : "future", entry.successor.page_kind)
+      expected_page = {
+        "migrate" => "monthly_tasks",
+        "schedule" => "future",
+        "move_to_collection" => "collection"
+      }.fetch(command)
+      assert_equal expected_page, entry.successor.page_kind
     else
       assert_no_difference -> { Entry.count } do
         post_command(command, entry, standard_params(command, entry.page_kind))
@@ -171,6 +176,7 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
       { viewed_on: Time.zone.today.iso8601 }
     end
     params[:date] = Time.zone.today.next_month.beginning_of_month.iso8601 if command == "schedule"
+    params[:topic] = @collection.name if command == "move_to_collection"
     params
   end
 

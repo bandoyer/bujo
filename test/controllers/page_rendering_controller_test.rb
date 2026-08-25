@@ -89,14 +89,15 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "Daily events schedule once and notes never expose movement actions" do
+  test "Daily events and notes offer eligible movement commands only before moving" do
     day = Time.zone.today
     event = create_resident("meet", kind: "event", page_kind: "daily", page_on: day)
     note = create_resident("remember", kind: "note", page_kind: "daily", page_on: day)
 
     get daily_log_path(date: day.iso8601)
     assert_select "#entry_#{event.id} form[action='#{schedule_entry_path(event)}']"
-    assert_select "#entry_#{note.id} form", count: 0
+    assert_select "#entry_#{event.id} form[action='#{move_to_collection_entry_path(event)}']"
+    assert_select "#entry_#{note.id} form[action='#{move_to_collection_entry_path(note)}']"
 
     event.move_to!(
       page_kind: "future", page_on: nil, occurs_on: day.next_month.beginning_of_month,

@@ -18,7 +18,15 @@ export default class extends Controller {
     this.showStep(this.stripFor(event.currentTarget), "schedule")
   }
 
+  showMove(event) {
+    this.showStep(this.stripFor(event.currentTarget), "move")
+  }
+
   cancelSchedule(event) {
+    this.showStep(this.stripFor(event.currentTarget), "actions")
+  }
+
+  cancelMove(event) {
     this.showStep(this.stripFor(event.currentTarget), "actions")
   }
 

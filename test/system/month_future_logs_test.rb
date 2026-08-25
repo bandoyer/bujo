@@ -300,7 +300,8 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       [ strike_entry_path(open_task), open_task, {} ],
       [ reopen_entry_path(done_task), done_task, {} ],
       [ migrate_entry_path(open_task), open_task, {} ],
-      [ schedule_entry_path(open_task), open_task, { date: scheduled_on.iso8601 } ]
+      [ schedule_entry_path(open_task), open_task, { date: scheduled_on.iso8601 } ],
+      [ move_to_collection_entry_path(open_task), open_task, { topic: "Camping Trip" } ]
     ]
   end
 

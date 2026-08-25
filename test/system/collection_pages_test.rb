@@ -330,7 +330,8 @@ class CollectionPagesTest < ApplicationSystemTestCase
 
     [
       [ migrate_entry_path(task), {} ],
-      [ schedule_entry_path(task), { "date" => Time.zone.today.next_month.beginning_of_month.iso8601 } ]
+      [ schedule_entry_path(task), { "date" => Time.zone.today.next_month.beginning_of_month.iso8601 } ],
+      [ move_to_collection_entry_path(task), { "topic" => collection.name } ]
     ].each do |path, params|
       original_attributes = task.attributes
       submit_crafted_request(path, method: :post, params: params)

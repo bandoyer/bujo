@@ -184,7 +184,7 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
   # a missing-date refusal cannot masquerade as the residency guard.
   test "every entry member command still refuses a Future resident" do
     commands = member_entry_commands
-    assert_equal %w[complete reopen strike migrate schedule].sort, commands.sort
+    assert_equal %w[complete reopen strike migrate schedule move_to_collection].sort, commands.sort
     schedule_on = Time.zone.today.next_month.beginning_of_month.iso8601
 
     commands.each do |command|
@@ -192,6 +192,7 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
       original_attributes = task.attributes
       params = { viewed_on: Time.zone.today.iso8601 }
       params[:date] = schedule_on if command == "schedule"
+      params[:topic] = "Camping Trip" if command == "move_to_collection"
 
       assert_no_difference -> { @user.entries.count } do
         post lifecycle_path(command, task), params: params

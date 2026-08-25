@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       post :strike
       post :migrate
       post :schedule
+      post :move_to_collection
     end
   end
   resource :theme, only: :update

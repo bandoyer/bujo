@@ -685,7 +685,9 @@ a {
 
 .entry__actions,
 .entry__schedule-step,
-.entry__schedule {
+.entry__schedule,
+.entry__move-step,
+.entry__move {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
@@ -702,12 +704,14 @@ a {
 
 .entry__action-strip[hidden],
 .entry__actions[hidden],
-.entry__schedule-step[hidden] {
+.entry__schedule-step[hidden],
+.entry__move-step[hidden] {
   display: none;
 }
 
 .entry-action,
-.entry__schedule input[type="date"] {
+.entry__schedule input[type="date"],
+.entry__move input[type="text"] {
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
@@ -734,6 +738,12 @@ a {
 .entry__schedule input[type="date"] {
   max-width: 8.6rem;
   padding: 0 0.4rem;
+}
+
+.entry__move input[type="text"] {
+  min-width: 0;
+  max-width: 11rem;
+  padding: 0 0.6rem;
 }
 
 .entry__children {
