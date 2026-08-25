@@ -142,8 +142,10 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_hidden_daily_capture
 
     click_button "Theme: system", exact: true
+    assert_button "Theme: light", exact: true
     assert_selector "html[data-theme='light']", visible: :all
     click_button "Hand: marker", exact: true
+    assert_button "Hand: rock salt", exact: true
     assert_selector "html[data-hand='rock-salt']", visible: :all
     click_link "Future", exact: true
     assert_current_path future_log_path

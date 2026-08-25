@@ -132,7 +132,9 @@ class DailyLogTest < ApplicationSystemTestCase
 
   test "4 a task can be completed and reopened" do
     sign_in
+    initial_open_count = displayed_open_count
     capture "round trip task"
+    assert_selector "[data-testid='open-count']", text: "#{initial_open_count + 1} open"
     task = @user.entries.find_by!(text: "round trip task")
     open_count = displayed_open_count
 
