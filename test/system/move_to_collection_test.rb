@@ -82,9 +82,10 @@ class MoveToCollectionTest < ApplicationSystemTestCase
     foreign = users(:two).collections.create!(name: "Foreign Destination")
     eligible = create_task("refused destination", page_kind: "daily", page_on: Time.zone.today)
     sign_in
-    visit daily_log_path(date: Time.zone.today.iso8601)
 
     [ "Wrong Topic", deleted.name, foreign.name ].each do |topic|
+      visit daily_log_path(date: Time.zone.today.iso8601)
+      assert_no_text "That entry can't do that."
       original_attributes = eligible.reload.attributes
       original_count = Entry.unscoped.count
       reveal_actions(eligible)

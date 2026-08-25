@@ -45,6 +45,7 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
     )
     child = create_source_entry(page_kind: "daily", kind: "note", parent: predecessor,
       text: "ask about firewood")
+    predecessor.update_columns(hlc: "1710000000000:2:qa", server_seq: 73)
     predecessor_attributes = predecessor.attributes
     child_attributes = child.attributes
 
@@ -70,8 +71,8 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
     assert_equal predecessor.id, child.parent_id
     assert_equal ">", predecessor.glyph
     assert_equal "–", successor.glyph
-    assert_nil predecessor.hlc
-    assert_nil predecessor.server_seq
+    assert_equal "1710000000000:2:qa", predecessor.hlc
+    assert_equal 73, predecessor.server_seq
     assert_nil successor.hlc
     assert_nil successor.server_seq
   end
