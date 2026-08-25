@@ -2,7 +2,7 @@
 # Watch the bujo swarm: exit 0 when qa broadcasts terminal verification
 # to all roles (visible in handoffd.log), exit 1 on 30 minutes of quiet.
 set -u
-REPO=/home/dlb/Projects/bujo
+REPO=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 QLOG=$REPO/.swarmforge/daemon/handoffd.log
 QUIET_LIMIT=1800
 POLL=60
