@@ -7,11 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: live at https://bujo.questlog.dev through slice 1.4.1 +
-> polish. IN PROGRESS: the book-faithful realignment ("everything is
-> a page", see decisions log + docs/METHOD.md) — ARCHITECTURE's page
-> model drafted, operator review pending, then staged slices with
-> 1.5's migration ritual as capstone. The swarm is up and idle.**
+> **Status: PARKED mid-slice 1.5.1 (2026-08-24 late) — the swarm is
+> RUNNING the page-model chain and survives session restarts. See
+> `HANDOFF.md` for the exact state, the review protocol, and the
+> post-merge follow-ups. Prod runs 1.4.1; polish + realignment are
+> committed, undeployed.**
 
 ## What this is
 
