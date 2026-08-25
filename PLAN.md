@@ -151,7 +151,17 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       green, all bars, 3/3 hand-mutations killed. ("Place from today"
       artboard parked; grammar expansion parked unbuilt per the
       route-by-gesture decision.)
-- [ ] **1.5 Migration ritual** — card-per-task review flow per mock.
+- [ ] **1.5 The book-faithful realignment** (see decisions log +
+      `docs/METHOD.md`):
+      - [ ] **1.5.1 The page model and its pages** — IN FLIGHT
+            (2026-08-24). Schema: immutable `page_kind`/`page_on`;
+            every log becomes a residency scope; calendar/tasks/future
+            become writable pages; movement generalizes to events and
+            notes; write-on-page narrows to today/past. Spec at
+            `docs/slices/1.5.1-the-page-model.md`.
+      - [ ] **1.5.2 The migration ritual** — the capstone:
+            card-per-task monthly review per the Migration mock,
+            plus the future-log scan-in at month setup.
 - [ ] **1.6 Index** — search across collections and entries.
 - [ ] **1.7 PWA** — manifest/service worker, vendor the fonts for
       offline. (The deploy, Kamal, and Litestream landed early, with
