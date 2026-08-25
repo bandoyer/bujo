@@ -18,6 +18,26 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".daily-log__eyebrow", text: Time.zone.today.strftime("%a · %b %-d").upcase
   end
 
+  test "snapshots today once while falling back from an invalid date" do
+    snapshot = Date.new(2026, 8, 25)
+    clock_reads = 0
+    zone = Time.zone
+    zone.define_singleton_method(:today) do
+      clock_reads += 1
+      snapshot
+    end
+
+    begin
+      get daily_log_path(date: "not-a-date")
+    ensure
+      zone.singleton_class.remove_method(:today)
+    end
+
+    assert_response :success
+    assert_equal 1, clock_reads
+    assert_select ".daily-log__eyebrow", text: snapshot.strftime("%a · %b %-d").upcase
+  end
+
   test "counts every kept open task rendered in the day's nested tree" do
     requested_date = Date.new(2027, 1, 15)
     root = create_open_task("root", page_on: requested_date)

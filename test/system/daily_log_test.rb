@@ -253,6 +253,7 @@ class DailyLogTest < ApplicationSystemTestCase
     assert_selector "html[data-theme='dark']", visible: :all
     dark_background = page.evaluate_script("getComputedStyle(document.documentElement).backgroundColor")
     refute_equal light_background, dark_background
+    assert_button "Theme: dark", exact: true
 
     refresh
     assert_selector "html[data-theme='dark']", visible: :all
@@ -279,6 +280,7 @@ class DailyLogTest < ApplicationSystemTestCase
 
     hand_steps.each do |current_label, stored_hand, next_label|
       click_button current_label, exact: true
+      assert_button next_label, exact: true
 
       if stored_hand
         assert_selector "html[data-hand='#{stored_hand}']", visible: :all
