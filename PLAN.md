@@ -7,10 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: DEPLOYED (2026-08-24) — slice 1.3 live at
-> https://bujo.questlog.dev with Litestream streaming to R2; dogfooding
-> begins. Next: spec slice 1.4 (Monthly + Future Logs). The swarm is
-> up and idle.**
+> **Status: live at https://bujo.questlog.dev through slice 1.4.1 +
+> polish. IN PROGRESS: the book-faithful realignment ("everything is
+> a page", see decisions log + docs/METHOD.md) — ARCHITECTURE's page
+> model drafted, operator review pending, then staged slices with
+> 1.5's migration ritual as capstone. The swarm is up and idle.**
 
 ## What this is
 
