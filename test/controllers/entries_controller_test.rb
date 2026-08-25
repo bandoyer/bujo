@@ -78,7 +78,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "future placement logs and occurs on the requested day" do
-    capture_date = Date.new(2027, 2, 5)
+    capture_date = Time.zone.today.next_month.beginning_of_month + 4.days
 
     assert_difference -> { @user.entries.count }, 1 do
       post entries_path(format: :turbo_stream), params: {
@@ -94,6 +94,31 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal capture_date, captured.occurs_on
   end
 
+  test "future placement refuses a nonfuture date that Daily placement accepts" do
+    past_date = Time.zone.today.prev_day
+
+    [ past_date, Time.zone.today ].each do |nonfuture_date|
+      assert_no_difference -> { @user.entries.count } do
+        post entries_path(format: :turbo_stream), params: {
+          line: "must stay visible",
+          on: nonfuture_date.iso8601,
+          placement: "future"
+        }
+      end
+      assert_response :unprocessable_entity
+      assert_equal "That entry can't do that.", flash[:alert]
+    end
+
+    assert_difference -> { @user.entries.count }, 1 do
+      post entries_path(format: :turbo_stream), params: {
+        line: "past page capture",
+        on: past_date.iso8601
+      }
+    end
+    assert_response :success
+    assert_equal past_date, @user.entries.find_by!(text: "past page capture").logged_on
+  end
+
   test "HTML capture returns to the requested page date" do
     capture_date = Date.new(2027, 3, 8)
 
@@ -104,7 +129,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "HTML future capture returns to the Future Log" do
-    capture_date = Date.new(2027, 3, 8)
+    capture_date = Time.zone.today.next_month.beginning_of_month + 7.days
 
     post entries_path, params: {
       line: "fallback future",

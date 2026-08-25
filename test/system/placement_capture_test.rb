@@ -74,9 +74,11 @@ class PlacementCaptureTest < ApplicationSystemTestCase
   end
 
   test "5 Future Log adds under one month at a time and places the entry on its calendar day" do
+    first_month = Time.zone.today.next_month.beginning_of_month
+    create_future_entry("later twentieth", first_month + 19.days)
+    create_future_entry("later twenty-fifth", first_month + 24.days)
     sign_in
     visit future_log_path
-    first_month = Time.zone.today.next_month.beginning_of_month
     second_month = first_month.next_month
 
     reveal_future_month(first_month)
@@ -96,6 +98,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     captured = @user.entries.find_by!(text: "future dentist")
     assert_equal [ target_day, target_day ], [ captured.logged_on, captured.occurs_on ]
     assert_selector "#future_entry_#{captured.id}", text: "future dentist"
+    assert_equal %w[5 20 25], all("#{future_month(first_month)} .future-entry__day").map(&:text)
     assert_future_month_closed(first_month)
     assert_equal future_month_toggle_id(first_month), active_element_id
 
@@ -179,6 +182,11 @@ class PlacementCaptureTest < ApplicationSystemTestCase
 
   def reveal_actions(entry)
     within("#entry_#{entry.id}") { find(".entry__toggle").click }
+  end
+
+  def create_future_entry(text, date)
+    entry = Entry.capture!(text, user: @user, today: date)
+    entry.update!(occurs_on: date)
   end
 
   def assert_active_tab(label)

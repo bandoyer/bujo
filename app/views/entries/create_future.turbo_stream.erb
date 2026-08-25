@@ -1,5 +1,5 @@
 <% if @entry %>
-  <%= turbo_stream.append future_month_entries_id(@capture_date),
-                          partial: "future_logs/entry",
-                          locals: { entry: @entry } %>
+  <%= turbo_stream.update future_month_entries_id(@capture_date) do %>
+    <%= render partial: "future_logs/entry", collection: @future_month_entries %>
+  <% end %>
 <% end %>

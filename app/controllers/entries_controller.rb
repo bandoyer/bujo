@@ -14,7 +14,7 @@ class EntriesController < ApplicationController
   # Captures a rapid-log line onto the explicitly requested journal page.
   def create
     @capture_date = requested_date(:on)
-    return refuse_capture unless @capture_date
+    return refuse_capture unless capture_date_allowed?
 
     @entry = Entry.capture!(
       params[:line],
@@ -22,7 +22,7 @@ class EntriesController < ApplicationController
       today: @capture_date,
       default_kind: default_kind
     )
-    place_entry_in_future_log
+    prepare_future_placement
     @open_task_count = open_task_count_on(@capture_date)
 
     respond_to do |format|
@@ -79,10 +79,24 @@ class EntriesController < ApplicationController
     params[:placement] == "future"
   end
 
-  # Future placement uses the same parser and capture bridge as a Daily Log,
-  # then pins the calendar date to the month-header gesture's chosen day.
-  def place_entry_in_future_log
-    @entry&.update!(occurs_on: @capture_date) if future_placement?
+  # Only a month-header gesture is constrained to the runway's strictly future
+  # dates. A Daily Log page deliberately accepts any valid date it displays.
+  def capture_date_allowed?
+    return false unless @capture_date
+    return true unless future_placement?
+
+    @capture_date > Time.zone.today
+  end
+
+  # Future placement pins the calendar day, then composes the live response
+  # from the same ordered relation a full Future Log render reads.
+  def prepare_future_placement
+    return unless @entry && future_placement?
+
+    @entry.update!(occurs_on: @capture_date)
+    @future_month_entries = Current.user.entries
+      .future_log(after: Time.zone.today)
+      .where(occurs_on: @capture_date.all_month)
   end
 
   def capture_destination
