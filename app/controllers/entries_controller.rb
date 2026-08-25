@@ -22,8 +22,7 @@ class EntriesController < ApplicationController
       today: @capture_date,
       default_kind: default_kind
     )
-    prepare_future_placement
-    @open_task_count = open_task_count_on(@capture_date)
+    future_placement? ? prepare_future_response : prepare_daily_response
 
     respond_to do |format|
       format.turbo_stream { render future_placement? ? :create_future : :create }
@@ -67,7 +66,7 @@ class EntriesController < ApplicationController
   private
 
   def set_entry
-    @entry = Current.user.entries.find(params[:id])
+    @entry = user_entries.find(params[:id])
   end
 
   def default_kind
@@ -79,24 +78,38 @@ class EntriesController < ApplicationController
     params[:placement] == "future"
   end
 
+  # Read once per request, so the refusal guard and the relation behind the
+  # response cannot disagree about where the runway starts.
+  def today
+    @today ||= Time.zone.today
+  end
+
   # Only a month-header gesture is constrained to the runway's strictly future
   # dates. A Daily Log page deliberately accepts any valid date it displays.
   def capture_date_allowed?
     return false unless @capture_date
     return true unless future_placement?
 
-    @capture_date > Time.zone.today
+    @capture_date > today
   end
 
   # Future placement pins the calendar day, then composes the live response
-  # from the same ordered relation a full Future Log render reads.
-  def prepare_future_placement
-    return unless @entry && future_placement?
+  # from the same ordered relation a full Future Log render reads, so a live
+  # insert lands where a reload would put it.
+  def prepare_future_response
+    return unless @entry
 
     @entry.update!(occurs_on: @capture_date)
-    @future_month_entries = Current.user.entries
-      .future_log(after: Time.zone.today)
+    @future_month_entries = user_entries
+      .future_log(after: today)
       .where(occurs_on: @capture_date.all_month)
+  end
+
+  # The Daily Log's response carries its page's header count. The runway's
+  # does not show one, and computing it would walk that day's entry tree for
+  # a screen that never displays it.
+  def prepare_daily_response
+    @open_task_count = open_task_count_on(@capture_date)
   end
 
   def capture_destination
