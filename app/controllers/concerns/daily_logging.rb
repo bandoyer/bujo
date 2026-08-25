@@ -5,12 +5,12 @@ module DailyLogging
 
   private
 
-  # Reads an ISO date, falling back to today so an absent or crafted param
-  # renders a day instead of an error page.
+  # Reads an ISO date, falling back to the request's day so an absent or
+  # crafted param renders a page instead of an error page.
   def date_or_today(value)
     Date.iso8601(value.to_s)
   rescue Date::Error
-    Time.zone.today
+    @today
   end
 
   # The rows a day's log lists: the signed-in reader's root entries for it.

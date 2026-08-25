@@ -10,7 +10,6 @@ class FutureLogsController < ApplicationController
 
   # Shows every occupied month plus six writable months after the current one.
   def show
-    @today = Time.zone.today
     @entries_by_month = future_entries.group_by { |entry| entry.occurs_on.beginning_of_month }
     @months = (runway_months + @entries_by_month.keys).uniq.sort
   end

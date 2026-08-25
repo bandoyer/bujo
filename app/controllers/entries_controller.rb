@@ -53,7 +53,7 @@ class EntriesController < ApplicationController
     @entry.move_to!(
       page_kind: "monthly_tasks",
       page_on: destination_month,
-      as_of: today
+      as_of: @today
     )
     redirect_to_viewed_page
   end
@@ -68,7 +68,7 @@ class EntriesController < ApplicationController
       page_kind: "future",
       page_on: nil,
       occurs_on: date,
-      as_of: today
+      as_of: @today
     )
     redirect_to_viewed_page
   end
@@ -89,7 +89,7 @@ class EntriesController < ApplicationController
       params[:line],
       user: Current.user,
       today: parser_today,
-      as_of: today,
+      as_of: @today,
       default_kind: default_kind,
       **placement_attributes
     )
@@ -113,17 +113,12 @@ class EntriesController < ApplicationController
   end
 
   def parser_today
-    @placement == "monthly_tasks" ? today : @capture_date
+    @placement == "monthly_tasks" ? @today : @capture_date
   end
 
   def default_kind
     candidate = params[:default_kind]
     Entry::KINDS.include?(candidate) ? candidate.to_sym : :task
-  end
-
-  # The request owns one clock snapshot for every admission decision.
-  def today
-    @today ||= Time.zone.today
   end
 
   def prepare_capture_response

@@ -2,7 +2,18 @@
 module JournalReading
   extend ActiveSupport::Concern
 
+  included do
+    before_action :snapshot_today
+  end
+
   private
+
+  # One clock reading serves the whole request, so a screen's affordances and
+  # the admission rules behind them cannot disagree about which day it is.
+  # Controllers are the only layer that reads the clock at all.
+  def snapshot_today
+    @today = Time.zone.today
+  end
 
   # Every log query begins from the authenticated user's journal.
   def user_entries
