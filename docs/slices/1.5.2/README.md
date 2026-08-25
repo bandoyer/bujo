@@ -21,10 +21,17 @@ that order.
 | 1 | `collection-domain` | **done** — verified and closed at `8159581b5a` |
 | 2 | `collection-pages` | **done** — closed at `d6c18945b4` after one finding (see `b2-collection-pages-corrections.md`) |
 | 3 | `collection-commands` | **done** — verified and closed at `06a88b788d` |
-| 4 | `move-to-collection` | **active** — handed to coder; last slice of 1.5.2 |
+| 4 | `move-to-collection` | **done** — verified and closed at `a2493629af` |
 
-The specifier updates this table when a slice's completion broadcast returns
-and the next slice is handed down.
+**Slice 1.5.2 is complete and is a terminal candidate awaiting operator
+review.** One slice needed a second pass; the other three passed first time.
+No role has integrated it into `main`, and none may: the operator verifies the
+candidate and presents it for human review.
+
+Outstanding operator work, carried by every pass and never claimed as done:
+the approved `IndexCollection.dc.html` review artboard and its `canvas.json`
+entry belong in the separate `bujo-mockups` repository, which no role in this
+swarm may edit.
 
 ## Order
 
