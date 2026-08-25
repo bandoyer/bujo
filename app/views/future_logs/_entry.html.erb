@@ -1,6 +1,6 @@
 <div id="future_entry_<%= entry.id %>" class="future-entry">
   <span class="future-entry__day"><%= entry.occurs_on.day %></span>
   <div class="future-entry__resident">
-    <%= render "entries/entry", entry: entry, viewed_on: entry.occurs_on, actions: false %>
+    <%= render "entries/entry", entry: entry, viewed_on: entry.occurs_on %>
   </div>
 </div>

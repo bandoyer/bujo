@@ -1,10 +1,9 @@
 <%# One journal row: its bullet line, its hidden lifecycle controls, then its children. %>
 <% muted = entry.state.in?(%w[done migrated]) %>
-<% actions = local_assigns.fetch(:actions, true) %>
 <% return_to = local_assigns[:return_to] %>
 <%# One list decides both the toggle and the strip's contents, so a row is a
     toggle exactly when there is something behind it to reach. %>
-<% offered_commands = actions ? offered_entry_commands(entry) : [] %>
+<% offered_commands = offered_entry_commands(entry) %>
 <article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
   <%# An actionable row is a toggle and the strip it controls; anything else is
       a plain line. The strip sits between the line and the children region. %>
@@ -35,7 +34,7 @@
     <div class="entry__children">
       <%= render partial: "entries/entry",
                  collection: children,
-                 locals: { viewed_on: viewed_on, return_to: return_to, actions: actions } %>
+                 locals: { viewed_on: viewed_on, return_to: return_to } %>
     </div>
   <% end %>
 </article>
