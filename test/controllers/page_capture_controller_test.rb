@@ -174,22 +174,29 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
 
   # The command list comes from the routes rather than a literal, so a member
   # command added without the residency guard fails here instead of shipping
-  # reachable from every page.
+  # reachable from every page. Schedule is posted with a legal Future date so
+  # a missing-date refusal cannot masquerade as the residency guard.
   test "every entry member command refuses a resident of a page without controls" do
     commands = member_entry_commands
     assert_equal %w[complete reopen strike migrate schedule].sort, commands.sort
+    schedule_on = Time.zone.today.next_month.beginning_of_month.iso8601
 
-    commands.each do |command|
-      task = create_lifecycle_task(:complete, **future_placement)
-      original_attributes = task.attributes
+    [ future_placement, collection_placement ].each do |placement|
+      commands.each do |command|
+        task = create_lifecycle_task(:complete, **placement)
+        original_attributes = task.attributes
+        params = { viewed_on: Time.zone.today.iso8601 }
+        params[:date] = schedule_on if command == "schedule"
 
-      assert_no_difference -> { @user.entries.count } do
-        post lifecycle_path(command, task), params: { viewed_on: Time.zone.today.iso8601 }
+        assert_no_difference -> { @user.entries.count } do
+          post lifecycle_path(command, task), params: params
+        end
+
+        assert_equal "That entry can't do that.", flash[:alert],
+          "#{command} was not refused on #{placement.fetch(:page_kind)}"
+        assert_equal original_attributes, task.reload.attributes
+        assert_nil task.successor
       end
-
-      assert_equal "That entry can't do that.", flash[:alert], "#{command} was not refused"
-      assert_equal original_attributes, task.reload.attributes
-      assert_nil task.successor
     end
   end
 
