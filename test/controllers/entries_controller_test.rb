@@ -103,6 +103,33 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal capture_date, @user.entries.find_by!(text: "fallback capture").logged_on
   end
 
+  test "HTML future capture returns to the Future Log" do
+    capture_date = Date.new(2027, 3, 8)
+
+    post entries_path, params: {
+      line: "fallback future",
+      on: capture_date.iso8601,
+      placement: "future"
+    }
+
+    assert_redirected_to future_log_path
+    captured = @user.entries.find_by!(text: "fallback future")
+    assert_equal capture_date, captured.logged_on
+    assert_equal capture_date, captured.occurs_on
+  end
+
+  test "turbo capture refusal stays on the submitting request" do
+    assert_no_difference -> { @user.entries.count } do
+      post entries_path(format: :turbo_stream), params: {
+        line: "must not land",
+        on: "not-a-date"
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "That entry can't do that.", flash[:alert]
+  end
+
   test "an illegal lifecycle action redirects with an alert" do
     task = create_open_task("finish twice", logged_on: Time.zone.today)
 
