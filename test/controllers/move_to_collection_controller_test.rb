@@ -52,14 +52,18 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to daily_log_path(date: "2026-08-24")
     successor = predecessor.reload.successor
+    assert_not_nil successor, "a nested note must append a Collection successor rather than fail the move"
     assert_uuid_v7 successor.id
     refute_equal predecessor.id, successor.id
     assert_equal predecessor.id, successor.migrated_from_id
-    assert_nil successor.parent_id
+    assert_nil successor.parent_id,
+      "the Collection successor is a new root; it must not inherit the predecessor's parent"
     assert_equal [ "note", nil, "call the ranger", true, %w[camping phone], @user ],
       [ successor.kind, successor.state, successor.text, successor.priority, successor.tags, successor.user ]
     assert_equal [ "collection", nil, @destination.id, nil, nil ],
       successor.values_at(:page_kind, :page_on, :collection_id, :occurs_on, :time_of_day)
+    assert_equal Date.new(2026, 8, 24), predecessor.occurs_on,
+      "the predecessor keeps its historical occurs_on"
     assert_equal predecessor_attributes, predecessor.reload.attributes
     assert_equal child_attributes, child.reload.attributes
     assert_nil child.collection_id
@@ -70,6 +74,20 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
     assert_nil predecessor.server_seq
     assert_nil successor.hlc
     assert_nil successor.server_seq
+  end
+
+  test "destination lookup stays inside the current user's kept Collections" do
+    users(:two).collections.create!(name: "Shared Topic")
+    mine = @user.collections.create!(name: "Shared Topic")
+    entry = create_source_entry(page_kind: "daily", kind: "note")
+
+    post_move(entry, topic: "Shared Topic")
+
+    successor = entry.reload.successor
+    assert_not_nil successor,
+      "Move to Collection must resolve the Topic inside the current user's journal"
+    assert_equal mine, successor.collection,
+      "Move to Collection must resolve the Topic inside the current user's journal"
   end
 
   test "indexed and unindexed exact Topics both resolve without changing registration" do
@@ -186,7 +204,9 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
 
     get daily_log_path(date: "2026-08-24")
 
-    assert_select "#entry_#{collection_entry.id} .entry__meta", text: /→ Camping Move Target/
+    assert_select "#entry_#{collection_entry.id} .entry__meta",
+      { text: /→ Camping Move Target/ },
+      "a Collection successor must name the Topic, not a date"
     assert_select "#entry_#{monthly_entry.id} .entry__meta", text: /→ SEP 1/
     assert_select "#entry_#{future_entry.id} .entry__meta", text: /→ OCT 4/
   end
