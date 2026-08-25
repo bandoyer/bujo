@@ -31,7 +31,7 @@
       <%= form.submit "Log" %>
     <% end %>
   </div>
-  <div id="future_month_entries_<%= month_key %>">
+  <div id="<%= future_month_entries_id(month) %>">
     <%= render partial: "future_logs/entry", collection: entries %>
   </div>
 </section>

@@ -1,6 +1,7 @@
 # Connects Daily Log forms to the existing entry capture and lifecycle API.
 class EntriesController < ApplicationController
   include DailyLogging
+  include FutureLogTargets
 
   # Form values accepted as parser default kinds.
   DEFAULT_KINDS = %w[task event note].freeze
