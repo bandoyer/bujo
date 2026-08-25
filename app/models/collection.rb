@@ -54,9 +54,14 @@ class Collection < ApplicationRecord
       attempts += 1
       register_once!
     rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-      retry if attempts < REGISTRATION_ATTEMPTS
+      # A lost attempt leaves its rejected rank assigned in memory, and a record
+      # carrying unsaved changes cannot be locked. Discard it so the next
+      # attempt re-reads the winner's rank, and so a refusal reports the
+      # position the row actually still holds.
+      reload
+      raise LifecycleError if attempts >= REGISTRATION_ATTEMPTS
 
-      raise LifecycleError
+      retry
     end
   end
 
