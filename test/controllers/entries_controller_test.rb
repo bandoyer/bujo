@@ -166,6 +166,19 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "That entry can't do that.", flash[:alert]
   end
 
+  test "strike and reopen change task state and return to the viewed page" do
+    viewed_on = Time.zone.today
+    task = create_open_task("cycle me", page_on: viewed_on)
+
+    post strike_entry_path(task), params: { viewed_on: viewed_on.iso8601 }
+    assert_redirected_to daily_log_path(date: viewed_on.iso8601)
+    assert_equal "struck", task.reload.state
+
+    post reopen_entry_path(task), params: { viewed_on: viewed_on.iso8601 }
+    assert_redirected_to daily_log_path(date: viewed_on.iso8601)
+    assert_equal "open", task.reload.state
+  end
+
   test "schedule rejects an absent date without moving the task" do
     assert_schedule_rejected
   end

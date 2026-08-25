@@ -22,7 +22,9 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
     travel_to Time.zone.local(2026, 8, 25, 12) do
       day = Date.new(2026, 8, 12)
       capture_page("calendar task tomorrow", day, placement: "monthly_calendar")
+      assert_redirected_to monthly_log_path(month: "2026-08")
       capture_page("calendar event", day, placement: "monthly_calendar", default_kind: "event")
+      assert_redirected_to monthly_log_path(month: "2026-08")
       assert_capture_refused(
         on: day.iso8601,
         placement: "monthly_calendar",
@@ -41,10 +43,13 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
     travel_to Time.zone.local(2026, 8, 25, 12) do
       month = Date.new(2026, 8, 1)
       capture_page("monthly task", month, placement: "monthly_tasks")
+      assert_redirected_to monthly_log_path(month: "2026-08", view: "tasks")
+      capture_page("inventory tomorrow", month, placement: "monthly_tasks")
+      assert_equal Date.new(2026, 8, 26), @user.entries.find_by!(text: "inventory").occurs_on
       assert_capture_refused(on: month.iso8601, placement: "monthly_tasks", default_kind: "event")
       assert_capture_refused(on: month.next_month.iso8601, placement: "monthly_tasks")
 
-      assert_equal [ "monthly task" ], @user.entries.monthly_tasks(month).pluck(:text)
+      assert_equal [ "monthly task", "inventory" ], @user.entries.monthly_tasks(month).pluck(:text)
     end
   end
 

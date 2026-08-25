@@ -102,16 +102,21 @@ class PageModelTest < ActiveSupport::TestCase
     placements = {
       "today's Daily page" => [ true, { page_kind: "daily", page_on: AS_OF } ],
       "a future Daily page" => [ false, { page_kind: "daily", page_on: AS_OF.next_day } ],
+      "a Daily page with no date" => [ false, { page_kind: "daily", page_on: nil } ],
       "the current Tasks page" => [ true, { page_kind: "monthly_tasks", page_on: PAGE_ON } ],
       "a future Tasks page" => [ false, { page_kind: "monthly_tasks", page_on: PAGE_ON.next_month } ],
+      "a Tasks page with no date" => [ false, { page_kind: "monthly_tasks", page_on: nil } ],
       "the current Calendar page" => [ true, { page_kind: "monthly_calendar", page_on: PAGE_ON, occurs_on: AS_OF } ],
       "a future Calendar page" => [ false, { page_kind: "monthly_calendar", page_on: PAGE_ON.next_month, occurs_on: next_month } ],
       "a Future month after this one" => [ true, { page_kind: "future", page_on: nil, occurs_on: next_month } ],
-      "a Future date still inside this month" => [ false, { page_kind: "future", page_on: nil, occurs_on: AS_OF.next_day } ]
+      "a Future date still inside this month" => [ false, { page_kind: "future", page_on: nil, occurs_on: AS_OF.next_day } ],
+      "the last day of this month on the Future Log" => [ false, { page_kind: "future", page_on: nil, occurs_on: AS_OF.end_of_month } ],
+      "a Future page with no date" => [ false, { page_kind: "future", page_on: nil, occurs_on: nil } ],
+      "a Collection page" => [ true, { page_kind: "collection", page_on: nil, collection: collections(:camping) } ]
     }
 
     placements.each do |page, (admitted, placement)|
-      assert_equal admitted, Entry.capture_admitted?(as_of: AS_OF, **placement),
+      assert_equal admitted, Entry.capture_admitted?(as_of: AS_OF, **placement.except(:collection)),
         "capture_admitted? misjudged #{page}"
 
       if admitted

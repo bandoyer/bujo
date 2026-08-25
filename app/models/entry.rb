@@ -149,15 +149,15 @@ class Entry < ApplicationRecord
     # Each admission rule names only the placement dates it judges and ignores
     # the rest, so the dispatch table can call them all the same way.
     def daily_capture_admitted?(page_on:, as_of:, **)
-      page_on && page_on <= as_of
+      !page_on.nil? && page_on <= as_of
     end
 
     def monthly_capture_admitted?(page_on:, as_of:, **)
-      page_on && page_on <= as_of.beginning_of_month
+      !page_on.nil? && page_on <= as_of.beginning_of_month
     end
 
     def future_capture_admitted?(occurs_on:, as_of:, **)
-      occurs_on && occurs_on > as_of.end_of_month
+      !occurs_on.nil? && occurs_on > as_of.end_of_month
     end
   end
 
