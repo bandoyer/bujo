@@ -51,20 +51,41 @@ book study + rulings) → `PLAN.md` decisions log → `ARCHITECTURE.md`
   deploys himself; hand him the command, don't run it.**
 - **main is ahead of origin** from the 1.4 spec onward (~20
   commits). Push only when Dan says push.
-- **The swarm is RUNNING, mid-slice 1.5.1** (kicked 2026-08-24
-  ~21:00 local). The chain survives operator-session restarts
-  (herdr daemons are independent). Spec:
-  `docs/slices/1.5.1-the-page-model.md` — the schema migration
-  (immutable `page_kind`, `logged_on`→`page_on`), residency scopes,
-  writable calendar/tasks/future pages, movement generalized to
-  events/notes, glyph direction off the successor's page.
-- **Watcher**: run `script/watch-swarm.sh` in the background — exits
-  0 printing the qa terminal broadcast (a
-  `from_qa_to_specifier_coder_cleaner_architect_hardener` delivered
-  line in `.swarmforge/daemon/handoffd.log`), exits 1 on 30 quiet
-  minutes. On a stall: diagnose which role stopped between protocol
-  steps and send a targeted `swarm prompt <role>` nudge — never
-  restart the swarm. `swarm status` / `swarm logs 20` show state.
+- **The swarm is DOWN and slice 1.5.1 must be re-kicked.** The
+  chain was launched 2026-08-24 ~22:00 and ran ~1h15m before the
+  night's session teardown killed the herdr workspace, handoffd,
+  the role worktrees, AND the role branches (`swarm down` was then
+  run to clean the half-state). One piece of work was recovered
+  from dangling objects and pinned to the branch
+  **`recovered/1.5.1-accepted-spec`** (`6da3ba2`): the specifier's
+  acceptance commit, which amends the 1.5.1 spec with **seven
+  in-flight rulings** — read it; the next chain's specifier can
+  fast-forward from it, or the operator folds those rulings into
+  the committed spec first. Coder work-in-progress was lost
+  (uncommitted; cheap to redo). Spec:
+  `docs/slices/1.5.1-the-page-model.md`.
+
+## To resume slice 1.5.1
+
+1. From a **herdr session in this repo** (herdr must be running in
+   the user's terminal): `swarm up`, answer any pane startup
+   dialogs, then `swarm bootstrap`.
+2. Re-kick with the same shape of prompt (specify and drive
+   `docs/slices/1.5.1-the-page-model.md`; METHOD.md and the revised
+   ARCHITECTURE.md bind; lib/ untouched, mutation exactly
+   1105/1105; "nothing may surface anywhere a hand did not place
+   it"), and point the specifier at
+   `recovered/1.5.1-accepted-spec` so the seven rulings aren't
+   re-derived.
+3. Arm `script/watch-swarm.sh` in the background — exits 0 printing
+   the qa terminal broadcast (a
+   `from_qa_to_specifier_coder_cleaner_architect_hardener`
+   delivered line in `.swarmforge/daemon/handoffd.log`), exits 1 on
+   30 quiet minutes. On a stall: a targeted `swarm prompt <role>`
+   nudge, never a restart. `swarm status` / `swarm logs 20` show
+   state. Lesson learned: daemons started from an assistant
+   session's shell die with that session — prefer launching
+   `swarm up` from the user's own herdr terminal.
 
 ## When 1.5.1 reaches its qa broadcast
 
