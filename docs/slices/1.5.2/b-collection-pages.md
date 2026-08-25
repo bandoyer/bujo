@@ -16,6 +16,28 @@ rules their reader-facing gestures. A rule that seems to be missing is a
 finding against `collection-domain`, not a licence to write it into a
 controller.
 
+## The API `collection-domain` delivered
+
+Use these exact names. A rule that seems to be missing from them is a finding
+against `collection-domain`, not a licence to write it into a controller.
+
+| what you need | call |
+|---|---|
+| the reader's Collections | `Current.user.collections`, plus `.kept` for a live page |
+| registered Topics in manual order | `.in_index_order` |
+| one exact Topic, trimmed and case-insensitive | `.with_exact_topic(topic)` |
+| a Collection page's kept root residents | `user_entries.collection_page(collection.id)` |
+| may this be added to the Index? | `collection.registrable?` |
+| add it | `collection.register!` |
+| remove it | `collection.unindex!` |
+| may this be deleted? | `collection.deletable?` |
+| delete it | `collection.soft_delete_if_unused!` |
+| is this row live? | `collection.kept?` |
+| an invalid transition | `Collection::LifecycleError` |
+
+`Collection#name` is already trimmed by a `before_validation`, so a controller
+never trims a Topic itself.
+
 ## In scope
 
 `config/routes.rb`, `app/controllers/`, `app/views/`, `app/assets/stylesheets/`, `app/javascript/`, and `test/`.

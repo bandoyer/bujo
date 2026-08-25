@@ -18,8 +18,8 @@ that order.
 
 | # | task name | status |
 |---|---|---|
-| 1 | `collection-domain` | **active** — handed to coder |
-| 2 | `collection-pages` | waiting on 1 |
+| 1 | `collection-domain` | **done** — verified and closed at `8159581b5a` |
+| 2 | `collection-pages` | **active** — handed to coder |
 | 3 | `collection-commands` | waiting on 2 |
 | 4 | `move-to-collection` | waiting on 3 |
 
