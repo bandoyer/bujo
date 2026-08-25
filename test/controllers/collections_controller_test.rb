@@ -18,14 +18,20 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     second = create_filled_collection("Second registered")
     unindexed = @user.collections.create!(name: "Known but unindexed")
     foreign = users(:two).collections.create!(name: "Foreign registered")
+    # A phase-2 pull can deliver a tombstone that still carries its rank;
+    # the Index must not resurrect it.
+    deleted = create_filled_collection("Deleted registered")
     first.update_column(:index_position, 2)
     second.update_column(:index_position, 5)
     foreign.update_column(:index_position, 1)
+    deleted.update_columns(index_position: 3, deleted_at: Time.zone.parse("2026-08-25 13:00:00"))
 
     get journal_index_path
 
     assert_response :success
     assert_select "h1:first-of-type", text: "Index"
+    assert_select "a", { text: deleted.name, count: 0 },
+      "the Index must not list a soft-deleted Collection that retained its rank"
     assert_select ".collection-index__topics a", count: 2
     document = Nokogiri::HTML(response.body)
     assert_equal [ "First registered", "Second registered" ],
@@ -283,6 +289,9 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
         params[:on] = on if on
         post entries_path, params: params
         assert_redirected_to collection_path(collection)
+        assert_nil collection.reload.index_position,
+          "capture must not register the Collection as a side effect"
+        assert_equal [ "dormant", 17 ], collection.values_at(:hlc, :server_seq)
       end
     end
 
