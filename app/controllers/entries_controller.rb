@@ -12,8 +12,11 @@ class EntriesController < ApplicationController
   # One reader-facing refusal for every rejected command.
   REFUSAL_ALERT = "That entry can't do that.".freeze
 
+  # Both filters cover every member action rather than naming them, so a
+  # command added later arrives gated instead of silently reachable from any
+  # page - the shape of the hole this guard exists to close.
   before_action :set_entry, except: :create
-  before_action :require_actionable_residency, only: %i[complete reopen strike migrate schedule]
+  before_action :require_actionable_residency, except: :create
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
   # Captures a rapid-log line on the page selected by the gesture.

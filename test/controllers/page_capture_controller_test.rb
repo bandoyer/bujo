@@ -172,7 +172,36 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # The command list comes from the routes rather than a literal, so a member
+  # command added without the residency guard fails here instead of shipping
+  # reachable from every page.
+  test "every entry member command refuses a resident of a page without controls" do
+    commands = member_entry_commands
+    assert_equal %w[complete reopen strike migrate schedule].sort, commands.sort
+
+    commands.each do |command|
+      task = create_lifecycle_task(:complete, **future_placement)
+      original_attributes = task.attributes
+
+      assert_no_difference -> { @user.entries.count } do
+        post lifecycle_path(command, task), params: { viewed_on: Time.zone.today.iso8601 }
+      end
+
+      assert_equal "That entry can't do that.", flash[:alert], "#{command} was not refused"
+      assert_equal original_attributes, task.reload.attributes
+      assert_nil task.successor
+    end
+  end
+
   private
+
+  # Every non-create action the entries routes expose on a single entry.
+  def member_entry_commands
+    Rails.application.routes.routes.filter_map do |route|
+      action = route.defaults[:action]
+      action if route.defaults[:controller] == "entries" && action != "create"
+    end.uniq
+  end
 
   def future_placement
     {
