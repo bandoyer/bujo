@@ -7,12 +7,13 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.1 LANDED (2026-08-25); 1.5.2 is next to spec.**
-> The source-aligned page model and QA follow-up 1.5.1a are on `main`.
-> Final verification at `66566ae`: 133 fast tests, 33 system tests,
-> RuboCop/CRAP/jscpd clean, and RapidLog mutation 1105/1105. Production
-> still runs 1.4.1; all newer `main` work remains undeployed. See
-> `HANDOFF.md` for the deploy boundary and next-slice state.
+> **Status: slice 1.5.2 APPROVED (2026-08-25); implementation is next.**
+> The source-aligned Custom Collections + deliberate Index spec and its
+> minimal mobile review mock are operator-approved; `ARCHITECTURE.md` now
+> records the sync-sensitive Index position. Slice 1.5.1/1.5.1a remains
+> landed and verified at 133 fast tests, 33 system tests, clean quality bars,
+> and RapidLog mutation 1105/1105. Production still runs 1.4.1. See
+> `HANDOFF.md` for the implementation and integration boundaries.
 
 ## What this is
 
@@ -70,6 +71,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-25 | **The core pages keep their vocabulary and time boundary.** Daily/Custom roots accept all bullet kinds; Monthly Calendar and Future roots accept tasks/events; Monthly Tasks roots tasks. The Future Log is for dates after the current month, not merely after today. Direct writing is Daily today/past and Monthly current/past; future Monthly pages can show deliberately migrated residents but are not ordinary capture surfaces. Ryder's night-before Daily exception is consciously deferred rather than approximated with a clock rule |
 | 2026-08-25 | **Placement immutability is a domain and sync invariant, not a raw-SQL claim.** Public APIs and mass assignment refuse page changes; movement creates a successor. Database constraints defend structural facts they can express, especially the unique successor chain. Time rules receive a caller-provided `as_of` date (distinct from the parser's page-relative `today`); models do not read the clock |
 | 2026-08-25 | **Finish the method spine before convenience work.** After 1.5.1: writable Custom Collections plus a manually maintained Index; monthly migration; AM/PM reflection; then `!` inspiration and master-task completion gating. Broad search, settings polish, and PWA work follow. Dedicated modules for every Part III example are unnecessary; generic Collections and reflection carry the practice |
+| 2026-08-25 | **Slice 1.5.2 approved.** The deliberate Index uses a server-allocated nullable `index_position`; exact Topic access preserves intentional reachability without discovery; inbound Daily/Monthly movement ships now; deletion is never-used only; Collection residents receive Complete/Strike/Reopen but no outbound movement. The approved phone header always puts the page title first and context underneath |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -175,11 +177,12 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             system runs green, RuboCop clean, CRAP ≤ 6 over 126
             methods, jscpd 0 clones, parser mutation 1105/1105. Spec at
             `docs/slices/1.5.1-the-page-model.md`.
-      - [ ] **1.5.2 Custom Collections + deliberate Index** — NEXT; a
-            minimal writable Collection page and explicit manual
-            registration in the Index. Core logs remain fixed
-            navigation; Daily Logs are never indexed. Broad text
-            search is deferred until dogfooding asks for it.
+      - [ ] **1.5.2 Custom Collections + deliberate Index** — APPROVED
+            (2026-08-25); implementation next. A minimal writable
+            Collection page and explicit manual registration in the Index.
+            Core logs remain fixed navigation; Daily Logs are never indexed.
+            Broad text search is deferred until dogfooding asks for it. Spec
+            at `docs/slices/1.5.2-custom-collections-and-index.md`.
       - [ ] **1.5.3 Monthly migration ritual** — set up the new
             Monthly Log and fresh mental inventory; review every
             unresolved task on the outgoing month's Daily and Monthly

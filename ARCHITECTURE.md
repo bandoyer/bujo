@@ -83,7 +83,8 @@ entries         id uuidv7 · kind task|event|note · text · state open|done|str
                 time_of_day · priority · tags · collection_id? (page_kind=collection only)
                 parent_id? · migrated_from_id? (unique) · hlc · server_seq · deleted_at?
 entry_revisions entry_id · field · lost_value · lost_hlc · kept_hlc   # conflict losers
-collections     id · name              # custom collections only; core pages are column values
+collections     id uuidv7 · user_id · name · index_position? · hlc · server_seq
+                · deleted_at? · timestamps  # custom only; core pages are column values
 devices         id · name · kind tui|web · refresh_token_digest
                 last_synced_seq · last_seen_at · revoked_at?
 applied_ops     op_id (unique) · device_id · applied_at               # idempotency ledger
@@ -108,6 +109,16 @@ valid and visible when time makes them current or overdue. Database
 constraints enforce expressible structure (including one successor per
 predecessor); direct SQL is not claimed to preserve the domain-only
 placement immutability rule.
+
+The deliberate Index is a query over kept Custom Collections with a non-NULL
+`index_position`, not a synced container or membership table. Collection
+snapshots include that field. Clients push register and unregister as semantic
+operations: the Rails authority allocates the next position or clears it,
+rather than trusting a client-authored rank. HLC resolves competing
+registration-state edits on one Collection, and `server_seq` orders the
+resulting snapshots once sync is active. The TUI continues to mirror the
+`collections` rows; the Index introduces no third entity, cursor, HLC, or
+server sequence.
 
 ## The sync protocol
 

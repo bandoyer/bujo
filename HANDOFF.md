@@ -1,8 +1,8 @@
-# Handoff — relocated to `/Work`; spec slice 1.5.2 is next (2026-08-25)
+# Handoff — slice 1.5.2 approved; implementation is next (2026-08-25)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
-status document; this file records the relocation boundary and the next
-concrete work.
+status document; this file records the relocation boundary and the approved
+implementation boundary.
 
 ## Governing product rule
 
@@ -19,7 +19,7 @@ Parts II–III, before inventing behavior.
 The whole checkout now lives at `/home/dlb/Work/bujo`, including ignored
 `storage/` data, the `.agents/` Codex skill mirror, and preserved
 `.swarmforge/` audit logs. `main` and `origin/main` were fetched and verified at
-`274f566`; `git worktree list` contains only the relocated main checkout, and
+`faed999`; `git worktree list` contains only the relocated main checkout, and
 `swarm status` reports both daemons stopped. The historical branch
 `recovered/1.5.1-accepted-spec` at `6da3ba2` remains a recovery artifact, not an
 active candidate.
@@ -38,7 +38,11 @@ history.
 
 - Slice 1.5.1 and follow-up 1.5.1a are integrated on `main`. The final swarm
   candidate is `66566ae` (`Strengthen page-model verification`); `274f566`
-  records the landed status.
+  records the landed status, and `faed999` records the Work relocation.
+- Slice 1.5.2's source-aligned specification and smallest mobile review mock
+  are operator-approved. The accepted-spec baseline reconciles the new
+  sync-sensitive `collections.index_position` field in `ARCHITECTURE.md`.
+  Implementation has not yet been integrated or deployed.
 - The schema records exactly one immutable root residency with `page_kind`,
   `page_on`, and `collection_id`. Log scopes read that placement;
   `occurs_on` describes content and never grants membership. Movement is
@@ -55,11 +59,11 @@ history.
   migration was verified both forward from the prior schema and from a fresh
   database. `lib/` and `Gemfile` are untouched.
 
-## Next deliverable — the 1.5.2 spec, not implementation
+## Next work — implement the approved 1.5.2 slice
 
-Write `docs/slices/1.5.2-custom-collections-and-index.md` for **Custom
-Collections + deliberate Index**. Do not start the swarm until Dan approves
-the source-aligned spec and any needed mobile mock.
+Implement `docs/slices/1.5.2-custom-collections-and-index.md` for **Custom
+Collections + deliberate Index**. The specification and mobile review ruling
+are approved; do not reopen them inside the swarm.
 
 The already-settled product boundary is:
 
@@ -77,7 +81,8 @@ The already-settled product boundary is:
 - UUIDv7 ids, soft deletion without cascades, tenant scoping, shared grammar,
   and dormant `hlc`/`server_seq` remain binding.
 
-The spec must rule these points before code begins:
+The accepted spec rules these points; implementation and review must prove
+each one:
 
 1. How manual Index registration is persisted and ordered. The current
    `collections` schema has only identity, name, sync placeholders, and soft
@@ -101,13 +106,13 @@ The spec must rule these points before code begins:
    legible in both themes, including creation/registration affordances, touch
    targets, empty states, and tenant-safe missing/deleted routes.
 
-Inspect the existing seams before writing the spec: `Collection`,
+Inspect the existing seams before implementing the spec: `Collection`,
 `Entry.capture!`/`move_to!`, `EntriesController::WRITABLE_PAGE_KINDS` and
 `ACTION_PAGE_KINDS`, `JournalReading`, the disabled Index item in
 `app/views/shared/_tab_bar.html.erb`, and the 1.5.1a amendment at the end of
 `docs/slices/1.5.1-the-page-model.md`.
 
-## Build and review after approval
+## Build and review
 
 Keep the proven loop: approved spec/mock → `six-all-models-review` swarm →
 operator review → Dan's explicit integration approval → merge and push. Read
