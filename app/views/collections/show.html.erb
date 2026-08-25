@@ -1,0 +1,81 @@
+<% content_for :title, "#{@collection.name} · Bujo" %>
+
+<main class="daily-log collection-page" data-controller="placement">
+  <header class="collection-page__header">
+    <div class="collection-page__heading">
+      <h1><%= @collection.name %></h1>
+      <p class="collection-page__context">Collection · <%= @collection.index_position? ? "indexed" : "not indexed" %></p>
+    </div>
+    <button type="button"
+            id="manage_collection_toggle"
+            class="collection-page__button"
+            aria-expanded="<%= @manage_open ? "true" : "false" %>"
+            aria-controls="manage_collection_panel"
+            data-placement-target="toggle"
+            data-action="placement#toggle">Manage</button>
+  </header>
+
+  <section id="manage_collection_panel"
+           class="collection-panel"
+           data-placement-target="panel"
+           <%= "hidden" unless @manage_open %>>
+    <% if @form_errors.present? %>
+      <p class="form-errors"><%= @form_errors.to_sentence %></p>
+    <% end %>
+    <%= form_with model: @collection, class: "collection-form" do |form| %>
+      <%= form.label :name, "Rename Topic" %>
+      <%= form.text_field :name, autocomplete: "off", data: { placement_target: "focus" } %>
+      <%= form.submit "Rename", class: "collection-page__button" %>
+    <% end %>
+    <% if @collection.deletable? %>
+      <%= button_to "Delete Collection",
+                    collection_path(@collection),
+                    method: :delete,
+                    class: "collection-page__button collection-page__button--warn",
+                    form: { data: { turbo_confirm: "Delete this unused Collection?" } } %>
+    <% end %>
+  </section>
+
+  <section class="entry-list" aria-label="Entries">
+    <% if @entries.empty? %>
+      <div class="entry-list__empty">
+        <p>Nothing logged yet.</p>
+        <p>Add a first entry before indexing.</p>
+      </div>
+    <% else %>
+      <%= render partial: "entries/entry",
+                 collection: @entries,
+                 locals: { viewed_on: @today, actions: false } %>
+    <% end %>
+  </section>
+
+  <div class="collection-page__registration">
+    <% if @collection.registrable? %>
+      <%= button_to "Add to Index", register_collection_path(@collection), class: "collection-page__button" %>
+    <% elsif @collection.index_position? %>
+      <%= button_to "Remove from Index",
+                    registration_collection_path(@collection),
+                    method: :delete,
+                    class: "collection-page__button" %>
+    <% end %>
+  </div>
+
+  <section class="daily-log__capture">
+    <button type="button"
+            id="capture_reveal"
+            class="daily-log__capture-reveal"
+            aria-label="Write on this page"
+            aria-expanded="false"
+            aria-controls="rapid_log_panel"
+            data-placement-target="toggle"
+            data-action="placement#toggle"></button>
+    <div id="rapid_log_panel" class="daily-log__capture-panel" data-placement-target="panel" hidden>
+      <%= render "entries/rapid_log_form",
+                 capture_date: nil,
+                 placement: "collection",
+                 collection: @collection %>
+    </div>
+  </section>
+
+  <%= render "shared/tab_bar", active: :index %>
+</main>

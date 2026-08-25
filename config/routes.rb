@@ -5,6 +5,16 @@ Rails.application.routes.draw do
   get "daily(/:date)", to: "daily_logs#show", as: :daily_log
   get "month(/:month)", to: "monthly_logs#show", as: :monthly_log
   get "future", to: "future_logs#show", as: :future_log
+  get "index", to: "collections#index", as: :journal_index
+  resources :collections, only: %i[create show update destroy] do
+    collection do
+      post :locate
+    end
+    member do
+      post :register
+      delete :registration, action: :unindex
+    end
+  end
   resources :entries, only: :create do
     member do
       post :complete

@@ -9,7 +9,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     @user.entries.update_all(deleted_at: Time.current)
   end
 
-  test "1 the tab bar navigates among live logs and leaves Index disabled" do
+  test "1 the tab bar navigates among every live journal section" do
     sign_in
 
     assert_link "Today", exact: true, href: root_path
@@ -31,8 +31,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     click_link "Today", exact: true
     assert_current_path root_path
     assert_active_tab "Today"
-    assert_button "Index", exact: true, disabled: true
-    assert_no_link "Index", exact: true
+    assert_link "Index", exact: true, href: journal_index_path
   end
 
   test "2 today is highlighted without deriving Calendar residency from a Daily event" do

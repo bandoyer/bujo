@@ -25,10 +25,12 @@
     <% end %>
     <span>Future</span>
   <% end %>
-  <button class="tab-bar__item" type="button" disabled>
+  <%= link_to journal_index_path,
+              class: class_names("tab-bar__item", "tab-bar__item--active": active == :index),
+              aria: { current: ("page" if active == :index) } do %>
     <%= render layout: "shared/tab_icon" do %>
       <path d="M6 6h12M6 12h12M6 18h12"></path>
     <% end %>
     <span>Index</span>
-  </button>
+  <% end %>
 </nav>

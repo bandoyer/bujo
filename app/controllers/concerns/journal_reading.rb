@@ -20,6 +20,11 @@ module JournalReading
     Current.user.entries
   end
 
+  # Every Collection query begins from the authenticated user's journal.
+  def user_collections
+    Current.user.collections
+  end
+
   # Returns every kept id beneath the supplied resident roots, matching the
   # recursive partial's visibility boundary exactly.
   def rendered_entry_ids(entries)

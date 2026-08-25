@@ -1,0 +1,11 @@
+<% content_for :title, "Collection not found · Bujo" %>
+
+<main class="daily-log collection-page collection-not-found">
+  <header class="collection-page__header">
+    <div class="collection-page__heading">
+      <h1>Collection not found</h1>
+    </div>
+  </header>
+  <%= link_to "Back to Index", journal_index_path, class: "collection-page__back" %>
+  <%= render "shared/tab_bar", active: :index %>
+</main>

@@ -8,7 +8,8 @@
   <%= render "entries/kind_buttons", allowed_kinds: allowed_kinds %>
   <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
   <%= form.hidden_field :placement, value: placement if placement %>
-  <%= form.hidden_field :on, value: capture_date.iso8601 %>
+  <%= form.hidden_field :collection_id, value: collection.id if local_assigns[:collection] %>
+  <%= form.hidden_field :on, value: capture_date.iso8601 if capture_date %>
   <div class="rapid-log__input-wrap">
     <%= form.text_field :line,
                         id: "rapid-log-line",

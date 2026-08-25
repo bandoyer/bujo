@@ -4,7 +4,7 @@ class EntriesController < ApplicationController
   include FutureLogTargets
 
   # Page placements directly writable through this web controller.
-  WRITABLE_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future].freeze
+  WRITABLE_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future collection].freeze
   # Resident pages that expose entry commands in this slice.
   ACTION_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
   # Placements whose capture refreshes in place instead of re-rendering a screen.
@@ -21,13 +21,15 @@ class EntriesController < ApplicationController
 
   # Captures a rapid-log line on the page selected by the gesture.
   def create
-    @capture_date = requested_date(:on)
     @placement = requested_placement
+    prepare_capture_placement
     return refuse_capture unless @capture_date
 
     @entry = capture_entry
     prepare_capture_response
     respond_to_capture
+  rescue ActiveRecord::RecordNotFound
+    render_collection_not_found
   rescue ActiveRecord::RecordInvalid
     refuse_capture
   end
@@ -110,13 +112,15 @@ class EntriesController < ApplicationController
       { page_kind: @placement, page_on: @capture_date.beginning_of_month }
     when "future"
       { page_kind: @placement, page_on: nil, occurs_on: @capture_date }
+    when "collection"
+      { page_kind: @placement, page_on: nil, collection: @collection }
     else
       { page_kind: "daily", page_on: @capture_date }
     end
   end
 
   def parser_today
-    @placement == "monthly_tasks" ? @today : @capture_date
+    @placement.in?(%w[monthly_tasks collection]) ? @today : @capture_date
   end
 
   def default_kind
@@ -152,7 +156,18 @@ class EntriesController < ApplicationController
   end
 
   def capture_destination
+    return collection_path(@collection) if @placement == "collection"
+
     page_path(@placement, @capture_date)
+  end
+
+  def prepare_capture_placement
+    if @placement == "collection"
+      @collection = user_collections.kept.find(params[:collection_id])
+      @capture_date = @today
+    else
+      @capture_date = requested_date(:on)
+    end
   end
 
   # The screen showing one page kind, so a reader lands back on the page the
@@ -196,8 +211,16 @@ class EntriesController < ApplicationController
         render :capture_refused, status: :unprocessable_entity
       end
       format.html do
-        redirect_back fallback_location: root_path, alert: REFUSAL_ALERT
+        if @collection
+          redirect_to collection_path(@collection), alert: REFUSAL_ALERT
+        else
+          redirect_back fallback_location: root_path, alert: REFUSAL_ALERT
+        end
       end
     end
+  end
+
+  def render_collection_not_found
+    render "collections/not_found", formats: :html, status: :not_found
   end
 end

@@ -1,0 +1,64 @@
+<% content_for :title, "Index · Bujo" %>
+
+<main class="daily-log collection-page collection-index" data-controller="placement">
+  <header class="collection-page__header">
+    <div class="collection-page__heading">
+      <h1>Index</h1>
+      <p class="collection-page__context">Your collections</p>
+    </div>
+    <button type="button"
+            id="new_collection_toggle"
+            class="collection-page__button"
+            aria-expanded="<%= @new_collection_open ? "true" : "false" %>"
+            aria-controls="new_collection_panel"
+            data-placement-target="toggle"
+            data-action="placement#toggle">New Collection</button>
+  </header>
+
+  <section id="new_collection_panel"
+           class="collection-panel"
+           data-placement-target="panel"
+           <%= "hidden" unless @new_collection_open %>>
+    <% if @new_collection.errors.any? %>
+      <p class="form-errors"><%= @new_collection.errors.full_messages.to_sentence %></p>
+    <% end %>
+    <%= form_with model: @new_collection, class: "collection-form" do |form| %>
+      <%= form.label :name, "Topic" %>
+      <%= form.text_field :name,
+                          value: @new_collection_name || @new_collection.name,
+                          autocomplete: "off",
+                          data: { placement_target: "focus" } %>
+      <%= form.submit "Create", class: "collection-page__button" %>
+    <% end %>
+  </section>
+
+  <% if @collections.empty? %>
+    <p class="collection-index__empty">Nothing indexed yet.</p>
+  <% else %>
+    <nav class="collection-index__topics" aria-label="Indexed Collections">
+      <% @collections.each do |collection| %>
+        <%= link_to collection.name, collection_path(collection), class: "collection-index__topic-link" %>
+      <% end %>
+    </nav>
+  <% end %>
+
+  <button type="button"
+          id="locate_collection_toggle"
+          class="collection-page__button collection-index__locate-toggle"
+          aria-expanded="<%= @locate_open ? "true" : "false" %>"
+          aria-controls="locate_collection_panel"
+          data-placement-target="toggle"
+          data-action="placement#toggle">Open by Topic</button>
+  <section id="locate_collection_panel"
+           class="collection-panel"
+           data-placement-target="panel"
+           <%= "hidden" unless @locate_open %>>
+    <%= form_with url: locate_collections_path, class: "collection-form" do |form| %>
+      <%= form.label :topic, "Exact Topic" %>
+      <%= form.text_field :topic, value: nil, autocomplete: "off", data: { placement_target: "focus" } %>
+      <%= form.submit "Open", class: "collection-page__button" %>
+    <% end %>
+  </section>
+
+  <%= render "shared/tab_bar", active: :index %>
+</main>
