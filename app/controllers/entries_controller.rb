@@ -7,6 +7,10 @@ class EntriesController < ApplicationController
   WRITABLE_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future collection].freeze
   # Resident pages that expose entry commands in this slice.
   ACTION_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
+  # Placements whose page date cannot anchor a relative date, so the parser
+  # reads the wall clock instead: a Tasks page names a month rather than a day,
+  # and a Custom Collection carries no date at all.
+  CLOCK_PARSED_PAGE_KINDS = %w[monthly_tasks collection].freeze
   # Placements whose capture refreshes in place instead of re-rendering a screen.
   TURBO_CAPTURE_TEMPLATES = { "daily" => :create, "future" => :create_future }.freeze
   # One reader-facing refusal for every rejected command.
@@ -104,6 +108,15 @@ class EntriesController < ApplicationController
     params[:placement].presence_in(WRITABLE_PAGE_KINDS) || "daily"
   end
 
+  def prepare_capture_placement
+    if @placement == "collection"
+      @collection = user_collections.kept.find(params[:collection_id])
+      @capture_date = @today
+    else
+      @capture_date = requested_date(:on)
+    end
+  end
+
   def placement_attributes
     case @placement
     when "monthly_calendar"
@@ -120,7 +133,7 @@ class EntriesController < ApplicationController
   end
 
   def parser_today
-    @placement.in?(%w[monthly_tasks collection]) ? @today : @capture_date
+    @placement.in?(CLOCK_PARSED_PAGE_KINDS) ? @today : @capture_date
   end
 
   def default_kind
@@ -159,15 +172,6 @@ class EntriesController < ApplicationController
     return collection_path(@collection) if @placement == "collection"
 
     page_path(@placement, @capture_date)
-  end
-
-  def prepare_capture_placement
-    if @placement == "collection"
-      @collection = user_collections.kept.find(params[:collection_id])
-      @capture_date = @today
-    else
-      @capture_date = requested_date(:on)
-    end
   end
 
   # The screen showing one page kind, so a reader lands back on the page the
@@ -218,9 +222,5 @@ class EntriesController < ApplicationController
         end
       end
     end
-  end
-
-  def render_collection_not_found
-    render "collections/not_found", formats: :html, status: :not_found
   end
 end

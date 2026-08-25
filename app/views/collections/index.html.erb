@@ -19,13 +19,13 @@
            class="collection-panel"
            data-placement-target="panel"
            <%= "hidden" unless @new_collection_open %>>
-    <% if @new_collection.errors.any? %>
-      <p class="form-errors"><%= @new_collection.errors.full_messages.to_sentence %></p>
+    <% if @form_errors.present? %>
+      <p class="form-errors"><%= @form_errors.to_sentence %></p>
     <% end %>
     <%= form_with model: @new_collection, class: "collection-form" do |form| %>
       <%= form.label :name, "Topic" %>
       <%= form.text_field :name,
-                          value: @new_collection_name || @new_collection.name,
+                          value: @new_collection_name,
                           autocomplete: "off",
                           data: { placement_target: "focus" } %>
       <%= form.submit "Create", class: "collection-page__button" %>

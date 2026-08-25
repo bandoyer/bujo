@@ -9,7 +9,7 @@ class CollectionsController < ApplicationController
   LOCATE_ALERT = "No Collection with that exact Topic.".freeze
 
   before_action :set_collection, except: %i[index create locate]
-  rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
+  rescue_from ActiveRecord::RecordNotFound, with: :render_collection_not_found
   rescue_from Collection::LifecycleError, with: :refuse_collection_change
 
   # Shows only explicitly registered Topics in their manual order.
@@ -23,6 +23,7 @@ class CollectionsController < ApplicationController
     if @new_collection.save
       redirect_to collection_path(@new_collection)
     else
+      @form_errors = @new_collection.errors.full_messages
       @new_collection_name = params.dig(:collection, :name)
       @new_collection_open = true
       prepare_index
@@ -81,6 +82,9 @@ class CollectionsController < ApplicationController
 
   def prepare_index
     @collections = user_collections.in_index_order
+    # A refused create has already put its rejected record here, and Rails
+    # marks the field that record rejected; a blank one would render the form
+    # as though nothing had been refused. Only an untouched Index builds one.
     @new_collection ||= user_collections.new
   end
 
@@ -93,6 +97,8 @@ class CollectionsController < ApplicationController
   end
 
   def render_collection_validation
+    # Read the errors off the rejected record, then restore it: the page's
+    # title and Index state must show what is persisted, not what was typed.
     @form_errors = @collection.errors.full_messages
     @collection.reload
     @manage_open = true
@@ -102,9 +108,5 @@ class CollectionsController < ApplicationController
 
   def refuse_collection_change
     redirect_to collection_path(@collection), alert: REFUSAL_ALERT
-  end
-
-  def render_not_found
-    render :not_found, status: :not_found
   end
 end
