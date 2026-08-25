@@ -28,6 +28,8 @@ class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
 
         assert_no_difference -> { Entry.count } do
           post public_send("#{command}_entry_path", entry), params: crafted_params(command)
+        rescue NoMethodError => error
+          flunk "#{command} must be refused on a Collection resident before the action body runs; it dereferenced nil (#{error.message})"
         end
 
         assert_redirected_to collection_path(@collection)

@@ -23,6 +23,8 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
 
   test "the residency policy covers exactly every routed member command" do
     assert_equal COMMANDS.sort, member_entry_commands.sort
+    assert_equal member_entry_commands.sort, EntryCommandAuthorization::COMMAND_RESIDENCIES.keys.sort,
+      "every routed command must have a residency policy row so an unknown command stays refused"
   end
 
   test "every command obeys every persisted page residency cell" do
@@ -153,6 +155,8 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
 
   def post_command(command, entry_or_id, params)
     post public_send("#{command}_entry_path", entry_or_id), params: params
+  rescue NoMethodError => error
+    flunk "#{command} must be refused before the action body runs; it dereferenced nil (#{error.message})"
   end
 
   def standard_params(command, page_kind)

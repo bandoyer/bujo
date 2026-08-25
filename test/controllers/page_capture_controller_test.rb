@@ -109,6 +109,8 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
 
     assert_no_difference -> { @user.entries.count } do
       post migrate_entry_path(future_task), params: { viewed_on: Time.zone.today.iso8601 }
+    rescue NoMethodError => error
+      flunk "Migrate must be refused on a Future resident before page_on is read; it dereferenced nil (#{error.message})"
     end
 
     assert_redirected_to daily_log_path(date: Time.zone.today.iso8601)
