@@ -4,13 +4,15 @@ class EntriesController < ApplicationController
 
   # Form values accepted as parser default kinds.
   DEFAULT_KINDS = %w[task event note].freeze
+  # Every refusal reads the same to the reader: nothing was written or moved.
+  REFUSAL_ALERT = "That entry can't do that.".freeze
 
   before_action :set_entry, except: :create
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
   # Captures a rapid-log line onto the explicitly requested journal page.
   def create
-    @capture_date = requested_capture_date
+    @capture_date = requested_date(:on)
     return refuse_capture unless @capture_date
 
     @entry = Entry.capture!(
@@ -54,7 +56,7 @@ class EntriesController < ApplicationController
 
   # Schedules an open task on the date the form supplied.
   def schedule
-    date = requested_schedule_date
+    date = requested_date(:date)
     return refuse_lifecycle_change unless date
 
     @entry.schedule_to!(occurs_on: date)
@@ -70,14 +72,6 @@ class EntriesController < ApplicationController
   def default_kind
     candidate = params[:default_kind]
     DEFAULT_KINDS.include?(candidate) ? candidate.to_sym : :task
-  end
-
-  # A missing or malformed page date is rejected: falling back to the clock
-  # would silently write a valid entry onto the wrong journal page.
-  def requested_capture_date
-    Date.iso8601(params[:on].to_s)
-  rescue Date::Error
-    nil
   end
 
   def future_placement?
@@ -104,12 +98,12 @@ class EntriesController < ApplicationController
     redirect_to daily_log_path(date: viewed_date.iso8601), **response_options
   end
 
-  # The day the form asked for, or nil when it sent nothing usable. An absent
-  # or non-ISO date is a refusal rather than a day to fall back to:
-  # date_or_today's default belongs to choosing a screen to display, never to
-  # moving an entry.
-  def requested_schedule_date
-    Date.iso8601(params[:date].to_s)
+  # The date a form asked for, or nil when it sent nothing usable. Absent and
+  # malformed are refusals, never days to fall back to: date_or_today's default
+  # belongs to choosing a screen to display, never to writing or moving an
+  # entry. A capture that quietly lands on the wrong page is the worse failure.
+  def requested_date(param_name)
+    Date.iso8601(params[param_name].to_s)
   rescue Date::Error
     nil
   end
@@ -118,7 +112,7 @@ class EntriesController < ApplicationController
   # the entry did not move. A crafted or incomplete form must read as a
   # refusal, never as a 400 or a 500 - this is a form, not an API.
   def refuse_lifecycle_change
-    redirect_to_viewed_day(alert: "That entry can't do that.")
+    redirect_to_viewed_day(alert: REFUSAL_ALERT)
   end
 
   # Turbo refusals leave the submitting reveal open; ordinary form fallbacks
@@ -126,11 +120,11 @@ class EntriesController < ApplicationController
   def refuse_capture
     respond_to do |format|
       format.turbo_stream do
-        flash.now[:alert] = "That entry can't do that."
+        flash.now[:alert] = REFUSAL_ALERT
         render :capture_refused, status: :unprocessable_entity
       end
       format.html do
-        redirect_back fallback_location: root_path, alert: "That entry can't do that."
+        redirect_back fallback_location: root_path, alert: REFUSAL_ALERT
       end
     end
   end

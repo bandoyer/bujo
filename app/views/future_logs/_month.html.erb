@@ -1,0 +1,37 @@
+<%# One month of the runway: its header, which doubles as the reveal control
+    for writing under it, the add row, and the month's entries. %>
+<% month_key = month.strftime("%Y_%m") %>
+<% add_row_id = "future_month_#{month_key}_add" %>
+<section class="future-log__month <%= "future-log__month--empty" if entries.empty? %>"
+         data-month="<%= month.strftime("%Y-%m") %>">
+  <h2>
+    <button type="button"
+            id="future_month_<%= month_key %>_toggle"
+            aria-expanded="false"
+            aria-controls="<%= add_row_id %>"
+            data-placement-target="toggle"
+            data-action="placement#toggle"><%= month.strftime("%B %Y").upcase %></button>
+  </h2>
+  <div id="<%= add_row_id %>" class="future-log__add-row" data-placement-target="panel" hidden>
+    <%= form_with url: entries_path,
+                  data: { month: month.strftime("%Y-%m"), action: "submit->placement#composeDate turbo:submit-end->placement#submitted" } do |form| %>
+      <%= form.hidden_field :placement, value: "future" %>
+      <%= form.hidden_field :on, value: "", data: { placement_target: "on" } %>
+      <%= form.number_field :day,
+                            id: "future_month_#{month_key}_day",
+                            inputmode: "numeric",
+                            required: true,
+                            aria: { label: "Day of the month" },
+                            data: { placement_target: "day focus" } %>
+      <%= form.text_field :line,
+                          id: "future_month_#{month_key}_line",
+                          required: true,
+                          autocomplete: "off",
+                          aria: { label: "Entry text" } %>
+      <%= form.submit "Log" %>
+    <% end %>
+  </div>
+  <div id="future_month_entries_<%= month_key %>">
+    <%= render partial: "future_logs/entry", collection: entries %>
+  </div>
+</section>

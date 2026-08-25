@@ -17,9 +17,9 @@ export default class extends Controller {
   composeDate(event) {
     const form = event.currentTarget
     const month = form.dataset.month
-    const day = form.querySelector("[data-placement-target~='day']").value.padStart(2, "0")
+    const day = this.targetWithin(form, "day").value.padStart(2, "0")
 
-    form.querySelector("[data-placement-target~='on']").value = `${month}-${day}`
+    this.targetWithin(form, "on").value = `${month}-${day}`
   }
 
   submitted(event) {
@@ -39,7 +39,7 @@ export default class extends Controller {
 
   open(toggle) {
     this.setExpanded(toggle, true)
-    this.panelFor(toggle).querySelector("[data-placement-target~='focus']")?.focus()
+    this.targetWithin(this.panelFor(toggle), "focus")?.focus()
   }
 
   setExpanded(toggle, expanded) {
@@ -53,5 +53,11 @@ export default class extends Controller {
 
   toggleFor(panel) {
     return this.toggleTargets.find((toggle) => toggle.getAttribute("aria-controls") === panel.id)
+  }
+
+  // One controller serves every reveal on the page, so its target lists span
+  // all of them. Anything scoped to a single form or panel is found within it.
+  targetWithin(root, name) {
+    return root.querySelector(`[data-placement-target~='${name}']`)
   }
 }
