@@ -1,12 +1,20 @@
-<%= form_with url: entries_path, id: "rapid_log_form", class: "rapid-log", data: { controller: "rapid-log", action: "turbo:submit-end->rapid-log#focus" } do |form| %>
+<%= form_with url: entries_path,
+              id: "rapid_log_form",
+              class: "rapid-log",
+              data: { controller: "rapid-log", action: "turbo:submit-end->placement#submitted" } do |form| %>
   <div class="rapid-log__kinds" aria-label="Entry kind">
     <button type="button" class="rapid-log__kind rapid-log__kind--selected" aria-label="Task" aria-pressed="true" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="task">•</button>
     <button type="button" class="rapid-log__kind" aria-label="Event" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="event"><%= hand_glyph("○") %></button>
     <button type="button" class="rapid-log__kind" aria-label="Note" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="note">–</button>
   </div>
   <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
+  <%= form.hidden_field :on, value: capture_date.iso8601 %>
   <div class="rapid-log__input-wrap">
-    <%= form.text_field :line, id: "rapid-log-line", placeholder: "Rapid log…", autocomplete: "off", autofocus: true, data: { rapid_log_target: "line" } %>
-    <%= form.submit "Log entry", class: "rapid-log__submit" %>
+    <%= form.text_field :line,
+                        id: "rapid-log-line",
+                        placeholder: "Rapid log…",
+                        autocomplete: "off",
+                        data: { rapid_log_target: "line", placement_target: "focus" } %>
+    <%= form.submit "Log", class: "rapid-log__submit" %>
   </div>
 <% end %>

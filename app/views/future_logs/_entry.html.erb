@@ -1,0 +1,6 @@
+<%= link_to daily_log_path(date: entry.occurs_on.iso8601),
+            id: "future_entry_#{entry.id}",
+            class: "future-entry" do %>
+  <span class="future-entry__day"><%= entry.occurs_on.day %></span>
+  <%= render "entries/entry_body", entry: entry %>
+<% end %>

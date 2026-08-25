@@ -38,6 +38,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
   test "2 today is highlighted and carries today's timed event" do
     sign_in
+    reveal_capture
     find("button[aria-label='Event']").click
     capture "monthly standup today 9am"
 
@@ -210,9 +211,16 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
   end
 
   def capture(line)
+    reveal_capture unless page.has_field?("Rapid log…")
     fill_in "Rapid log…", with: line
     find_field("Rapid log…").send_keys(:enter)
-    assert_field "Rapid log…", with: ""
+    assert_selector "#rapid_log_panel[hidden]", visible: :all
+    assert_field "Rapid log…", with: "", visible: :all
+  end
+
+  def reveal_capture
+    find("button[aria-label='Write on this page']").click
+    assert_field "Rapid log…"
   end
 
   def schedule_task(task, scheduled_on)

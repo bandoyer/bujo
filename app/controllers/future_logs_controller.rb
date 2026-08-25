@@ -1,6 +1,7 @@
 # Renders the signed-in reader's continuous runway of future entries.
 class FutureLogsController < ApplicationController
   include JournalReading
+  include FutureLogTargets
 
   # Empty month headers keep this much runway visible beyond today.
   RUNWAY_MONTH_COUNT = 6
