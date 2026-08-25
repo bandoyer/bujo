@@ -173,7 +173,7 @@ a {
 }
 
 .daily-log__eyebrow {
-  margin: 0 0 0.25rem;
+  margin: 0.25rem 0 0;
   color: var(--accent);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -187,13 +187,10 @@ a {
   line-height: 0.95;
 }
 
+/* A Topic is reader-written and unbounded, so its column may shrink below its
+   content instead of widening the grid past the viewport. */
 .collection-page__header {
-  display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.75rem;
-  align-items: start;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--line);
 }
 
 .collection-page__heading {

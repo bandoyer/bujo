@@ -1,7 +1,7 @@
 <% content_for :title, "#{@collection.name} · Bujo" %>
 
 <main class="daily-log collection-page" data-controller="placement">
-  <header class="collection-page__header">
+  <header class="daily-log__header collection-page__header">
     <div class="collection-page__heading">
       <h1><%= @collection.name %></h1>
       <p class="collection-page__context">Collection · <%= @collection.index_position? ? "indexed" : "not indexed" %></p>
