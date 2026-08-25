@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_154800) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_25_050000) do
   create_table "collections", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
@@ -29,9 +29,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_154800) do
     t.datetime "deleted_at"
     t.string "hlc"
     t.string "kind", null: false
-    t.date "logged_on", null: false
     t.string "migrated_from_id"
     t.date "occurs_on"
+    t.string "page_kind", null: false
+    t.date "page_on"
     t.string "parent_id"
     t.boolean "priority", default: false, null: false
     t.bigint "server_seq"
@@ -45,10 +46,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_154800) do
     t.index ["migrated_from_id"], name: "index_entries_on_migrated_from_id", unique: true
     t.index ["parent_id"], name: "index_entries_on_parent_id"
     t.index ["server_seq"], name: "index_entries_on_server_seq"
-    t.index ["user_id", "logged_on"], name: "index_entries_on_user_id_and_logged_on"
     t.index ["user_id", "occurs_on"], name: "index_entries_on_user_id_and_occurs_on"
+    t.index ["user_id", "page_kind", "page_on"], name: "index_entries_on_user_id_and_page_kind_and_page_on"
     t.index ["user_id", "state"], name: "index_entries_on_user_id_and_state"
     t.index ["user_id"], name: "index_entries_on_user_id"
+    t.check_constraint "page_kind IN ('daily', 'monthly_calendar', 'monthly_tasks', 'future', 'collection')", name: "entries_page_kind_allowed"
   end
 
   create_table "sessions", force: :cascade do |t|

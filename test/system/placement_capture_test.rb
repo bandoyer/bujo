@@ -44,13 +44,13 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_selector ".daily-log__capture-cue", text: "→ logging to #{short_day(viewed_day)}"
     submit_daily_capture "page-bound task"
     captured = @user.entries.find_by!(text: "page-bound task")
-    assert_equal viewed_day, captured.logged_on
+    assert_equal viewed_day, captured.page_on
     assert_selector "[data-testid='open-count']", text: "1 open"
 
     reveal_actions(captured)
     within("#entry_#{captured.id}") { click_button "Migrate", exact: true }
     assert_selector "#entry_#{captured.id} .entry__glyph", text: ">"
-    assert_equal viewed_day.next_month.beginning_of_month, captured.reload.successor.logged_on
+    assert_equal viewed_day.next_month.beginning_of_month, captured.reload.successor.page_on
 
     refresh
     assert_text "page-bound task"
@@ -59,18 +59,18 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_no_text "page-bound task"
   end
 
-  test "4 a weekday token resolves against the future page being written on" do
-    sign_in
+  test "4 a future Daily page renders an existing resident without a writing affordance" do
     viewed_day = Time.zone.today + 10.days
-    expected_friday = viewed_day + ((5 - viewed_day.wday) % 7).days
+    resident = @user.entries.create!(
+      kind: "task", state: "open", text: "already resident", tags: [],
+      page_kind: "daily", page_on: viewed_day
+    )
+    sign_in
     visit daily_log_path(date: viewed_day.iso8601)
 
-    reveal_daily_capture
-    submit_daily_capture "page-relative friday"
-
-    captured = @user.entries.find_by!(text: "page-relative")
-    assert_equal viewed_day, captured.logged_on
-    assert_equal expected_friday, captured.occurs_on
+    assert_selector "#entry_#{resident.id}", text: "already resident"
+    assert_no_button "Write on this page"
+    assert_no_field "Rapid log…"
   end
 
   test "5 Future Log adds under one month at a time and places the entry on its calendar day" do
@@ -96,7 +96,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
 
     assert_text "future dentist"
     captured = @user.entries.find_by!(text: "future dentist")
-    assert_equal [ target_day, target_day ], [ captured.logged_on, captured.occurs_on ]
+    assert_equal [ nil, target_day ], [ captured.page_on, captured.occurs_on ]
     assert_selector "#future_entry_#{captured.id}", text: "future dentist"
     assert_equal %w[5 20 25], all("#{future_month(first_month)} .future-entry__day").map(&:text)
     assert_future_month_closed(first_month)
@@ -104,8 +104,10 @@ class PlacementCaptureTest < ApplicationSystemTestCase
 
     visit monthly_log_path(month: first_month.strftime("%Y-%m"))
     within ".monthly-calendar__day[data-date='#{target_day.iso8601}']" do
-      assert_text "future dentist"
+      assert_no_text "future dentist"
     end
+    visit daily_log_path(date: target_day.iso8601)
+    assert_no_text "future dentist"
   end
 
   test "6 Future Log refuses an impossible day without losing the open add row" do
@@ -127,7 +129,10 @@ class PlacementCaptureTest < ApplicationSystemTestCase
   end
 
   test "7 existing actions, preferences, and tabs work while capture stays hidden" do
-    task = Entry.capture!("hidden-bar task", user: @user, today: Time.zone.today)
+    task = Entry.capture!(
+      "hidden-bar task", user: @user, today: Time.zone.today, as_of: Time.zone.today,
+      page_kind: "daily", page_on: Time.zone.today
+    )
     sign_in
 
     assert_hidden_daily_capture
@@ -185,8 +190,10 @@ class PlacementCaptureTest < ApplicationSystemTestCase
   end
 
   def create_future_entry(text, date)
-    entry = Entry.capture!(text, user: @user, today: date)
-    entry.update!(occurs_on: date)
+    Entry.capture!(
+      text, user: @user, today: date, as_of: Time.zone.today,
+      page_kind: "future", page_on: nil, occurs_on: date
+    )
   end
 
   def assert_active_tab(label)

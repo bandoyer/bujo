@@ -2,10 +2,10 @@
 <span class="entry__meta">
   <% if entry.time_of_day.present? %><span><%= entry.time_of_day %></span><% end %>
   <% entry.tags.each do |tag| %><span>+<%= tag %></span><% end %>
-  <% if entry.state == "migrated" && entry.successor %>
+  <% if entry.successor %>
     <%# The destination is why a migrated predecessor stays on the day at all:
-        scheduled successors carry occurs_on, migrated ones carry logged_on. %>
-    <% destination = entry.successor.occurs_on || entry.successor.logged_on %>
-    <span>→ <%= destination.strftime("%b %-d").upcase %></span>
+        scheduled successors carry occurs_on, migrated ones carry page_on. %>
+    <% destination = entry.successor.occurs_on || entry.successor.page_on %>
+    <span>→<%= " #{destination.strftime("%b %-d").upcase}" if destination %></span>
   <% end %>
 </span>

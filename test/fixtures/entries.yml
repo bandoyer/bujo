@@ -7,4 +7,5 @@ open_task:
   priority: false
   tags:
     - fixture
-  logged_on: 2026-08-24
+  page_kind: daily
+  page_on: 2026-08-24

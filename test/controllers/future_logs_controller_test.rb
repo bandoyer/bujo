@@ -70,15 +70,16 @@ class FutureLogsControllerTest < ActionDispatch::IntegrationTest
       state: nil,
       text: text,
       tags: [],
-      logged_on: Time.zone.today,
+      page_kind: "future",
+      page_on: nil,
       occurs_on: occurs_on
     )
   end
 
   def runway_months(first_month, far_month)
-    months = 6.times.map { |offset| first_month >> offset }
-    months << far_month unless months.include?(far_month)
-    months.map { |month| month.strftime("%Y-%m") }
+    runway_start = Time.zone.today.beginning_of_month.next_month
+    months = 6.times.map { |offset| runway_start >> offset }
+    (months + [ first_month, far_month ]).uniq.sort.map { |month| month.strftime("%Y-%m") }
   end
 
   def rendered_months

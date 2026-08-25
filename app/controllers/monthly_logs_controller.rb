@@ -10,6 +10,7 @@ class MonthlyLogsController < ApplicationController
     @today = Time.zone.today
     @month = month_or_current(params[:month])
     @view = params[:view] == "tasks" ? :tasks : :calendar
+    @capture_open = @month <= @today.beginning_of_month
 
     @view == :tasks ? load_tasks : load_calendar
   end
@@ -37,7 +38,8 @@ class MonthlyLogsController < ApplicationController
 
   def load_tasks
     @entries = user_entries.monthly_tasks(@month)
-    @open_task_count = @entries.open_tasks.count
-    @logged_task_count = @entries.count
+    rendered_ids = rendered_entry_ids(@entries)
+    @open_task_count = user_entries.open_tasks.where(id: rendered_ids).count
+    @logged_task_count = rendered_ids.count
   end
 end

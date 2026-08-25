@@ -10,7 +10,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference -> { @user.entries.count } do
       post entries_path(format: :turbo_stream), params: {
         line: "   ",
-        on: Date.new(2027, 1, 15).iso8601
+        on: (Time.zone.today.prev_month.beginning_of_month + 14.days).iso8601
       }
     end
 
@@ -18,7 +18,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "absent and unrecognized default kinds capture tasks" do
-    capture_date = Date.new(2027, 1, 15)
+    capture_date = Time.zone.today.prev_month.beginning_of_month + 14.days
 
     assert_difference -> { @user.entries.where(kind: "task").count }, 2 do
       post entries_path(format: :turbo_stream), params: {
@@ -40,7 +40,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "recognized default kind captures that kind" do
-    capture_date = Date.new(2027, 1, 15)
+    capture_date = Time.zone.today.prev_month.beginning_of_month + 14.days
 
     assert_difference -> { @user.entries.where(kind: "event").count }, 1 do
       post entries_path(format: :turbo_stream), params: {
@@ -54,7 +54,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "capture uses the requested page date for logging and relative parsing" do
-    capture_date = Date.new(2027, 1, 15)
+    capture_date = Time.zone.today.prev_month.beginning_of_month + 14.days
 
     assert_difference -> { @user.entries.count }, 1 do
       post entries_path(format: :turbo_stream), params: {
@@ -65,7 +65,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     captured = @user.entries.find_by!(text: "prepare")
-    assert_equal capture_date, captured.logged_on
+    assert_equal capture_date, captured.page_on
     assert_equal capture_date.next_day, captured.occurs_on
   end
 
@@ -90,7 +90,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     captured = @user.entries.find_by!(text: "future appointment")
-    assert_equal capture_date, captured.logged_on
+    assert_nil captured.page_on
     assert_equal capture_date, captured.occurs_on
   end
 
@@ -116,16 +116,16 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
       }
     end
     assert_response :success
-    assert_equal past_date, @user.entries.find_by!(text: "past page capture").logged_on
+    assert_equal past_date, @user.entries.find_by!(text: "past page capture").page_on
   end
 
   test "HTML capture returns to the requested page date" do
-    capture_date = Date.new(2027, 3, 8)
+    capture_date = Time.zone.today.prev_month.beginning_of_month + 7.days
 
     post entries_path, params: { line: "fallback capture", on: capture_date.iso8601 }
 
     assert_redirected_to daily_log_path(date: capture_date.iso8601)
-    assert_equal capture_date, @user.entries.find_by!(text: "fallback capture").logged_on
+    assert_equal capture_date, @user.entries.find_by!(text: "fallback capture").page_on
   end
 
   test "HTML future capture returns to the Future Log" do
@@ -139,7 +139,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to future_log_path
     captured = @user.entries.find_by!(text: "fallback future")
-    assert_equal capture_date, captured.logged_on
+    assert_nil captured.page_on
     assert_equal capture_date, captured.occurs_on
   end
 
@@ -156,7 +156,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "an illegal lifecycle action redirects with an alert" do
-    task = create_open_task("finish twice", logged_on: Time.zone.today)
+    task = create_open_task("finish twice", page_on: Time.zone.today)
 
     post complete_entry_path(task), params: { viewed_on: Time.zone.today.iso8601 }
     assert_redirected_to daily_log_path(date: Time.zone.today.iso8601)
@@ -175,9 +175,9 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "schedule with an ISO date moves the task" do
-    viewed_on = Date.new(2027, 1, 15)
-    occurs_on = Date.new(2027, 2, 1)
-    task = create_open_task("pack", logged_on: viewed_on)
+    viewed_on = Time.zone.today.prev_month.beginning_of_month + 14.days
+    occurs_on = Time.zone.today.next_month.beginning_of_month
+    task = create_open_task("pack", page_on: viewed_on)
 
     post schedule_entry_path(task), params: {
       viewed_on: viewed_on.iso8601,
@@ -203,12 +203,12 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to future_log_path
     assert_equal "That entry can't do that.", flash[:alert]
-    assert_nil @user.entries.find_by(text: "must not land today", logged_on: Time.zone.today)
+    assert_nil @user.entries.find_by(text: "must not land today", page_on: Time.zone.today)
   end
 
   def assert_schedule_rejected(schedule_params = {})
-    viewed_on = Date.new(2027, 1, 15)
-    task = create_open_task("stay put", logged_on: viewed_on)
+    viewed_on = Time.zone.today.prev_month.beginning_of_month + 14.days
+    task = create_open_task("stay put", page_on: viewed_on)
     original_lifecycle = [ task.state, task.occurs_on ]
 
     post schedule_entry_path(task), params: { viewed_on: viewed_on.iso8601 }.merge(schedule_params)

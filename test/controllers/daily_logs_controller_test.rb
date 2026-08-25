@@ -20,10 +20,10 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
 
   test "counts every kept open task rendered in the day's nested tree" do
     requested_date = Date.new(2027, 1, 15)
-    root = create_open_task("root", logged_on: requested_date)
-    child = create_open_task("child", logged_on: requested_date + 1.day, parent: root)
-    grandchild = create_open_task("grandchild", logged_on: requested_date + 2.days, parent: child)
-    deleted_child = create_open_task("deleted", logged_on: requested_date, parent: root)
+    root = create_open_task("root", page_on: requested_date)
+    child = create_open_task("child", page_on: requested_date, parent: root)
+    grandchild = create_open_task("grandchild", page_on: requested_date, parent: child)
+    deleted_child = create_open_task("deleted", page_on: requested_date, parent: root)
     deleted_child.soft_delete!
 
     get daily_log_path(date: requested_date.iso8601)
@@ -36,15 +36,16 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
 
   test "header count ignores nested done tasks and notes" do
     requested_date = Date.new(2027, 1, 15)
-    root = create_open_task("root", logged_on: requested_date)
-    done_child = create_open_task("done child", logged_on: requested_date, parent: root)
+    root = create_open_task("root", page_on: requested_date)
+    done_child = create_open_task("done child", page_on: requested_date, parent: root)
     done_child.complete!
     note = @user.entries.create!(
       kind: "note",
       state: nil,
       text: "a nested note",
       tags: [],
-      logged_on: requested_date,
+      page_kind: "daily",
+      page_on: requested_date,
       parent: root
     )
 
@@ -63,7 +64,8 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
       state: nil,
       text: "standup",
       tags: [],
-      logged_on: requested_date
+      page_kind: "daily",
+      page_on: requested_date
     )
 
     get daily_log_path(date: requested_date.iso8601)
@@ -76,9 +78,9 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
 
   test "header traversal stops at a soft-deleted child" do
     requested_date = Date.new(2027, 1, 15)
-    root = create_open_task("visible root", logged_on: requested_date)
-    deleted_child = create_open_task("deleted child", logged_on: requested_date, parent: root)
-    grandchild = create_open_task("hidden grandchild", logged_on: requested_date, parent: deleted_child)
+    root = create_open_task("visible root", page_on: requested_date)
+    deleted_child = create_open_task("deleted child", page_on: requested_date, parent: root)
+    grandchild = create_open_task("hidden grandchild", page_on: requested_date, parent: deleted_child)
     deleted_child.soft_delete!
 
     get daily_log_path(date: requested_date.iso8601)

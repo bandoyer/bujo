@@ -64,7 +64,7 @@ class DailyLogTest < ApplicationSystemTestCase
     end
   end
 
-  test "3 the kind toggle captures events and notes without task actions" do
+  test "3 events expose scheduling while notes remain actionless" do
     sign_in
 
     reveal_capture
@@ -75,13 +75,13 @@ class DailyLogTest < ApplicationSystemTestCase
     within entry_selector(event) do
       assert_text "O"
       assert_text "09:00"
-      assert_no_selector ".entry__toggle"
-      find(".entry__line").click
-      assert_no_selector ".entry__action-strip"
+      assert_selector ".entry__toggle"
+      find(".entry__toggle").click
+      assert_selector ".entry__action-strip:not([hidden])"
       assert_no_button "Complete"
       assert_no_button "Strike"
       assert_no_button "Migrate"
-      assert_no_button "Schedule…", exact: true
+      assert_button "Schedule…", exact: true
     end
 
     reveal_capture
@@ -185,7 +185,7 @@ class DailyLogTest < ApplicationSystemTestCase
 
   test "6 scheduling and migrating show their destinations" do
     sign_in
-    scheduled_on = Time.zone.today + 7.days
+    scheduled_on = Time.zone.today.next_month.beginning_of_month + 6.days
 
     capture "scheduled task"
     scheduled_task = @user.entries.find_by!(text: "scheduled task", migrated_from_id: nil)
@@ -235,7 +235,7 @@ class DailyLogTest < ApplicationSystemTestCase
     assert_text "→ logging to #{formatted_destination(previous_day)}"
     capture "written on yesterday"
     captured = @user.entries.find_by!(text: "written on yesterday")
-    assert_equal previous_day, captured.logged_on
+    assert_equal previous_day, captured.page_on
     assert_text "written on yesterday"
 
     click_link "Today", exact: true

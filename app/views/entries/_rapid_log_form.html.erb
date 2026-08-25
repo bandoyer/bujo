@@ -1,13 +1,17 @@
+<% allowed_kinds = local_assigns.fetch(:allowed_kinds, %w[task event note]) %>
+<% placement = local_assigns[:placement] %>
+<% form_id = local_assigns.fetch(:form_id, "rapid_log_form") %>
 <%= form_with url: entries_path,
-              id: "rapid_log_form",
+              id: form_id,
               class: "rapid-log",
               data: { controller: "rapid-log", action: "turbo:submit-end->placement#submitted" } do |form| %>
   <div class="rapid-log__kinds" aria-label="Entry kind">
-    <button type="button" class="rapid-log__kind rapid-log__kind--selected" aria-label="Task" aria-pressed="true" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="task">•</button>
-    <button type="button" class="rapid-log__kind" aria-label="Event" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="event"><%= hand_glyph("○") %></button>
-    <button type="button" class="rapid-log__kind" aria-label="Note" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="note">–</button>
+    <% if allowed_kinds.include?("task") %><button type="button" class="rapid-log__kind rapid-log__kind--selected" aria-label="Task" aria-pressed="true" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="task">•</button><% end %>
+    <% if allowed_kinds.include?("event") %><button type="button" class="rapid-log__kind" aria-label="Event" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="event"><%= hand_glyph("○") %></button><% end %>
+    <% if allowed_kinds.include?("note") %><button type="button" class="rapid-log__kind" aria-label="Note" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="note">–</button><% end %>
   </div>
   <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
+  <%= form.hidden_field :placement, value: placement if placement %>
   <%= form.hidden_field :on, value: capture_date.iso8601 %>
   <div class="rapid-log__input-wrap">
     <%= form.text_field :line,

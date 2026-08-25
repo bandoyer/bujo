@@ -1,66 +1,78 @@
-# Connects Daily Log forms to the existing entry capture and lifecycle API.
+# Connects page gestures to Entry capture and append-only lifecycle commands.
 class EntriesController < ApplicationController
   include DailyLogging
   include FutureLogTargets
 
-  # Form values accepted as parser default kinds.
+  # Parser defaults accepted from capture forms.
   DEFAULT_KINDS = %w[task event note].freeze
-  # Every refusal reads the same to the reader: nothing was written or moved.
+  # Page placements directly writable through this web controller.
+  PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future].freeze
+  # Resident pages that expose outbound movement in this slice.
+  ACTION_PAGE_KINDS = %w[daily monthly_calendar monthly_tasks].freeze
+  # One reader-facing refusal for every rejected command.
   REFUSAL_ALERT = "That entry can't do that.".freeze
 
   before_action :set_entry, except: :create
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
 
-  # Captures a rapid-log line onto the explicitly requested journal page.
+  # Captures a rapid-log line on the page selected by the gesture.
   def create
     @capture_date = requested_date(:on)
-    return refuse_capture unless capture_date_allowed?
+    @placement = requested_placement
+    return refuse_capture unless @capture_date
 
-    @entry = Entry.capture!(
-      params[:line],
-      user: Current.user,
-      today: @capture_date,
-      default_kind: default_kind
-    )
-    future_placement? ? prepare_future_response : prepare_daily_response
-
-    respond_to do |format|
-      format.turbo_stream { render future_placement? ? :create_future : :create }
-      format.html { redirect_to capture_destination }
-    end
+    @entry = capture_entry
+    prepare_capture_response
+    respond_to_capture
+  rescue ActiveRecord::RecordInvalid
+    refuse_capture
   end
 
   # Marks an open task done.
   def complete
     @entry.complete!
-    redirect_to_viewed_day
+    redirect_to_viewed_page
   end
 
   # Restores a done or struck task to open.
   def reopen
     @entry.reopen!
-    redirect_to_viewed_day
+    redirect_to_viewed_page
   end
 
-  # Strikes an open task while retaining it in the log.
+  # Strikes an open task while retaining it on its page.
   def strike
     @entry.strike!
-    redirect_to_viewed_day
+    redirect_to_viewed_page
   end
 
-  # Migrates an open task to the first day of the viewed day's next month.
+  # Carries an eligible task to the Tasks page after its resident month.
   def migrate
-    @entry.migrate_to!(logged_on: viewed_date.next_month.beginning_of_month)
-    redirect_to_viewed_day
+    return refuse_lifecycle_change unless @entry.page_on
+
+    destination_month = @entry.page_on.next_month.beginning_of_month
+    @entry.move_to!(
+      page_kind: "monthly_tasks",
+      page_on: destination_month,
+      as_of: today
+    )
+    redirect_to_viewed_page
   end
 
-  # Schedules an open task on the date the form supplied.
+  # Schedules an eligible task or event into the Future Log.
   def schedule
     date = requested_date(:date)
-    return refuse_lifecycle_change unless date
+    eligible_kind = @entry.kind.in?(%w[task event])
+    eligible_page = @entry.page_kind.in?(ACTION_PAGE_KINDS)
+    return refuse_lifecycle_change unless date && eligible_kind && eligible_page
 
-    @entry.schedule_to!(occurs_on: date)
-    redirect_to_viewed_day
+    @entry.move_to!(
+      page_kind: "future",
+      page_on: nil,
+      occurs_on: date,
+      as_of: today
+    )
+    redirect_to_viewed_page
   end
 
   private
@@ -69,82 +81,115 @@ class EntriesController < ApplicationController
     @entry = user_entries.find(params[:id])
   end
 
+  def capture_entry
+    Entry.capture!(
+      params[:line],
+      user: Current.user,
+      today: parser_today,
+      as_of: today,
+      default_kind: default_kind,
+      **placement_attributes
+    )
+  end
+
+  def requested_placement
+    params[:placement].presence_in(PAGE_KINDS) || "daily"
+  end
+
+  def placement_attributes
+    case @placement
+    when "monthly_calendar"
+      { page_kind: @placement, page_on: @capture_date.beginning_of_month, occurs_on: @capture_date }
+    when "monthly_tasks"
+      { page_kind: @placement, page_on: @capture_date.beginning_of_month }
+    when "future"
+      { page_kind: @placement, page_on: nil, occurs_on: @capture_date }
+    else
+      { page_kind: "daily", page_on: @capture_date }
+    end
+  end
+
+  def parser_today
+    @placement == "monthly_tasks" ? today : @capture_date
+  end
+
   def default_kind
     candidate = params[:default_kind]
     DEFAULT_KINDS.include?(candidate) ? candidate.to_sym : :task
   end
 
-  def future_placement?
-    params[:placement] == "future"
-  end
-
-  # Read once per request, so the refusal guard and the relation behind the
-  # response cannot disagree about where the runway starts.
+  # The request owns one clock snapshot for every admission decision.
   def today
     @today ||= Time.zone.today
   end
 
-  # Only a month-header gesture is constrained to the runway's strictly future
-  # dates. A Daily Log page deliberately accepts any valid date it displays.
-  def capture_date_allowed?
-    return false unless @capture_date
-    return true unless future_placement?
-
-    @capture_date > today
+  def prepare_capture_response
+    return prepare_future_response if @placement == "future"
+    prepare_daily_response if @placement == "daily"
   end
 
-  # Future placement pins the calendar day, then composes the live response
-  # from the same ordered relation a full Future Log render reads, so a live
-  # insert lands where a reload would put it.
   def prepare_future_response
     return unless @entry
 
-    @entry.update!(occurs_on: @capture_date)
-    @future_month_entries = user_entries
-      .future_log(after: today)
-      .where(occurs_on: @capture_date.all_month)
+    @future_month_entries = user_entries.future_log.where(occurs_on: @capture_date.all_month)
   end
 
-  # The Daily Log's response carries its page's header count. The runway's
-  # does not show one, and computing it would walk that day's entry tree for
-  # a screen that never displays it.
   def prepare_daily_response
     @open_task_count = open_task_count_on(@capture_date)
   end
 
-  def capture_destination
-    return future_log_path if future_placement?
+  def respond_to_capture
+    respond_to do |format|
+      format.turbo_stream do
+        if @placement.in?(%w[daily future])
+          render @placement == "future" ? :create_future : :create
+        else
+          redirect_to capture_destination, status: :see_other
+        end
+      end
+      format.html { redirect_to capture_destination }
+    end
+  end
 
-    daily_log_path(date: @capture_date.iso8601)
+  def capture_destination
+    case @placement
+    when "future"
+      future_log_path
+    when "monthly_calendar"
+      monthly_log_path(month: @capture_date.strftime("%Y-%m"))
+    when "monthly_tasks"
+      monthly_log_path(month: @capture_date.strftime("%Y-%m"), view: "tasks")
+    else
+      daily_log_path(date: @capture_date.iso8601)
+    end
   end
 
   def viewed_date
     @viewed_date ||= date_or_today(params[:viewed_on])
   end
 
-  def redirect_to_viewed_day(**response_options)
-    redirect_to daily_log_path(date: viewed_date.iso8601), **response_options
+  def redirect_to_viewed_page(**response_options)
+    destination = case params[:return_to]
+    when "monthly_calendar"
+      monthly_log_path(month: viewed_date.strftime("%Y-%m"))
+    when "monthly_tasks"
+      monthly_log_path(month: viewed_date.strftime("%Y-%m"), view: "tasks")
+    else
+      daily_log_path(date: viewed_date.iso8601)
+    end
+    redirect_to destination, **response_options
   end
 
-  # The date a form asked for, or nil when it sent nothing usable. Absent and
-  # malformed are refusals, never days to fall back to: date_or_today's default
-  # belongs to choosing a screen to display, never to writing or moving an
-  # entry. A capture that quietly lands on the wrong page is the worse failure.
   def requested_date(param_name)
     Date.iso8601(params[param_name].to_s)
   rescue Date::Error
     nil
   end
 
-  # An illegal transition and an unusable date read the same to the reader:
-  # the entry did not move. A crafted or incomplete form must read as a
-  # refusal, never as a 400 or a 500 - this is a form, not an API.
   def refuse_lifecycle_change
-    redirect_to_viewed_day(alert: REFUSAL_ALERT)
+    redirect_to_viewed_page(alert: REFUSAL_ALERT)
   end
 
-  # Turbo refusals leave the submitting reveal open; ordinary form fallbacks
-  # return to the request's page because the rejected value cannot route them.
   def refuse_capture
     respond_to do |format|
       format.turbo_stream do

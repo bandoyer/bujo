@@ -35,7 +35,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_no_link "Index", exact: true
   end
 
-  test "2 today is highlighted and carries today's timed event" do
+  test "2 today is highlighted without deriving Calendar residency from a Daily event" do
     sign_in
     reveal_capture
     find("button[aria-label='Event']").click
@@ -45,13 +45,13 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
     assert_selector "#{calendar_day(Time.zone.today)}.monthly-calendar__day--today"
     within calendar_day(Time.zone.today) do
-      assert_text "monthly standup"
-      assert_text "09:00"
-      assert_text "O"
+      assert_no_text "monthly standup"
     end
+    click_link "Today", exact: true
+    assert_text "monthly standup"
   end
 
-  test "3 a scheduled task appears in next month's calendar and the future runway" do
+  test "3 a scheduled task waits only in the future runway" do
     sign_in
     scheduled_on = Time.zone.today.next_month.beginning_of_month + 6.days
     capture "runway task 2pm"
@@ -61,12 +61,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     click_link "Month", exact: true
     find("a[aria-label='Next month']").click
     within calendar_day(scheduled_on) do
-      assert_text "runway task"
-      assert_text scheduled_on.day.to_s
-      assert_text "14:00"
-      assert_selector ".entry__glyph", text: "•"
-      assert_no_selector ".entry__toggle"
-      assert_no_button "Complete"
+      assert_no_text "runway task"
     end
 
     click_link "Future", exact: true
@@ -83,7 +78,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     target_day = Time.zone.today.beginning_of_month
     click_link "Month", exact: true
 
-    find(calendar_day(target_day)).click
+    find("#{calendar_day(target_day)} .monthly-calendar__date-link").click
 
     assert_current_path daily_log_path(date: target_day.iso8601)
     assert_selector ".daily-log__eyebrow", text: formatted_day(target_day)
@@ -110,21 +105,18 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
   end
 
   test "6 Tasks shows full task history and a composed open count" do
+    month = Time.zone.today.beginning_of_month
+    task = create_monthly_task("finish monthly slice", month)
+    struck_task = create_monthly_task("obsolete monthly task", month)
+    struck_task.strike!
     sign_in
-    capture "finish monthly slice"
-    task = @user.entries.find_by!(text: "finish monthly slice")
-    capture "obsolete monthly task"
-    struck_task = @user.entries.find_by!(text: "obsolete monthly task")
-    reveal_actions(struck_task)
-    within(entry_selector(struck_task)) { click_button "Strike" }
-
     click_link "Month", exact: true
     click_link "Tasks", exact: true
     initial_open_count = displayed_month_open_count
     assert_no_field "Rapid log…"
     within "#monthly_task_#{task.id}" do
       assert_text "finish monthly slice"
-      assert_no_selector ".entry__toggle"
+      assert_selector ".entry__toggle"
       assert_no_button "Complete"
     end
     within "#monthly_task_#{struck_task.id}" do
@@ -135,40 +127,42 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       assert_includes text_decoration, "line-through"
     end
 
-    find("#monthly_task_#{task.id}").click
     reveal_actions(task)
     within(entry_selector(task)) { click_button "Complete" }
-    click_link "Month", exact: true
-    assert_selector ".monthly-log__views"
-    click_link "Tasks", exact: true
 
-    assert_selector "#monthly_task_#{task.id}.entry--muted"
+    assert_selector "#monthly_task_#{task.id} #entry_#{task.id}.entry--muted"
     within("#monthly_task_#{task.id}") { assert_text "x" }
     assert_equal initial_open_count - 1, displayed_month_open_count
     assert_text "2 logged"
   end
 
-  test "7 migrated task history links to its day and shows its destination" do
+  test "7 migration creates one resident on next month's Tasks page" do
     sign_in
     capture "carry this task"
     task = @user.entries.find_by!(text: "carry this task", migrated_from_id: nil)
     reveal_actions(task)
     within(entry_selector(task)) { click_button "Migrate" }
+    assert_selector "#{entry_selector(task)} .entry__glyph", text: ">"
     destination = Time.zone.today.next_month.beginning_of_month
+    successor = @user.entries.find_by!(migrated_from_id: task.id)
 
     click_link "Month", exact: true
+    find("a[aria-label='Next month']").click
     click_link "Tasks", exact: true
 
-    assert_selector "a#monthly_task_#{task.id}[href='#{daily_log_path(date: Time.zone.today.iso8601)}']"
-    within "#monthly_task_#{task.id}" do
+    assert_no_selector "#monthly_task_#{task.id}"
+    within "#monthly_task_#{successor.id}" do
+      assert_text "carry this task"
+      assert_selector ".entry__toggle"
+    end
+    click_link "Today", exact: true
+    within entry_selector(task) do
       assert_text ">"
       assert_text "→ #{formatted_destination(destination)}"
-      assert_no_selector ".entry__toggle"
-      assert_no_button "Reopen"
     end
   end
 
-  test "8 Future shows a six-month runway and entry rows open their days" do
+  test "8 Future shows a six-month runway and residents do not open Daily Logs" do
     sign_in
     scheduled_on = Time.zone.today.next_month.beginning_of_month + 4.days
     capture "future runway link"
@@ -186,8 +180,9 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       assert_no_button "Complete"
     end
     find("#future_entry_#{successor.id}").click
-    assert_current_path daily_log_path(date: scheduled_on.iso8601)
-    assert_selector ".daily-log__eyebrow", text: formatted_day(scheduled_on)
+    assert_current_path future_log_path
+    visit daily_log_path(date: scheduled_on.iso8601)
+    assert_no_text "future runway link"
   end
 
   test "9 crafted month and view values fall back to the current calendar" do
@@ -200,6 +195,64 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     visit monthly_log_path(month: Time.zone.today.strftime("%Y-%m"), view: "garbage")
     assert_selector ".month-navigation .day-navigation__viewed-day", text: formatted_month(Time.zone.today)
     assert_calendar_view
+  end
+
+  test "10 Calendar capture creates residents without touching Daily or Tasks pages" do
+    sign_in
+    day = Time.zone.today
+    click_link "Month", exact: true
+
+    within calendar_day(day) do
+      find("button[aria-label='Write on Calendar for #{day.strftime('%B %-d')}']").click
+      assert_no_button "Note"
+      fill_in "Rapid log…", with: "calendar-only task"
+      click_button "Log", exact: true
+    end
+    assert_text "calendar-only task"
+    task = @user.entries.find_by!(text: "calendar-only task")
+    assert_equal [ "monthly_calendar", day.beginning_of_month, day ],
+      [ task.page_kind, task.page_on, task.occurs_on ]
+
+    visit daily_log_path(date: day.iso8601)
+    assert_no_text "calendar-only task"
+    visit monthly_log_path(month: day.strftime("%Y-%m"), view: "tasks")
+    assert_no_text "calendar-only task"
+  end
+
+  test "11 Monthly Tasks captures tasks in place and future pages stay capture-closed" do
+    sign_in
+    click_link "Month", exact: true
+    click_link "Tasks", exact: true
+
+    find("button[aria-label='Write on Monthly Tasks']").click
+    assert_no_button "Event"
+    assert_no_button "Note"
+    fill_in "Rapid log…", with: "curated inventory"
+    click_button "Log", exact: true
+    assert_text "curated inventory"
+    assert_equal "monthly_tasks", @user.entries.find_by!(text: "curated inventory").page_kind
+
+    find("a[aria-label='Next month']").click
+    assert_no_button "Write on Monthly Tasks"
+    assert_no_field "Rapid log…"
+  end
+
+  test "12 overdue Future residents remain while only later months can add" do
+    overdue = @user.entries.create!(
+      kind: "event", state: nil, text: "overdue future event", tags: [],
+      page_kind: "future", page_on: nil, occurs_on: Time.zone.today.prev_month.beginning_of_month
+    )
+    sign_in
+    click_link "Future", exact: true
+
+    overdue_month = future_month(overdue.occurs_on)
+    within overdue_month do
+      assert_text "overdue future event"
+      assert_no_button formatted_future_month(overdue.occurs_on)
+    end
+    within future_month(Time.zone.today.next_month) do
+      assert_button formatted_future_month(Time.zone.today.next_month)
+    end
   end
 
   private
@@ -284,5 +337,16 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
   def formatted_destination(date)
     date.strftime("%b %-d").upcase
+  end
+
+  def formatted_future_month(date)
+    date.strftime("%B %Y").upcase
+  end
+
+  def create_monthly_task(text, month)
+    @user.entries.create!(
+      kind: "task", state: "open", text: text, tags: [],
+      page_kind: "monthly_tasks", page_on: month
+    )
   end
 end

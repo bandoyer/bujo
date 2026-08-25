@@ -20,7 +20,9 @@ class EntrySchemaTest < ActiveSupport::TestCase
     assert_not columns.fetch("priority").default
     assert_not columns.fetch("tags").null
     assert_equal [], Entry.type_for_attribute("tags").deserialize(columns.fetch("tags").default)
-    assert_not columns.fetch("logged_on").null
+    assert_not columns.fetch("page_kind").null
+    assert_nil columns.fetch("page_kind").default
+    assert columns.fetch("page_on").null
     assert columns.fetch("occurs_on").null
     assert columns.fetch("time_of_day").null
     assert_equal :string, columns.fetch("collection_id").type
@@ -45,7 +47,7 @@ class EntrySchemaTest < ActiveSupport::TestCase
     entry_indexes = ActiveRecord::Base.connection.indexes(:entries)
     collection_indexes = ActiveRecord::Base.connection.indexes(:collections)
 
-    assert_index entry_indexes, %w[user_id logged_on]
+    assert_index entry_indexes, %w[user_id page_kind page_on]
     assert_index entry_indexes, %w[user_id occurs_on]
     assert_index entry_indexes, %w[user_id state]
     assert_index entry_indexes, %w[collection_id]

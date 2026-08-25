@@ -1,22 +1,26 @@
 <%# Lifecycle controls for a task row. Each posts the day being viewed so the
     redirect lands back where the reader was, not on today. %>
 <% viewed_on_iso = viewed_on.iso8601 %>
+<% return_params = { viewed_on: viewed_on_iso, return_to: return_to }.compact %>
 <div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
   <div class="entry__actions" data-step="actions">
-    <% if entry.state == "open" %>
-      <%= button_to "Complete", complete_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
-      <%= button_to "Strike", strike_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action entry-action--warn" %>
-      <%= button_to "Migrate", migrate_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
+    <% if entry.kind == "task" && entry.state == "open" %>
+      <%= button_to "Complete", complete_entry_path(entry), params: return_params, class: "entry-action" %>
+      <%= button_to "Strike", strike_entry_path(entry), params: return_params, class: "entry-action entry-action--warn" %>
+      <%= button_to "Migrate", migrate_entry_path(entry), params: return_params, class: "entry-action" %>
       <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
-    <% else %>
-      <%= button_to "Reopen", reopen_entry_path(entry), params: { viewed_on: viewed_on_iso }, class: "entry-action" %>
+    <% elsif entry.kind == "task" %>
+      <%= button_to "Reopen", reopen_entry_path(entry), params: return_params, class: "entry-action" %>
+    <% elsif entry.kind == "event" %>
+      <button type="button" class="entry-action" data-action="task-actions#showSchedule">Schedule…</button>
     <% end %>
   </div>
 
-  <% if entry.state == "open" %>
+  <% if entry.state == "open" || entry.kind == "event" %>
     <div class="entry__schedule-step" data-step="schedule" hidden>
       <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
+        <%= form.hidden_field :return_to, value: return_to if return_to %>
         <%= form.label :date, "Schedule date", class: "visually-hidden" %>
         <%= form.date_field :date, required: true, aria: { label: "Schedule date" } %>
         <%= form.submit "Schedule", class: "entry-action" %>

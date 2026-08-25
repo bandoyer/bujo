@@ -271,13 +271,43 @@ a {
 .monthly-calendar__day {
   display: grid;
   min-height: 44px;
-  grid-template-columns: 2rem 1.25rem 1.25rem minmax(0, 1fr) auto;
+  grid-template-columns: 3.75rem minmax(0, 1fr) 44px;
   gap: 0.3rem;
   align-items: center;
   padding: 0 0.45rem;
   border-radius: 0.6rem;
   color: var(--ink);
+}
+
+.monthly-calendar__date-link {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 2rem 1.25rem;
+  gap: 0.3rem;
+  align-items: center;
+  color: inherit;
   text-decoration: none;
+}
+
+.monthly-calendar__residents {
+  min-width: 0;
+}
+
+.monthly-calendar__residents .entry {
+  padding: 0;
+}
+
+.monthly-calendar__capture-reveal {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  cursor: text;
+}
+
+.monthly-calendar__capture-panel {
+  grid-column: 1 / -1;
+  padding: 0.25rem 0 0.5rem;
 }
 
 .monthly-calendar__day--today {
@@ -334,8 +364,14 @@ a {
   letter-spacing: 0.12em;
 }
 
-.future-log__month h2 button {
+.future-log__month h2 button,
+.future-log__month h2 span {
+  display: flex;
   min-height: 44px;
+  align-items: center;
+}
+
+.future-log__month h2 button {
   padding: 0;
   border: 0;
   background: transparent;
@@ -351,7 +387,7 @@ a {
 .future-log__add-row form {
   display: grid;
   min-height: 44px;
-  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  grid-template-columns: auto 3.25rem minmax(0, 1fr) auto;
   overflow: hidden;
   margin-bottom: 0.35rem;
   border: 1px solid var(--line);
@@ -391,11 +427,20 @@ a {
 .future-entry {
   display: grid;
   min-height: 44px;
-  grid-template-columns: 2rem 1.25rem minmax(0, 1fr) auto;
+  grid-template-columns: 2rem minmax(0, 1fr);
   gap: 0.3rem;
   align-items: center;
   color: var(--ink);
   text-decoration: none;
+}
+
+.future-entry__resident,
+.future-entry__resident .entry {
+  min-width: 0;
+}
+
+.future-entry__resident .entry {
+  padding: 0;
 }
 
 .future-entry__day {
@@ -445,6 +490,7 @@ a {
 }
 
 .daily-log__capture-panel[hidden],
+.monthly-calendar__capture-panel[hidden],
 .future-log__add-row[hidden] {
   display: none;
 }

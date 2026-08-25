@@ -32,10 +32,10 @@ class MonthlyLogsControllerTest < ActionDispatch::IntegrationTest
 
   test "task counts compose open tasks and exclude other months" do
     month = Date.new(2027, 1, 1)
-    open_task = create_open_task("open this month", logged_on: month + 2.days)
-    done_task = create_open_task("done this month", logged_on: month + 3.days)
+    open_task = create_open_task("open this month", page_on: month, page_kind: "monthly_tasks")
+    done_task = create_open_task("done this month", page_on: month, page_kind: "monthly_tasks")
     done_task.complete!
-    other_month = create_open_task("outside month", logged_on: month.next_month)
+    other_month = create_open_task("outside month", page_on: month.next_month, page_kind: "monthly_tasks")
 
     get monthly_log_path(month: month.strftime("%Y-%m"), view: "tasks")
 
@@ -58,7 +58,7 @@ class MonthlyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#monthly_entry_#{event.id} .entry__glyph", text: "○"
   end
 
-  test "calendar repeats populated days once per entry and keeps bare days" do
+  test "calendar renders one row per day with every resident and keeps bare days" do
     month = Date.new(2027, 1, 1)
     populated_day = month + 4.days
     bare_day = month + 5.days
@@ -68,7 +68,9 @@ class MonthlyLogsControllerTest < ActionDispatch::IntegrationTest
     get monthly_log_path(month: month.strftime("%Y-%m"))
 
     populated_selector = ".monthly-calendar__day[data-date='#{populated_day.iso8601}']"
-    assert_select populated_selector, count: 2
+    assert_select populated_selector, count: 1 do
+      assert_select ".entry__text", count: 2
+    end
     assert_select "#{populated_selector} .monthly-calendar__number", text: populated_day.day.to_s, count: 1
     assert_select ".monthly-calendar__day[data-date='#{bare_day.iso8601}']", count: 1 do
       assert_select ".entry__text", count: 0
@@ -83,7 +85,8 @@ class MonthlyLogsControllerTest < ActionDispatch::IntegrationTest
       state: nil,
       text: text,
       tags: [],
-      logged_on: occurs_on,
+      page_kind: "monthly_calendar",
+      page_on: occurs_on.beginning_of_month,
       occurs_on: occurs_on
     )
   end

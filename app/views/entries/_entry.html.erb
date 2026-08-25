@@ -1,6 +1,10 @@
 <%# One journal row: its bullet line, its hidden lifecycle controls, then its children. %>
 <% muted = entry.state.in?(%w[done migrated]) %>
-<% actionable = entry.kind == "task" && entry.state.in?(%w[open done struck]) %>
+<% actions = local_assigns.fetch(:actions, true) %>
+<% return_to = local_assigns[:return_to] %>
+<% actionable_task = entry.kind == "task" && entry.state.in?(%w[open done struck]) %>
+<% actionable_event = entry.kind == "event" && entry.successor.nil? %>
+<% actionable = actions && (actionable_task || actionable_event) %>
 <article id="entry_<%= entry.id %>" class="entry <%= "entry--muted" if muted %>" data-entry-id="<%= entry.id %>">
   <%# An actionable row is a toggle and the strip it controls; anything else is
       a plain line. The strip sits between the line and the children region. %>
@@ -14,7 +18,11 @@
             data-action="task-actions#toggle">
       <%= render "entries/entry_line", entry: entry %>
     </button>
-    <%= render "entries/task_actions", entry: entry, viewed_on: viewed_on, action_strip_id: action_strip_id %>
+    <%= render "entries/task_actions",
+               entry: entry,
+               viewed_on: viewed_on,
+               return_to: return_to,
+               action_strip_id: action_strip_id %>
   <% else %>
     <div class="entry__line">
       <%= render "entries/entry_line", entry: entry %>
@@ -24,7 +32,9 @@
   <% children = entry.children.kept %>
   <% if children.any? %>
     <div class="entry__children">
-      <%= render partial: "entries/entry", collection: children, locals: { viewed_on: viewed_on } %>
+      <%= render partial: "entries/entry",
+                 collection: children,
+                 locals: { viewed_on: viewed_on, return_to: return_to, actions: actions } %>
     </div>
   <% end %>
 </article>

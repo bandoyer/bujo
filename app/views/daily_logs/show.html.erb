@@ -35,22 +35,24 @@
     <% end %>
   </section>
 
-  <section class="daily-log__capture">
-    <button type="button"
-            id="capture_reveal"
-            class="daily-log__capture-reveal"
-            aria-label="Write on this page"
-            aria-expanded="false"
-            aria-controls="rapid_log_panel"
-            data-placement-target="toggle"
-            data-action="placement#toggle"></button>
-    <div id="rapid_log_panel" class="daily-log__capture-panel" data-placement-target="panel" hidden>
-      <% unless viewing_today %>
-        <p class="daily-log__capture-cue">→ logging to <%= @date.strftime("%b %-d").upcase %></p>
-      <% end %>
-      <%= render "entries/rapid_log_form", capture_date: @date %>
-    </div>
-  </section>
+  <% if @date <= @today %>
+    <section class="daily-log__capture">
+      <button type="button"
+              id="capture_reveal"
+              class="daily-log__capture-reveal"
+              aria-label="Write on this page"
+              aria-expanded="false"
+              aria-controls="rapid_log_panel"
+              data-placement-target="toggle"
+              data-action="placement#toggle"></button>
+      <div id="rapid_log_panel" class="daily-log__capture-panel" data-placement-target="panel" hidden>
+        <% unless viewing_today %>
+          <p class="daily-log__capture-cue">→ logging to <%= @date.strftime("%b %-d").upcase %></p>
+        <% end %>
+        <%= render "entries/rapid_log_form", capture_date: @date %>
+      </div>
+    </section>
+  <% end %>
 
   <%= render "shared/tab_bar", active: :today %>
 </main>

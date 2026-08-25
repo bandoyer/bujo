@@ -1,0 +1,117 @@
+require "test_helper"
+
+# Verifies page controls independently of JavaScript so hidden affordances and
+# resident action strips cannot accidentally grant a different domain command.
+class PageRenderingControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @user = users(:one)
+    sign_in_as @user
+  end
+
+  test "future Daily pages render residents and actions but no capture affordance" do
+    travel_to Time.zone.local(2026, 8, 25, 12) do
+      resident = create_open_task("already carried", page_on: Date.new(2026, 8, 26))
+
+      get daily_log_path(date: "2026-08-26")
+
+      assert_response :success
+      assert_select "#entry_#{resident.id}"
+      assert_select "#entry_#{resident.id} form[action='#{migrate_entry_path(resident)}']"
+      assert_select "#capture_reveal", count: 0
+      assert_select "#rapid_log_panel", count: 0
+    end
+  end
+
+  test "Calendar rows keep a separate Daily link and an in-place capture surface" do
+    travel_to Time.zone.local(2026, 8, 25, 12) do
+      day = Date.new(2026, 8, 12)
+      event = create_resident(
+        "planning session",
+        kind: "event",
+        page_kind: "monthly_calendar",
+        page_on: day.beginning_of_month,
+        occurs_on: day
+      )
+
+      get monthly_log_path(month: "2026-08")
+
+      assert_response :success
+      assert_select "a.monthly-calendar__date-link[href='#{daily_log_path(date: day.iso8601)}']"
+      assert_select "[data-page-capture='monthly_calendar'][data-date='#{day.iso8601}']"
+      assert_select "#monthly_entry_#{event.id} a[href='#{daily_log_path(date: day.iso8601)}']", count: 0
+      assert_select "#monthly_entry_#{event.id} form[action='#{schedule_entry_path(event)}']"
+      assert_select "[data-page-capture='monthly_calendar'] [data-kind='note']", count: 0
+    end
+  end
+
+  test "Monthly Tasks count and render the resident tree and close future capture" do
+    travel_to Time.zone.local(2026, 8, 25, 12) do
+      month = Date.new(2026, 8, 1)
+      root = create_open_task("curated root", page_on: month, page_kind: "monthly_tasks")
+      create_open_task("nested task", page_on: month, page_kind: "monthly_tasks", parent: root)
+
+      get monthly_log_path(month: "2026-08", view: "tasks")
+      assert_select ".monthly-task-count", text: "2 open · 2 logged"
+      assert_select "[data-page-capture='monthly_tasks']"
+      assert_select "[data-page-capture='monthly_tasks'] [data-kind='event']", count: 0
+      assert_select "#monthly_task_#{root.id} a[href^='/daily']", count: 0
+
+      get monthly_log_path(month: "2026-09", view: "tasks")
+      assert_select "[data-page-capture='monthly_tasks']", count: 0
+    end
+  end
+
+  test "Future Log shows overdue residents read-only and adds only after current month" do
+    travel_to Time.zone.local(2026, 8, 25, 12) do
+      overdue = create_resident(
+        "still waiting",
+        kind: "event",
+        page_kind: "future",
+        page_on: nil,
+        occurs_on: Date.new(2026, 7, 3)
+      )
+      future = create_resident(
+        "later plan",
+        kind: "task",
+        page_kind: "future",
+        page_on: nil,
+        occurs_on: Date.new(2026, 9, 5)
+      )
+
+      get future_log_path
+
+      assert_select ".future-log__month[data-month='2026-07'] #future_entry_#{overdue.id}"
+      assert_select ".future-log__month[data-month='2026-07'] button[id$='_toggle']", count: 0
+      assert_select ".future-log__month[data-month='2026-09'] button[id$='_toggle']"
+      assert_select "#future_entry_#{overdue.id} a", count: 0
+      assert_select "#future_entry_#{future.id} form", count: 0
+      assert_select ".future-log__add-row [data-kind='note']", count: 0
+    end
+  end
+
+  test "Daily events schedule once and notes never expose movement actions" do
+    day = Time.zone.today
+    event = create_resident("meet", kind: "event", page_kind: "daily", page_on: day)
+    note = create_resident("remember", kind: "note", page_kind: "daily", page_on: day)
+
+    get daily_log_path(date: day.iso8601)
+    assert_select "#entry_#{event.id} form[action='#{schedule_entry_path(event)}']"
+    assert_select "#entry_#{note.id} form", count: 0
+
+    event.move_to!(
+      page_kind: "future", page_on: nil, occurs_on: day.next_month.beginning_of_month,
+      as_of: day
+    )
+    get daily_log_path(date: day.iso8601)
+    assert_select "#entry_#{event.id} form", count: 0
+    assert_select "#entry_#{event.id} .entry__meta", text: /→/
+  end
+
+  private
+
+  def create_resident(text, kind:, **placement)
+    @user.entries.create!(
+      { kind: kind, state: ("open" if kind == "task"), text: text, tags: [] }.merge(placement)
+    )
+  end
+end

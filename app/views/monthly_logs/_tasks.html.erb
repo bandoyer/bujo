@@ -1,18 +1,37 @@
-<section class="monthly-tasks" aria-label="<%= @month.strftime("%B %Y") %> tasks">
+<section class="monthly-tasks" aria-label="<%= @month.strftime("%B %Y") %> tasks" data-controller="task-actions placement">
   <% if @entries.empty? %>
     <p class="entry-list__empty">Nothing logged this month.</p>
   <% else %>
     <div class="entry-list">
       <% @entries.each do |entry| %>
-        <%= link_to daily_log_path(date: entry.logged_on.iso8601),
-                    id: "monthly_task_#{entry.id}",
-                    class: class_names("entry", "monthly-task", "entry--muted": entry.state.in?(%w[done migrated])) do %>
-          <span class="entry__line">
-            <%= render "entries/entry_line", entry: entry %>
-          </span>
-        <% end %>
+        <div id="monthly_task_<%= entry.id %>" class="monthly-task">
+          <%= render "entries/entry",
+                     entry: entry,
+                     viewed_on: @month,
+                     return_to: "monthly_tasks" %>
+        </div>
       <% end %>
     </div>
     <p class="monthly-task-count"><%= @open_task_count %> open · <%= @logged_task_count %> logged</p>
+  <% end %>
+
+  <% if @capture_open %>
+    <section class="daily-log__capture" data-page-capture="monthly_tasks">
+      <button type="button"
+              id="monthly_tasks_capture_reveal"
+              class="daily-log__capture-reveal"
+              aria-label="Write on Monthly Tasks"
+              aria-expanded="false"
+              aria-controls="monthly_tasks_capture_panel"
+              data-placement-target="toggle"
+              data-action="placement#toggle"></button>
+      <div id="monthly_tasks_capture_panel" class="daily-log__capture-panel" data-placement-target="panel" hidden>
+        <%= render "entries/rapid_log_form",
+                   capture_date: @month,
+                   placement: "monthly_tasks",
+                   allowed_kinds: %w[task],
+                   form_id: "monthly_tasks_form" %>
+      </div>
+    </section>
   <% end %>
 </section>
