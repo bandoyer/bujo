@@ -94,14 +94,27 @@ Divergent — each needs a ruling:
    today" gesture is, in book terms, exactly the PM-reflection move
    of scheduling a day's capture into the Future Log).
 
-## The likely shape of the fix (for discussion, not yet ruled)
+## The rulings (operator, 2026-08-24)
 
-Entries need a notion of *where they live* — a daily page, a
-month's Tasks page, the Future Log, a Collection — with movement
-only through migration gestures that leave the `>`/`<` trail the
-model already knows how to write. The Monthly Tasks page becomes a
-real page fed by monthly setup and migration; the Future Log
-becomes a real queue whose items wait for the ritual; slice 1.5
-(the migration ritual) stops being a screen and becomes the
-system's heartbeat. Schema implications run through ARCHITECTURE.md
-and the sync design before any spec is written.
+**Book-faithful v1. Start minimal and true to Ryder's philosophy;
+make it "smarter" later only where real use proves the pain.**
+
+1. **Everything is a page** (Option B): the Monthly Calendar and
+   Tasks pages, the Future Log, daily pages, and collections are all
+   containers you write into. No derived surfaces — dating an entry
+   places nothing; only hands place. The calendar shows what was
+   written on it; the daily page of a future day shows nothing until
+   that day's hand writes there.
+2. **Write-on-page narrows to today and past days.** Future-dated
+   content is written into the Future Log (or a month's pages) and
+   waits there until migration carries it forward. This supersedes
+   the future-page capture shipped in 1.4.1.
+3. **Model-first sequencing**: the page model is drafted into
+   ARCHITECTURE.md (pages are immutable columns, never container
+   tables; movement is append-only migration, so the
+   no-container-conflict property survives), then staged slices —
+   schema + the curated Monthly pages, the Future Log queue
+   semantics, and finally 1.5's migration ritual as the capstone.
+4. The `bujo-conventions` skill's "logs are date queries" invariant
+   updates to "logs are residency scopes over immutable page
+   columns" when the schema slice lands.
