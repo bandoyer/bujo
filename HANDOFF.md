@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.2 landed; 1.5.3 specification is next (2026-08-26)
+# Handoff — slice 1.5.2 landed; 1.5.3 approved to build (2026-08-26)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -16,8 +16,9 @@ Parts II–III, before inventing behavior.
 
 ## Relocation and branch boundary
 
-The checkout lives at `/home/dlb/Work/bujo`, including ignored `storage/`
-data, the `.agents/` skill mirror, and preserved `.swarmforge/` audit logs.
+The checkout lives at `/home/dlb/Work/bujo`, including the imported `mockups/`
+design source, ignored `storage/` data, the `.agents/` skill mirror, and
+preserved `.swarmforge/` audit logs.
 Never seed work from the historical `recovered/1.5.1-accepted-spec` branch;
 it remains a recovery artifact only.
 
@@ -52,11 +53,12 @@ Dan's explicit choice: `six-mix-fable-review`.
   `index_position` migration passed forward and fresh-database checks.
   `lib/`, `Gemfile`, and the dormant `hlc`/`server_seq` behavior are untouched.
 
-## Next work — specify slice 1.5.3
+## Next work — build slice 1.5.3
 
-The next slice is **Monthly migration ritual**. Write and obtain operator
-approval for `docs/slices/1.5.3-monthly-migration-ritual.md` before starting
-implementation or launching its review swarm.
+The next slice is **Monthly migration ritual**. Its approved specification is at
+`docs/slices/1.5.3-monthly-migration-ritual.md`, with the smallest review delta
+at `mockups/MonthlyMigration.dc.html`. The operator approved the mock and all
+five digital translations on 2026-08-26; implementation may begin.
 
 Start from `docs/METHOD.md`, then inspect the book's Monthly Migration,
 Monthly Log, Future Log, and reflection passages if the project documents leave
@@ -95,9 +97,8 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-After the completed 1.5.2 swarm is retired, select the requested pack. Do not
-run `swarm up` or `swarm bootstrap` for 1.5.3 until its specification is
-approved.
+After the completed 1.5.2 swarm is retired, select the requested pack and start
+the approved 1.5.3 review. The required pack is `six-mix-fable-review`.
 
 Later method-spine slices remain, in order: Daily Reflection (1.5.4), then
 `!` inspiration and master-task completion gating (1.5.5). Settings polish,

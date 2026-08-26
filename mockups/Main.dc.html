@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace; }
+    a { color: #7aa2f7; } a:hover { color: #7dcfff; }
+  </style>
+</helmet>
+<div style="width: 960px; height: 620px; display: flex; flex-direction: column; background: #1a1b26; color: #c0caf5; font-size: 13px; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #16161e; border-bottom: 1px solid #202336;">
+    <span style="color: #bb9af7; font-weight: 700;">bujo</span>
+    <div style="display: flex; gap: 4px; margin-left: 8px;">
+      <span style="padding: 2px 10px; border-radius: 4px; background: #283457; color: #7aa2f7;">1 today</span>
+      <span style="padding: 2px 10px; border-radius: 4px; color: #565f89;">2 month</span>
+      <span style="padding: 2px 10px; border-radius: 4px; color: #565f89;">3 future</span>
+      <span style="padding: 2px 10px; border-radius: 4px; color: #565f89;">4 index</span>
+    </div>
+    <span style="margin-left: auto; color: #565f89; font-size: 12px;">sun 08.23</span>
+    <span style="color: #9ece6a; font-size: 12px;">● synced</span>
+  </div>
+
+  <div style="flex: 1; display: flex; gap: 14px; padding: 18px 14px 12px; min-height: 0;">
+
+    <div style="position: relative; flex: 2.2; border: 1px solid #3b4261; border-radius: 6px; padding: 16px 12px 10px; display: flex; flex-direction: column; gap: 1px; min-height: 0;">
+      <span style="position: absolute; top: -9px; left: 14px; background: #1a1b26; padding: 0 8px; color: #7aa2f7; font-weight: 500;">Daily Log · 08.23 sun</span>
+
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px; background: #283457;">
+        <span style="width: 12px; text-align: center; color: #ff9e64; font-weight: 700;">*</span>
+        <span style="width: 14px; text-align: center; color: #c0caf5;">•</span>
+        <span>Review PR for the auth refactor</span>
+        <span style="margin-left: auto; color: #73daca; font-size: 12px;">+work</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 3px 8px 3px 34px; border-radius: 4px;">
+        <span style="width: 14px; text-align: center; color: #565f89;">–</span>
+        <span style="color: #565f89;">Ben approved the schema change</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px;">
+        <span style="width: 12px; text-align: center;"></span>
+        <span style="width: 14px; text-align: center; color: #c0caf5;">•</span>
+        <span>Call the vet about Milo's meds</span>
+        <span style="margin-left: auto; color: #73daca; font-size: 12px;">+home</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px;">
+        <span style="width: 12px; text-align: center;"></span>
+        <span style="width: 14px; text-align: center; color: #565f89;">x</span>
+        <span style="color: #565f89;">Email Sarah the invoice</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px;">
+        <span style="width: 12px; text-align: center;"></span>
+        <span style="width: 14px; text-align: center; color: #7dcfff;">○</span>
+        <span>Dinner w/ Lena</span>
+        <span style="margin-left: auto; color: #7dcfff; font-size: 12px;">18:00</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px;">
+        <span style="width: 12px; text-align: center;"></span>
+        <span style="width: 14px; text-align: center; color: #565f89;">&gt;</span>
+        <span style="color: #565f89;">Update budget spreadsheet</span>
+        <span style="margin-left: auto; color: #565f89; font-size: 12px;">→ sep</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px;">
+        <span style="width: 12px; text-align: center;"></span>
+        <span style="width: 14px; text-align: center; color: #bb9af7;">&lt;</span>
+        <span style="color: #565f89;">Renew passport</span>
+        <span style="margin-left: auto; color: #565f89; font-size: 12px;">→ future · oct</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; border-radius: 4px;">
+        <span style="width: 12px; text-align: center;"></span>
+        <span style="width: 14px; text-align: center; color: #565f89;">–</span>
+        <span style="color: #a9b1d6;">Idea: migration as a Sunday-night ritual</span>
+      </div>
+
+      <div style="flex: 1;"></div>
+      <div style="color: #2f3549; padding: 0 8px;">~</div>
+      <div style="color: #2f3549; padding: 0 8px;">~</div>
+    </div>
+
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+
+      <div style="position: relative; border: 1px solid #3b4261; border-radius: 6px; padding: 16px 14px 12px;">
+        <span style="position: absolute; top: -9px; left: 12px; background: #1a1b26; padding: 0 8px; color: #7aa2f7; font-weight: 500;">august</span>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; font-size: 11px; text-align: center;">
+          <span style="color: #565f89;">m</span><span style="color: #565f89;">t</span><span style="color: #565f89;">w</span><span style="color: #565f89;">t</span><span style="color: #565f89;">f</span><span style="color: #565f89;">s</span><span style="color: #565f89;">s</span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span style="color: #e0af68; padding: 2px 0;">1</span><span style="color: #a9b1d6; padding: 2px 0;">2</span>
+          <span style="color: #a9b1d6; padding: 2px 0;">3</span><span style="color: #a9b1d6; padding: 2px 0;">4</span><span style="color: #e0af68; padding: 2px 0;">5</span><span style="color: #a9b1d6; padding: 2px 0;">6</span><span style="color: #a9b1d6; padding: 2px 0;">7</span><span style="color: #a9b1d6; padding: 2px 0;">8</span><span style="color: #e0af68; padding: 2px 0;">9</span>
+          <span style="color: #a9b1d6; padding: 2px 0;">10</span><span style="color: #a9b1d6; padding: 2px 0;">11</span><span style="color: #a9b1d6; padding: 2px 0;">12</span><span style="color: #a9b1d6; padding: 2px 0;">13</span><span style="color: #a9b1d6; padding: 2px 0;">14</span><span style="color: #a9b1d6; padding: 2px 0;">15</span><span style="color: #a9b1d6; padding: 2px 0;">16</span>
+          <span style="color: #a9b1d6; padding: 2px 0;">17</span><span style="color: #a9b1d6; padding: 2px 0;">18</span><span style="color: #a9b1d6; padding: 2px 0;">19</span><span style="color: #a9b1d6; padding: 2px 0;">20</span><span style="color: #a9b1d6; padding: 2px 0;">21</span><span style="color: #a9b1d6; padding: 2px 0;">22</span><span style="background: #283457; border-radius: 4px; color: #7aa2f7; font-weight: 700; padding: 2px 0;">23</span>
+          <span style="color: #a9b1d6; padding: 2px 0;">24</span><span style="color: #a9b1d6; padding: 2px 0;">25</span><span style="color: #a9b1d6; padding: 2px 0;">26</span><span style="color: #e0af68; padding: 2px 0;">27</span><span style="color: #a9b1d6; padding: 2px 0;">28</span><span style="color: #a9b1d6; padding: 2px 0;">29</span><span style="color: #a9b1d6; padding: 2px 0;">30</span>
+          <span style="color: #a9b1d6; padding: 2px 0;">31</span>
+        </div>
+      </div>
+
+      <div style="position: relative; border: 1px solid #3b4261; border-radius: 6px; padding: 16px 14px 12px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="position: absolute; top: -9px; left: 12px; background: #1a1b26; padding: 0 8px; color: #7aa2f7; font-weight: 500;">at a glance</span>
+        <div style="display: flex; gap: 8px;"><span style="color: #565f89;">open tasks</span><span style="margin-left: auto;">12</span></div>
+        <div style="display: flex; gap: 8px;"><span style="color: #565f89;">carried 2×</span><span style="margin-left: auto; color: #e0af68;">3</span></div>
+        <div style="display: flex; gap: 8px;"><span style="color: #565f89;">next event</span><span style="margin-left: auto; color: #7dcfff;">27 · flight DEN</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px; padding: 7px 14px; background: #16161e; border-top: 1px solid #202336;">
+    <span style="color: #9ece6a; font-weight: 700;">❯</span>
+    <span>• buy dot-grid refills <span style="color: #e0af68;">tomorrow</span></span>
+    <span style="display: inline-block; width: 7px; height: 15px; background: #c0caf5;"></span>
+    <span style="margin-left: auto; color: #565f89; font-size: 12px;">↵ log · esc cancel</span>
+  </div>
+
+  <div style="display: flex; gap: 14px; padding: 6px 14px 8px; background: #16161e; border-top: 1px solid #202336; font-size: 12px; color: #565f89;">
+    <span><span style="color: #7aa2f7;">j/k</span> move</span>
+    <span><span style="color: #7aa2f7;">x</span> done</span>
+    <span><span style="color: #7aa2f7;">&gt;</span> migrate</span>
+    <span><span style="color: #7aa2f7;">&lt;</span> schedule</span>
+    <span><span style="color: #7aa2f7;">i</span> log</span>
+    <span><span style="color: #7aa2f7;">tab</span> panes</span>
+    <span><span style="color: #7aa2f7;">/</span> search</span>
+    <span style="margin-left: auto;"><span style="color: #7aa2f7;">?</span> help</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

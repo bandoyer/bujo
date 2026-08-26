@@ -1,0 +1,22 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "TUI · Daily Log", "x": 0, "y": 0, "w": 960, "h": 620 },
+    { "file": "TuiMonth.dc.html", "title": "TUI · Monthly Log", "x": 1040, "y": 0, "w": 960, "h": 620 },
+    { "file": "TuiMigrate.dc.html", "title": "TUI · Migration Ritual", "x": 2080, "y": 0, "w": 960, "h": 620 },
+    { "file": "TuiIndex.dc.html", "title": "TUI · Index Finder", "x": 3120, "y": 0, "w": 960, "h": 620 },
+    { "file": "Today.dc.html", "title": "Mobile · Daily Log", "x": 0, "y": 760, "w": 390, "h": 844 },
+    { "file": "Month.dc.html", "title": "Mobile · Monthly Log", "x": 470, "y": 760, "w": 390, "h": 844 },
+    { "file": "Migrate.dc.html", "title": "Mobile · Migration", "x": 940, "y": 760, "w": 390, "h": 844 },
+    { "file": "AltDark.dc.html", "title": "Alt · Terminal-kin Dark", "x": 1410, "y": 760, "w": 390, "h": 844 },
+    { "file": "MonthTasks.dc.html", "title": "Mobile · Monthly Tasks", "x": 470, "y": 1760, "w": 390, "h": 844 },
+    { "file": "Future.dc.html", "title": "Mobile · Future Log", "x": 940, "y": 1760, "w": 390, "h": 844 },
+    { "file": "MonthlyMigration.dc.html", "title": "Mobile · Monthly Migration review", "x": 0, "y": 2760, "w": 1360, "h": 920 }
+  ],
+  "annotations": [
+    { "id": "rapid-log-grammar", "x": 1900, "y": 780, "w": 300, "text": "The shared core is Ryder Carroll's rapid-logging grammar:\n• task   x done   > migrated   < scheduled\n○ event   – note   * priority\n\nIt's plain text, so one parser in Rails can serve the TUI, the web app, and even piped stdin." },
+    { "id": "architecture", "x": 1900, "y": 1060, "w": 300, "text": "Architecture sketch: Rails is the system of record — a Hotwire/Turbo PWA for the phone, plus a JSON API. The TUI is a small Ruby client of that same API, with a local SQLite cache so rapid logging works offline and syncs later." },
+    { "id": "migration-ritual", "x": 2250, "y": 780, "w": 300, "text": "Migration is the soul of the method, so both clients treat it as a deliberate ritual — a wizard in the TUI, cards on the phone. Nothing auto-rolls over; the friction is the feature." },
+    { "id": "open-questions", "x": 2250, "y": 1060, "w": 300, "text": "Open questions for v0.1:\n– offline conflict rules (last-write-wins per entry?)\n– auth for the TUI (device token vs. OAuth)\n– custom collections: structured entries or free-form pages?\n– is the dark 'terminal-kin' alt worth losing the paper feel? (It gains one look everywhere, but the analog warmth is what drew you to BuJo.)" }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -9,7 +9,7 @@ with a local-first TUI client (separate repo) to follow.
   decisions. Start here.
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — how sync between the TUI and
   the web app works.
-- **[bujo-mockups](https://github.com/bandoyer/bujo-mockups)** — the
+- **[mockups](mockups/README.md)** — the
   design mocks this app is built to.
 
 ## Development

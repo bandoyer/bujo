@@ -7,12 +7,13 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.2 LANDED (2026-08-26); 1.5.3 specification is next.**
+> **Status: slice 1.5.2 LANDED (2026-08-26); the 1.5.3 specification and
+> review mock are APPROVED for implementation.**
 > Custom Collections + the deliberate Index are integrated on `main` at
 > `f09866f`, with 188 fast tests, 50 system tests, clean quality bars, and
 > RapidLog mutation 1105/1105. The next review uses
-> `six-mix-fable-review` after the 1.5.2 swarm is retired and the Monthly
-> Migration specification is operator-approved. Production still runs 1.4.1.
+> `six-mix-fable-review` after the completed 1.5.2 swarm is retired.
+> Production still runs 1.4.1.
 > See `HANDOFF.md` for the exact landed and process boundaries.
 
 ## What this is
@@ -31,8 +32,8 @@ Reference material:
   Carroll's system and practice; source semantics outrank convenience.
 - `ARCHITECTURE.md` (this repo) — the sync design; its schema decisions
   bind from slice 1.2 onward.
-- [bujo-mockups](https://github.com/bandoyer/bujo-mockups) — TUI and
-  mobile mockups; the mobile artboards are the visual spec for this app.
+- [mockups](mockups/README.md) — TUI and mobile mockups; the mobile artboards
+  are the visual spec for this app.
 - Design canvases: [mockups](https://claude.ai/code/artifact/749c4391-1504-488c-910e-e830d08efa45)
   · [sync architecture](https://claude.ai/code/artifact/062d1db5-9c9e-4748-9ae7-e2593626c623)
 
@@ -74,6 +75,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-25 | **Finish the method spine before convenience work.** After 1.5.1: writable Custom Collections plus a manually maintained Index; monthly migration; AM/PM reflection; then `!` inspiration and master-task completion gating. Broad search, settings polish, and PWA work follow. Dedicated modules for every Part III example are unnecessary; generic Collections and reflection carry the practice |
 | 2026-08-25 | **Slice 1.5.2 approved.** The deliberate Index uses a server-allocated nullable `index_position`; exact Topic access preserves intentional reachability without discovery; inbound Daily/Monthly movement ships now; deletion is never-used only; Collection residents receive Complete/Strike/Reopen but no outbound movement. The approved phone header always puts the page title first and context underneath |
 | 2026-08-26 | **Review-pack change.** Slice 1.5.3 and the next swarm use `six-mix-fable-review`, superseding `six-all-models-review` for new work. The completed 1.5.2 swarm is retired before switching packs; no new swarm starts before its source-aligned specification and mock are approved |
+| 2026-08-26 | **Mock source joined the app repository.** The pre-project `bujo-mockups` checkout now lives at `mockups/`; new page mocks use the current app tokens, one selected hand for all visible text, and page-title-first hierarchy |
+| 2026-08-26 | **Slice 1.5.3 approved.** Monthly Migration uses target-month URLs for past/current/next month, derives progress from Entry state, reviews Calendar → Tasks → Daily trees, scans only exact-target-month Future roots, and clears temporal fields only from tasks rewritten to Monthly Tasks. `six-mix-fable-review` may begin |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -190,14 +193,17 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             at merge: 188 fast + 50 system runs green, RuboCop clean, CRAP ≤ 6
             over 159 methods, jscpd 0 clones, parser mutation 1105/1105. Spec
             at `docs/slices/1.5.2-custom-collections-and-index.md`.
-      - [ ] **1.5.3 Monthly migration ritual** — set up the new
+      - [ ] **1.5.3 Monthly migration ritual** — **APPROVED 2026-08-26;
+            implementation next.** Set up the new
             Monthly Log and fresh mental inventory; review every
             unresolved task on the outgoing month's Daily and Monthly
             pages one at a time, with its tree context; strike it or
             rewrite it to the new Tasks page, a Custom Collection, or
             the Future Log. Then scan due Future tasks into the new
             Tasks page and due events into the Calendar. No bulk
-            rollover and no silent carry.
+            rollover and no silent carry. Contract at
+            `docs/slices/1.5.3-monthly-migration-ritual.md`; review mock at
+            `mockups/MonthlyMigration.dc.html`.
       - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
             review: AM sees the current month's open tasks; PM walks
             today's entries to complete, strike, or schedule and makes

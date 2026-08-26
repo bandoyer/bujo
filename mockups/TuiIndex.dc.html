@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace; }
+    a { color: #7aa2f7; } a:hover { color: #7dcfff; }
+  </style>
+</helmet>
+<div style="width: 960px; height: 620px; display: flex; align-items: center; justify-content: center; background: #14141b; color: #c0caf5; font-size: 13px; overflow: hidden;">
+
+  <div style="position: relative; width: 720px; height: 440px; background: #1a1b26; border: 1px solid #3b4261; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+    <span style="position: absolute; top: -1px; left: 16px; transform: translateY(-50%); background: #1a1b26; padding: 0 8px; color: #7aa2f7; font-weight: 500; z-index: 1;">Index</span>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid #202336;">
+      <span style="color: #9ece6a; font-weight: 700;">❯</span>
+      <span>camp</span>
+      <span style="display: inline-block; width: 7px; height: 15px; background: #c0caf5;"></span>
+      <span style="margin-left: auto; color: #565f89; font-size: 12px;">4/24</span>
+    </div>
+
+    <div style="flex: 1; display: flex; min-height: 0;">
+
+      <div style="flex: 1.1; display: flex; flex-direction: column; gap: 2px; padding: 12px 10px; min-width: 0;">
+        <div style="color: #565f89; font-size: 10px; letter-spacing: 2px; padding: 0 8px 4px;">COLLECTIONS</div>
+        <div style="display: flex; gap: 10px; padding: 4px 8px; background: #283457; border-radius: 4px;">
+          <span style="color: #bb9af7;">◆</span>
+          <span><span style="color: #7aa2f7;">Camp</span>ing Trip · sep</span>
+          <span style="margin-left: auto; color: #565f89; font-size: 12px;">14</span>
+        </div>
+        <div style="display: flex; gap: 10px; padding: 4px 8px;">
+          <span style="color: #bb9af7;">◆</span>
+          <span style="color: #a9b1d6;"><span style="color: #7aa2f7;">Camp</span>site cooking ideas</span>
+          <span style="margin-left: auto; color: #565f89; font-size: 12px;">6</span>
+        </div>
+        <div style="color: #565f89; font-size: 10px; letter-spacing: 2px; padding: 12px 8px 4px;">ENTRIES</div>
+        <div style="display: flex; gap: 10px; padding: 4px 8px;">
+          <span style="color: #565f89;">x</span>
+          <span style="color: #a9b1d6;">Book <span style="color: #7aa2f7;">camp</span>site at Sherando</span>
+          <span style="margin-left: auto; color: #565f89; font-size: 11px;">monthly · aug</span>
+        </div>
+        <div style="display: flex; gap: 10px; padding: 4px 8px;">
+          <span style="color: #565f89;">–</span>
+          <span style="color: #a9b1d6;"><span style="color: #7aa2f7;">camp</span> stove needs a new seal</span>
+          <span style="margin-left: auto; color: #565f89; font-size: 11px;">daily · 08.12</span>
+        </div>
+        <div style="flex: 1;"></div>
+        <div style="color: #2f3549; padding: 0 8px;">~</div>
+      </div>
+
+      <div style="flex: 1; border-left: 1px solid #202336; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+        <div style="color: #7aa2f7; font-weight: 500; padding-bottom: 6px;">Camping Trip · sep</div>
+        <div style="display: flex; gap: 8px;"><span style="width: 14px; text-align: center; color: #c0caf5;">•</span><span style="color: #a9b1d6;">Map the Blue Ridge route</span></div>
+        <div style="display: flex; gap: 8px;"><span style="width: 14px; text-align: center; color: #c0caf5;">•</span><span style="color: #a9b1d6;">Fix the camp stove</span></div>
+        <div style="display: flex; gap: 8px;"><span style="width: 14px; text-align: center; color: #7dcfff;">○</span><span style="color: #a9b1d6;">sep 9 — drive down w/ Dre</span></div>
+        <div style="display: flex; gap: 8px;"><span style="width: 14px; text-align: center; color: #565f89;">–</span><span style="color: #565f89;">Dre has the big tent</span></div>
+        <div style="display: flex; gap: 8px;"><span style="width: 14px; text-align: center; color: #565f89;">x</span><span style="color: #565f89;">Buy fuel canisters</span></div>
+        <div style="flex: 1;"></div>
+        <div style="color: #565f89; font-size: 11px;">threaded from: monthly · aug ↔ daily · 08.12</div>
+      </div>
+
+    </div>
+
+    <div style="display: flex; gap: 16px; padding: 8px 16px 10px; border-top: 1px solid #202336; font-size: 12px; color: #565f89;">
+      <span><span style="color: #7aa2f7;">↵</span> open</span>
+      <span><span style="color: #7aa2f7;">^n</span> new collection</span>
+      <span><span style="color: #7aa2f7;">tab</span> preview</span>
+      <span style="margin-left: auto;"><span style="color: #7aa2f7;">esc</span> close</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
