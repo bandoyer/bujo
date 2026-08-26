@@ -1,4 +1,4 @@
-# Article: Pack (six, human integration gate)
+# Article: Pack (six, Fable spec + Grok + Sol mix, human integration gate)
 
 Roles: specifier, coder, cleaner, architect, hardener, qa.
 
@@ -13,6 +13,9 @@ routes back to specifier and the chain runs again.
 - architect reviews structure and boundaries, then forwards to hardener.
 - hardener produces quality evidence (coverage, mutation, complexity,
   duplication) and fixes what fails the bars, then forwards to qa.
+- hardener and qa must run every executable output or security probe declared
+  by the project. A declared probe that cannot run or does not pass blocks a
+  passing handoff; it is never silently skipped.
 - qa runs the acceptance and unit suites and verifies the slice against
   its specification. A substantive finding, delivered behavior that
   contradicts the specification or specified behavior with no test, goes
