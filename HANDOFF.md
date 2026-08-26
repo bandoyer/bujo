@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.2 landed; 1.5.3 approved to build (2026-08-26)
+# Handoff — slice 1.5.3 landed; review, then specify 1.5.4 (2026-08-26)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -22,69 +22,58 @@ preserved `.swarmforge/` audit logs.
 Never seed work from the historical `recovered/1.5.1-accepted-spec` branch;
 it remains a recovery artifact only.
 
-Slice 1.5.2's approved terminal candidate is `1ae8136`. It is integrated on
-`main`; no implementation is deployed by this handoff. The completed review
-swarm must be retired before another pack is selected. The next review pack is
-Dan's explicit choice: `six-mix-fable-review`.
+Slice 1.5.3's approved terminal candidate is `329b8f6`. It is integrated on
+`main`; no implementation is deployed by this handoff. Retire its completed
+`six-mix-fable-review` swarm before another pack is selected.
 
 ## Exact landed state
 
-- Custom Collections are writable pages for task, event, and note roots.
-  Creation, rename, Index registration/unindexing, and guarded never-used
-  deletion are explicit lifecycle gestures scoped to `Current.user`.
-- The Index is a reference query over kept, explicitly registered Custom
-  Collections ordered by server-allocated `index_position`. It does not own
-  entries, list logs, discover unindexed pages, or become broad search.
-- A known unindexed Collection remains reachable by stable UUID URL or exact
-  case-insensitive Topic equality. Missing, deleted, and foreign-only Topics
-  refuse uniformly.
-- Collection tasks admit Complete/Strike/Reopen. Collection events and notes
-  remain commandless. Collection residents admit no outbound movement.
-- Eligible Daily and Monthly task/event/note roots can move deliberately to a
-  known exact-Topic Collection. Movement remains append-only through
-  `Entry#move_to!`; placement is never updated in place and destinations never
-  register themselves.
-- Operator review caught an unbounded Topic that widened 320 px source pages
-  and duplicate `id="topic"` move fields that left later inputs without an
-  accessible label. Both are pinned by regressions in the landed candidate.
-- Final receipts: `bin/rails test` 188 runs / 3057 assertions;
-  `bin/rails test:system` 50 / 1133; RuboCop clean; all 159 measured methods at
-  CRAP ≤ 6; jscpd zero clones; `Bujo::RapidLog*` mutation 1105/1105. The
-  `index_position` migration passed forward and fresh-database checks.
-  `lib/`, `Gemfile`, and the dormant `hlc`/`server_seq` behavior are untouched.
+- Monthly Migration is an explicitly opened target-month ritual. It never
+  starts on page view or month rollover and never silently carries work.
+- Setup gives the ritual alone a task-only admission context for target Monthly
+  Tasks; ordinary future-month Monthly capture remains closed.
+- Outgoing review is derived live in Calendar → Monthly Tasks → Daily order.
+  Each unresolved task receives one turn inside its complete kept root tree.
+- A task may be struck, rewritten to target Tasks, moved to a known exact-Topic
+  Collection, or scheduled beyond the target month. Future scanning is limited
+  to exact-target-month roots: tasks move to Tasks or strike; events move to
+  Calendar with date and time preserved.
+- Resume, stage, and completion are derived from kept state and successor
+  links. No ritual table, completion flag, schema change, background behavior,
+  or generic Future controls were added.
+- Every movement remains append-only and tenant-scoped with UUIDv7, immutable
+  residency, soft deletion without cascades, exact NULL event/note state, and
+  dormant `hlc`/`server_seq` behavior preserved. `lib/`, `Gemfile`, and parser
+  grammar are untouched.
+- Final receipts: `bin/rails test` 200 runs / 3360 assertions;
+  `bin/rails test:system` 56 / 1220; RuboCop clean; all 194 measured methods at
+  CRAP ≤ 6; jscpd zero clones; `Bujo::RapidLog*` mutation 1105/1105.
+- Architect review recorded one non-blocking dogfood seam: a populated
+  outgoing month currently derives trees with per-node child/successor queries.
+  Preserve ruled ordering; optimize only if real journals make it hot.
 
-## Next work — build slice 1.5.3
+## Next work — review 1.5.3, then specify 1.5.4
 
-The next slice is **Monthly migration ritual**. Its approved specification is at
-`docs/slices/1.5.3-monthly-migration-ritual.md`, with the smallest review delta
-at `mockups/MonthlyMigration.dc.html`. The operator approved the mock and all
-five digital translations on 2026-08-26; implementation may begin.
+First use the landed Monthly Migration flow locally. Check whether the
+one-item-at-a-time friction, setup copy, destination steps, Future scan, and
+completion state feel faithful in a real month. Product friction found here is
+evidence for a focused amendment, not permission for automatic rollover.
 
-Start from `docs/METHOD.md`, then inspect the book's Monthly Migration,
-Monthly Log, Future Log, and reflection passages if the project documents leave
-a source question unresolved. Inspect current residency scopes, entry trees,
-`Entry#move_to!`, the command authorization policy, Monthly/Future readers and
-controllers, and all return-destination rules before specifying UI.
+After that review, the next planned slice is **1.5.4 Daily Reflection**. Write
+and obtain operator approval for a source-aligned specification before code or
+a swarm begins. The current plan boundary is a small AM/PM reference lens:
 
-The method boundary already recorded in `PLAN.md` is:
+- morning reflection brings the current month's open tasks into view;
+- evening reflection walks today's entries deliberately through appropriate
+  completion, strike, and scheduling gestures;
+- reflection references resident entries and never becomes another page,
+  duplicate residency, background sweep, notification system, or automatic
+  movement.
 
-- set up a new Monthly Log and a fresh mental inventory;
-- review every unresolved task on the outgoing month's Daily and Monthly pages
-  one at a time and with its tree context;
-- strike what is irrelevant or rewrite what remains worthy to the new Monthly
-  Tasks page, a deliberate Custom Collection, or the Future Log;
-- scan due Future tasks into the new Tasks page and due events into the new
-  Calendar page;
-- never bulk-roll, silently carry, auto-discover, or sweep Custom Collection
-  tasks merely because a month changed.
-
-The specification must settle the exact review set and order, tree-context
-behavior, setup timing/idempotence, every admitted/refused destination by
-resident kind and state, Future scan-in, interruption/resume behavior, return
-destinations, tenant-safe stale/deleted cases, and the smallest usable phone
-flow in both themes. Preserve UUIDv7, immutable residency, append-only
-successors, soft deletion without cascades, same-user validation, exact NULL
-state for events/notes, and dormant sync fields.
+Start with `docs/METHOD.md`; return to the book's Morning Reflection, Evening
+Reflection, Daily Log, and Migration passages only where project authority
+leaves a source question unresolved. Surface genuinely digital decisions to
+Dan rather than guessing.
 
 ## Build and review
 
@@ -97,12 +86,12 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-After the completed 1.5.2 swarm is retired, select the requested pack and start
-the approved 1.5.3 review. The required pack is `six-mix-fable-review`.
+After the completed 1.5.3 swarm is retired, no new swarm starts until the
+1.5.4 specification and any required mock are explicitly approved.
 
-Later method-spine slices remain, in order: Daily Reflection (1.5.4), then
-`!` inspiration and master-task completion gating (1.5.5). Settings polish,
-broad search, grammar expansion, and PWA work remain deferred.
+After Daily Reflection, the remaining method-spine slice is `!` inspiration
+and master-task completion gating (1.5.5). Settings polish, broad search,
+grammar expansion, and PWA work remain deferred.
 
 ## Deployment boundary
 

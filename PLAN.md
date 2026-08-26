@@ -7,13 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.2 LANDED (2026-08-26); the 1.5.3 specification and
-> review mock are APPROVED for implementation.**
-> Custom Collections + the deliberate Index are integrated on `main` at
-> `f09866f`, with 188 fast tests, 50 system tests, clean quality bars, and
-> RapidLog mutation 1105/1105. The next review uses
-> `six-mix-fable-review` after the completed 1.5.2 swarm is retired.
-> Production still runs 1.4.1.
+> **Status: slice 1.5.3 LANDED (2026-08-26); hands-on review is next, then
+> the 1.5.4 Daily Reflection specification.**
+> Monthly Migration terminal candidate `329b8f6` is integrated on `main`,
+> with 200 fast tests, 56 system tests, clean quality bars, and RapidLog
+> mutation 1105/1105. Production still runs 1.4.1.
 > See `HANDOFF.md` for the exact landed and process boundaries.
 
 ## What this is
@@ -77,6 +75,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-26 | **Review-pack change.** Slice 1.5.3 and the next swarm use `six-mix-fable-review`, superseding `six-all-models-review` for new work. The completed 1.5.2 swarm is retired before switching packs; no new swarm starts before its source-aligned specification and mock are approved |
 | 2026-08-26 | **Mock source joined the app repository.** The pre-project `bujo-mockups` checkout now lives at `mockups/`; new page mocks use the current app tokens, one selected hand for all visible text, and page-title-first hierarchy |
 | 2026-08-26 | **Slice 1.5.3 approved.** Monthly Migration uses target-month URLs for past/current/next month, derives progress from Entry state, reviews Calendar → Tasks → Daily trees, scans only exact-target-month Future roots, and clears temporal fields only from tasks rewritten to Monthly Tasks. `six-mix-fable-review` may begin |
+| 2026-08-26 | **Slice 1.5.3 landed.** The deliberate Monthly Migration ritual shipped with no schema or persisted progress state. Terminal candidate `329b8f6`; 200 fast / 56 system tests, CRAP ≤ 6 over 194 methods, zero clones, and RapidLog mutation 1105/1105. Dogfood the ritual before freezing Daily Reflection behavior |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -193,8 +192,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             at merge: 188 fast + 50 system runs green, RuboCop clean, CRAP ≤ 6
             over 159 methods, jscpd 0 clones, parser mutation 1105/1105. Spec
             at `docs/slices/1.5.2-custom-collections-and-index.md`.
-      - [ ] **1.5.3 Monthly migration ritual** — **APPROVED 2026-08-26;
-            implementation next.** Set up the new
+      - [x] **1.5.3 Monthly migration ritual** ✅ (2026-08-26) — set up the new
             Monthly Log and fresh mental inventory; review every
             unresolved task on the outgoing month's Daily and Monthly
             pages one at a time, with its tree context; strike it or
@@ -203,7 +201,9 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             Tasks page and due events into the Calendar. No bulk
             rollover and no silent carry. Contract at
             `docs/slices/1.5.3-monthly-migration-ritual.md`; review mock at
-            `mockups/MonthlyMigration.dc.html`.
+            `mockups/MonthlyMigration.dc.html`. Terminal candidate `329b8f6`;
+            at merge: 200 fast + 56 system runs green, RuboCop clean, CRAP ≤ 6
+            over 194 methods, jscpd zero clones, parser mutation 1105/1105.
       - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
             review: AM sees the current month's open tasks; PM walks
             today's entries to complete, strike, or schedule and makes
