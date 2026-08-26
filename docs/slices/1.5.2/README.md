@@ -23,13 +23,16 @@ that order.
 | 3 | `collection-commands` | **done** — verified and closed at `06a88b788d` |
 | 4 | `move-to-collection` | **done** — verified and closed at `a2493629af` |
 
-| 5 | `collection-topic-overflow` | **active** — operator acceptance defect at `a3ca631`; spec in `e-topic-overflow.md` |
+| 5 | `collection-topic-overflow` | **done** — verified and closed at `62cfb49195` |
 
-**Slice 1.5.2 reached a terminal candidate at `a3ca631`, and operator review
-found one acceptance defect in it: an unbounded Topic rendered as destination
-metadata widens a 320 px source page. The corrective slice above is running.**
+**Slice 1.5.2 is complete and is a terminal candidate awaiting operator
+review.** Operator review of the first candidate at `a3ca631` found one
+acceptance defect — an unbounded Topic rendered as destination metadata widened
+a 320 px source page — and the corrective slice closed it. Fixing it also
+surfaced and fixed the same latent defect in the sibling entry-text column,
+which had been unbounded since long before this work.
 
-The earlier close-out read: One slice needed a second pass; the other three passed first time.
+The close-out of the four original slices read: One slice needed a second pass; the other three passed first time.
 No role has integrated it into `main`, and none may: the operator verifies the
 candidate and presents it for human review.
 
