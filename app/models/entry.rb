@@ -140,6 +140,12 @@ class Entry < ApplicationRecord
       send(admission_method, page_on: page_on, occurs_on: occurs_on, as_of: as_of)
     end
 
+    # Past, current, and the immediately next month may open as a ritual target;
+    # anything later is refused. Screens and capture share this one horizon.
+    def migration_target_admitted?(month, as_of:)
+      !month.nil? && month.beginning_of_month <= as_of.next_month.beginning_of_month
+    end
+
     private
 
     def enforce_capture_admission!(entry, as_of, admission_context, target_month)
@@ -163,7 +169,7 @@ class Entry < ApplicationRecord
       return false unless entry.page_kind == "monthly_tasks" && target_month
 
       canonical_target = target_month.beginning_of_month
-      entry.page_on == canonical_target && canonical_target <= as_of.next_month.beginning_of_month
+      entry.page_on == canonical_target && migration_target_admitted?(canonical_target, as_of: as_of)
     end
 
     # Each admission rule names only the placement dates it judges and ignores

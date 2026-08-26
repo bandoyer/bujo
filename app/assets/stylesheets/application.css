@@ -181,6 +181,7 @@ a {
 
 .daily-log h1 {
   margin: 0;
+  overflow-wrap: anywhere;
   font-family: var(--font-serif);
   font-size: clamp(2rem, 9vw, 2.75rem);
   font-weight: 600;
@@ -895,15 +896,6 @@ a {
 
 .monthly-migration {
   gap: 0;
-}
-
-.monthly-migration > h1 {
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-family: var(--font-serif);
-  font-size: clamp(2rem, 9vw, 2.75rem);
-  font-weight: 600;
-  line-height: 0.95;
 }
 
 .monthly-migration__context,

@@ -1,22 +1,9 @@
-<% content_for :title, "Monthly Migration · Bujo" %>
-<% content_for :deferred_flash, true %>
-
-<main class="daily-log monthly-migration">
-  <h1>Monthly Migration</h1>
-  <p class="monthly-migration__context"><%= @source_month.strftime("%B") %> → <%= @target_month.strftime("%B %Y") %></p>
-  <p class="monthly-migration__stage">Fresh mental inventory</p>
-  <div id="flash_messages"><%= render "shared/flash_messages" %></div>
-
-  <div class="monthly-migration__preferences">
-    <%= render "themes/toggle" %>
-    <%= render "letterings/toggle" %>
-  </div>
-
+<%= render layout: "monthly_migrations/shell", locals: { stage: "Fresh mental inventory" } do %>
   <section class="monthly-migration__inventory" aria-label="<%= @target_month.strftime('%B %Y') %> Tasks">
     <% if @target_entries.empty? %>
       <p class="entry-list__empty">Nothing in <%= @target_month.strftime("%B") %> Tasks yet.</p>
     <% else %>
-      <div class="entry-list" data-controller="task-actions">
+      <div class="entry-list">
         <%= render partial: "monthly_migrations/tree_entry",
                    collection: @target_entries,
                    as: :entry,
@@ -25,7 +12,7 @@
     <% end %>
   </section>
 
-  <%= form_with url: monthly_migration_inventory_path(month: @target_month.strftime("%Y-%m")),
+  <%= form_with url: monthly_migration_inventory_path(month: target_param),
                 class: "monthly-migration__capture",
                 data: { controller: "rapid-log" } do |form| %>
     <%= render "entries/kind_buttons", allowed_kinds: %w[task] %>
@@ -42,8 +29,6 @@
   <% end %>
 
   <%= link_to "Review outgoing tasks",
-              monthly_migration_outgoing_path(month: @target_month.strftime("%Y-%m")),
+              monthly_migration_outgoing_path(month: target_param),
               class: "monthly-migration__primary-link" %>
-
-  <%= render "shared/tab_bar", active: :month %>
-</main>
+<% end %>

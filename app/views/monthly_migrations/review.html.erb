@@ -1,0 +1,10 @@
+<%= render layout: "monthly_migrations/shell", locals: { stage: @stage } do %>
+  <p class="monthly-migration__source"><%= @source_label %></p>
+
+  <section class="monthly-migration__tree" aria-label="<%= @tree_label %>">
+    <%= render "monthly_migrations/tree_entry",
+               entry: @candidate_root,
+               candidate: @candidate,
+               stage: @review_stage %>
+  </section>
+<% end %>

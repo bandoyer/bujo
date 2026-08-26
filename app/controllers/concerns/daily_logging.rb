@@ -8,9 +8,7 @@ module DailyLogging
   # Reads an ISO date, falling back to the request's day so an absent or
   # crafted param renders a page instead of an error page.
   def date_or_today(value)
-    Date.iso8601(value.to_s)
-  rescue Date::Error
-    @today
+    parsed_iso_date(value) || @today
   end
 
   # The rows a day's log lists: the signed-in reader's root entries for it.

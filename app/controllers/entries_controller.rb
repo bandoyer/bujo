@@ -234,9 +234,7 @@ class EntriesController < ApplicationController
   end
 
   def requested_date(param_name)
-    Date.iso8601(params[param_name].to_s)
-  rescue Date::Error
-    nil
+    parsed_iso_date(params[param_name])
   end
 
   def refuse_lifecycle_change

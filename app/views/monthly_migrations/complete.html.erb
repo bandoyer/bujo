@@ -1,25 +1,11 @@
-<% content_for :title, "Monthly Migration · Bujo" %>
-<% content_for :deferred_flash, true %>
-
-<main class="daily-log monthly-migration">
-  <h1>Monthly Migration</h1>
-  <p class="monthly-migration__context"><%= @source_month.strftime("%B") %> → <%= @target_month.strftime("%B %Y") %></p>
-  <p class="monthly-migration__stage">Scan the Future Log</p>
-  <div id="flash_messages"><%= render "shared/flash_messages" %></div>
-  <div class="monthly-migration__preferences">
-    <%= render "themes/toggle" %>
-    <%= render "letterings/toggle" %>
-  </div>
-
+<%= render layout: "monthly_migrations/shell", locals: { stage: "Scan the Future Log" } do %>
   <section class="monthly-migration__complete">
     <h2>Monthly Migration complete</h2>
     <div class="monthly-migration__completion-links">
       <%= link_to "#{@target_month.strftime('%B')} Calendar",
-                  monthly_log_path(month: @target_month.strftime("%Y-%m")) %>
+                  monthly_log_path(month: target_param) %>
       <%= link_to "#{@target_month.strftime('%B')} Tasks",
-                  monthly_log_path(month: @target_month.strftime("%Y-%m"), view: "tasks") %>
+                  monthly_log_path(month: target_param, view: "tasks") %>
     </div>
   </section>
-
-  <%= render "shared/tab_bar", active: :month %>
-</main>
+<% end %>
