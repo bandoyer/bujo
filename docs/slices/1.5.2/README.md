@@ -24,16 +24,19 @@ that order.
 | 4 | `move-to-collection` | **done** — verified and closed at `a2493629af` |
 | 5 | `collection-topic-overflow` | **done** — verified and closed at `62cfb49195` |
 
-**Slice 1.5.2 is complete and is a terminal candidate awaiting operator
-review.** Operator review of the first candidate at `a3ca631` found one
+**Slice 1.5.2 landed on `main` 2026-08-26 from final candidate
+`1ae8136`.** Operator review of the first candidate at `a3ca631` found one
 acceptance defect — an unbounded Topic rendered as destination metadata widened
 a 320 px source page — and the corrective slice closed it. Fixing it also
 surfaced and fixed the same latent defect in the sibling entry-text column,
-which had been unbounded since long before this work.
+which had been unbounded since long before this work. Final operator review
+then corrected duplicate move-field ids so every exact-Topic input has its own
+associated label.
 
 The close-out of the four original slices read: One slice needed a second pass; the other three passed first time.
-No role has integrated it into `main`, and none may: the operator verifies the
-candidate and presents it for human review.
+Pack roles did not integrate it; the operator verified the terminal candidate,
+received human approval, fast-forwarded it, and recorded the landed boundary at
+`f09866f`.
 
 Outstanding operator work, carried by every pass and never claimed as done:
 the approved `IndexCollection.dc.html` review artboard and its `canvas.json`

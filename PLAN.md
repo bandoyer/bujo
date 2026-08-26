@@ -7,13 +7,13 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.2 APPROVED (2026-08-25); implementation is next.**
-> The source-aligned Custom Collections + deliberate Index spec and its
-> minimal mobile review mock are operator-approved; `ARCHITECTURE.md` now
-> records the sync-sensitive Index position. Slice 1.5.1/1.5.1a remains
-> landed and verified at 133 fast tests, 33 system tests, clean quality bars,
-> and RapidLog mutation 1105/1105. Production still runs 1.4.1. See
-> `HANDOFF.md` for the implementation and integration boundaries.
+> **Status: slice 1.5.2 LANDED (2026-08-26); 1.5.3 specification is next.**
+> Custom Collections + the deliberate Index are integrated on `main` at
+> `f09866f`, with 188 fast tests, 50 system tests, clean quality bars, and
+> RapidLog mutation 1105/1105. The next review uses
+> `six-mix-fable-review` after the 1.5.2 swarm is retired and the Monthly
+> Migration specification is operator-approved. Production still runs 1.4.1.
+> See `HANDOFF.md` for the exact landed and process boundaries.
 
 ## What this is
 
@@ -45,8 +45,9 @@ The working loop, proven on [crap4rb](https://github.com/bandoyer/crap4rb):
    criteria. Specs live in `docs/slices/` as they are written.
 2. **Build** — the swarm implements it:
    [swarm-forge-herdr](https://github.com/bandoyer/swarm-forge-herdr),
-   pack `six-all-models-review` (config committed under `swarmforge/`).
-   `swarm up` from a herdr session, feed the slice as tasks.
+   pack `six-mix-fable-review` for the next review (selected only after the
+   completed 1.5.2 swarm is retired). `swarm up` from a herdr session, feed
+   the approved slice as tasks.
 3. **Review** — Fable reviews against the spec before merge: parity
    with the plan, quality bars, and mutation spot-checks on the tests.
 
@@ -72,6 +73,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-25 | **Placement immutability is a domain and sync invariant, not a raw-SQL claim.** Public APIs and mass assignment refuse page changes; movement creates a successor. Database constraints defend structural facts they can express, especially the unique successor chain. Time rules receive a caller-provided `as_of` date (distinct from the parser's page-relative `today`); models do not read the clock |
 | 2026-08-25 | **Finish the method spine before convenience work.** After 1.5.1: writable Custom Collections plus a manually maintained Index; monthly migration; AM/PM reflection; then `!` inspiration and master-task completion gating. Broad search, settings polish, and PWA work follow. Dedicated modules for every Part III example are unnecessary; generic Collections and reflection carry the practice |
 | 2026-08-25 | **Slice 1.5.2 approved.** The deliberate Index uses a server-allocated nullable `index_position`; exact Topic access preserves intentional reachability without discovery; inbound Daily/Monthly movement ships now; deletion is never-used only; Collection residents receive Complete/Strike/Reopen but no outbound movement. The approved phone header always puts the page title first and context underneath |
+| 2026-08-26 | **Review-pack change.** Slice 1.5.3 and the next swarm use `six-mix-fable-review`, superseding `six-all-models-review` for new work. The completed 1.5.2 swarm is retired before switching packs; no new swarm starts before its source-aligned specification and mock are approved |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
