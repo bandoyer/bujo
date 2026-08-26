@@ -38,3 +38,6 @@
 .worktrees/
 .agents/
 .mutant/
+
+# Ignore local JetBrains project metadata.
+.idea/
