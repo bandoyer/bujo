@@ -4,6 +4,10 @@
 module EntryCommandAuthorization
   extend ActiveSupport::Concern
 
+  # The one reader-facing message for every refused entry command, generic or
+  # ritual, so no controller has to reach into a peer for it.
+  REFUSAL_ALERT = "That entry can't do that.".freeze
+
   COMMAND_RESIDENCIES = {
     "complete" => %w[daily monthly_calendar monthly_tasks collection],
     "reopen" => %w[daily monthly_calendar monthly_tasks collection],

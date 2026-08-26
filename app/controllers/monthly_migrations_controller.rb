@@ -8,7 +8,6 @@ class MonthlyMigrationsController < ApplicationController
     outgoing_strike outgoing_tasks outgoing_collection outgoing_future
     future_strike future_tasks future_calendar
   ].freeze
-  REFUSAL_ALERT = EntriesController::REFUSAL_ALERT
 
   before_action :set_target_month
   before_action :set_migration_entry, only: ITEM_ACTIONS

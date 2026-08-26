@@ -13,8 +13,6 @@ class EntriesController < ApplicationController
   CLOCK_PARSED_PAGE_KINDS = %w[monthly_tasks collection].freeze
   # Placements whose capture refreshes in place instead of re-rendering a screen.
   TURBO_CAPTURE_TEMPLATES = { "daily" => :create, "future" => :create_future }.freeze
-  # One reader-facing refusal for every rejected command.
-  REFUSAL_ALERT = "That entry can't do that.".freeze
 
   # Both filters cover every member action rather than naming them, so a
   # command added later arrives gated instead of silently reachable from any
