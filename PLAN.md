@@ -7,11 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.3a APPROVED (2026-08-26); implementation is next and no
-> swarm is running.** The source-aligned phone-capture amendment and its
-> smallest review mock are approved. The pre-swarm baseline remains green at
-> 200 fast tests / 3360 assertions and 56 system tests / 1220 assertions.
-> Production still runs 1.4.1.
+> **Status: slice 1.5.3a IN PROGRESS (2026-08-26).** The approved experimental
+> `six-mix-fable-review` swarm is active from baseline `2a4fb8e`; no candidate
+> has been integrated. The pre-swarm baseline is green at 200 fast tests / 3360
+> assertions and 56 system tests / 1220 assertions. Production still runs
+> 1.4.1.
 > See `HANDOFF.md` for the exact landed and process boundaries.
 
 ## What this is
@@ -80,6 +80,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-26 | **Slice 1.5.3 landed.** The deliberate Monthly Migration ritual shipped with no schema or persisted progress state. Terminal candidate `329b8f6`; 200 fast / 56 system tests, CRAP ≤ 6 over 194 methods, zero clones, and RapidLog mutation 1105/1105. Dogfood the ritual before freezing Daily Reflection behavior |
 | 2026-08-26 | **Slice 1.5.3a approved from phone dogfooding.** Daily and Monthly Tasks gain truthful trailing writing surfaces; Calendar date rows capture with a separate Daily chevron; Future reuses the shared kind controls and gains reachable trailing capture plus aligned residents; Index gains a trailing create gesture; empty Monthly Migration stages require explicit Scan and Finish gestures. The approved mock is `mockups/PhoneCaptureCorrection.dc.html`; no page semantics, schema, parser, automatic behavior, or persisted ritual state changes |
 | 2026-08-26 | **Experimental 1.5.3a swarm roster.** Keep the compatibility pack name `six-mix-fable-review`, with Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok High hardener, and Sol XHigh QA. All roles remain isolated and the terminal candidate still requires operator review and explicit human integration approval |
+| 2026-08-26 | **Slice 1.5.3a implementation started.** Planning baseline `2a4fb8e` is pushed; the six-role experimental swarm is active in isolated `mix-*` worktrees. The Rails headless-Chrome lane remains authoritative and root integration stays behind explicit operator review and human approval |
 | 2026-08-26 | **`blackcat.dev` acquired and will replace `questlog.dev` as the umbrella domain.** Bujo's planned origin is `bujo.blackcat.dev`; Press Start is tentatively `lift.blackcat.dev`, pending its own deployment ruling. Resend's Cloudflare setup installed DKIM, SPF, and return-path MX, monitoring-mode DMARC is saved, and the aggregate domain is verified. Bujo's domain-restricted production key is stored in 1Password; application implementation and production cutover remain, while Press Start gets its own key only during its later slice |
 | 2026-08-26 | **Transactional email provider selected: Resend over HTTPS.** Bujo and Press Start will share the one verified `blackcat.dev` sending domain and free-plan quota, using `bujo@blackcat.dev` and `lift@blackcat.dev`, but keep separate domain-restricted Sending access keys, code, secrets, and deployments. See `docs/resend-transactional-email.md` |
 | 2026-08-26 | **Rails authentication rollout fixed at five ordered steps.** (1) Resend delivery plus short-lived, single-use magic links; (2) canonical cutover to `bujo.blackcat.dev`; (3) discoverable passkey registration/sign-in with exact RP ID `bujo.blackcat.dev`; (4) prove two passkeys plus email recovery; (5) retire the password UI. Provider/DNS/key setup is complete and Step 1 is next in the authentication track after the immediate 1.5.3a journal correction. The approved direction is `mockups/SignIn.dc.html`; full gates live in `docs/resend-transactional-email.md` |

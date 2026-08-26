@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.3a approved; prepare its swarm baseline (2026-08-26)
+# Handoff — slice 1.5.3a implementation in progress (2026-08-26)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -26,7 +26,8 @@ Slice 1.5.3's approved terminal candidate is `329b8f6` and is integrated on
 `main`. Its completed swarm is retired. Slice 1.5.3a is approved at
 `docs/slices/1.5.3a-phone-capture-and-ritual-clarity.md`, with the approved
 review board at `mockups/PhoneCaptureCorrection.dc.html`; its implementation
-has not started and no implementation is deployed by this handoff.
+started in isolated `mix-*` worktrees from pushed baseline `2a4fb8e`. No
+candidate is integrated or deployed by this handoff.
 
 ## Exact landed state
 
@@ -110,8 +111,10 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-The 1.5.3a spec and mock are approved. Before `swarm up`, they and the roster
-must be committed on the baseline branch so isolated worktrees can read them.
+The 1.5.3a spec, mock, and roster are committed in baseline `2a4fb8e`. The
+six-role swarm is active; handoffd runs for this pack while squadd correctly
+remains off. Do not start a second swarm, integrate a candidate, or push
+implementation without the remaining operator and human approval gates.
 
 After Daily Reflection, the remaining method-spine slice is `!` inspiration
 and master-task completion gating (1.5.5). Settings polish, broad search,
