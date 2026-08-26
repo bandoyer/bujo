@@ -46,7 +46,7 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
       assert_select "[data-page-capture='monthly_calendar'][data-date='#{day.iso8601}']"
       assert_select "#monthly_entry_#{event.id} a[href='#{daily_log_path(date: day.iso8601)}']", count: 0
       assert_select "#monthly_entry_#{event.id} form[action='#{schedule_entry_path(event)}']"
-      assert_select "[data-page-capture='monthly_calendar'] [data-kind='note']", count: 0
+      assert_select ".monthly-calendar__capture-panel [data-kind='note']", count: 31
 
       get monthly_log_path(month: "2026-09")
       assert_select "button.monthly-calendar__capture-reveal", count: 0
@@ -63,7 +63,8 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
       get monthly_log_path(month: "2026-08", view: "tasks")
       assert_select ".monthly-task-count", text: "2 open · 2 logged"
       assert_select "[data-page-capture='monthly_tasks']"
-      assert_select "[data-page-capture='monthly_tasks'] [data-kind='event']", count: 0
+      assert_select "[data-page-capture='monthly_tasks'] [data-kind='event']", count: 1
+      assert_select "[data-page-capture='monthly_tasks'] [data-kind='note']", count: 1
       assert_select "#monthly_task_#{root.id} a[href^='/daily']", count: 0
 
       get monthly_log_path(month: "2026-09", view: "tasks")
@@ -94,7 +95,7 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
       assert_select ".future-log__month[data-month='2026-07'] button[id$='_toggle']", count: 0
       assert_select ".future-log__month[data-month='2026-09'] button[id$='_toggle']", count: 2
       assert_select "#future_entry_#{overdue.id} a", count: 0
-      assert_select "#future_entry_#{future.id} form", count: 0
+      assert_select "#future_entry_#{future.id} form[action='#{entry_path(future)}']", count: 1
       assert_select ".future-log__add-row [data-kind='note']", count: 0
       assert_select ".future-log__month[data-month='2026-09'] form.rapid-log" do
         assert_select "button.rapid-log__kind[aria-label='Task'][aria-pressed='true']", text: "•"
@@ -125,6 +126,39 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
     get daily_log_path(date: day.iso8601)
     assert_select "#entry_#{event.id} form", count: 0
     assert_select "#entry_#{event.id} .entry__meta", text: /→/
+  end
+
+  test "writable empty Daily copy is inside the one real capture button" do
+    @user.entries.update_all(deleted_at: Time.current)
+
+    get daily_log_path(date: Time.zone.today.iso8601)
+
+    assert_select "button[aria-label='Write on this page']", count: 1 do
+      assert_select ".entry-list__empty", text: "Nothing logged yet.", count: 1
+      assert_select "button button", count: 0
+    end
+
+    get daily_log_path(date: Time.zone.today.next_day.iso8601)
+    assert_select ".entry-list__empty", text: "Nothing logged yet.", count: 1
+    assert_select "button[aria-label='Write on this page']", count: 0
+  end
+
+  test "all current rows offer Edit except a row with a successor" do
+    day = Time.zone.today
+    open = create_resident("open", kind: "task", page_kind: "daily", page_on: day)
+    future = create_resident(
+      "future", kind: "event", page_kind: "future", page_on: nil,
+      occurs_on: day.next_month.beginning_of_month
+    )
+    moved = create_resident("moved", kind: "task", page_kind: "daily", page_on: day)
+    moved.move_to!(page_kind: "monthly_tasks", page_on: day.next_month.beginning_of_month, as_of: day)
+
+    get daily_log_path(date: day.iso8601)
+    assert_select "#entry_#{open.id} button", text: "Edit"
+    assert_select "#entry_#{moved.id} button", text: "Edit", count: 0
+
+    get future_log_path
+    assert_select "#entry_#{future.id} button", text: "Edit"
   end
 
   private

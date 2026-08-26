@@ -18,38 +18,36 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "Calendar capture accepts task and event residents but refuses a note" do
+  test "Calendar capture accepts task event and note residents on the exact day" do
     travel_to Time.zone.local(2026, 8, 25, 12) do
       day = Date.new(2026, 8, 12)
       capture_page("calendar task tomorrow", day, placement: "monthly_calendar")
       assert_redirected_to monthly_log_path(month: "2026-08")
       capture_page("calendar event", day, placement: "monthly_calendar", default_kind: "event")
       assert_redirected_to monthly_log_path(month: "2026-08")
-      assert_capture_refused(
-        on: day.iso8601,
-        placement: "monthly_calendar",
-        default_kind: "note"
-      )
+      capture_page("calendar note", day, placement: "monthly_calendar", default_kind: "note")
 
       residents = @user.entries.monthly_calendar(day)
-      assert_equal %w[task event], residents.order(:created_at, :id).pluck(:kind)
-      assert_equal [ day, day ], residents.pluck(:occurs_on)
+      assert_equal %w[task event note], residents.order(:created_at, :id).pluck(:kind)
+      assert_equal [ day, day, day ], residents.pluck(:occurs_on)
       assert_empty @user.entries.daily_log(day)
       assert_empty @user.entries.monthly_tasks(day)
     end
   end
 
-  test "Monthly Tasks capture accepts only task roots and closes future months" do
+  test "Monthly Tasks capture accepts all root kinds and closes future months" do
     travel_to Time.zone.local(2026, 8, 25, 12) do
       month = Date.new(2026, 8, 1)
       capture_page("monthly task", month, placement: "monthly_tasks")
       assert_redirected_to monthly_log_path(month: "2026-08", view: "tasks")
       capture_page("inventory tomorrow", month, placement: "monthly_tasks")
       assert_equal Date.new(2026, 8, 26), @user.entries.find_by!(text: "inventory").occurs_on
-      assert_capture_refused(on: month.iso8601, placement: "monthly_tasks", default_kind: "event")
+      capture_page("monthly event", month, placement: "monthly_tasks", default_kind: "event")
+      capture_page("monthly note", month, placement: "monthly_tasks", default_kind: "note")
       assert_capture_refused(on: month.next_month.iso8601, placement: "monthly_tasks")
 
-      assert_equal [ "monthly task", "inventory" ], @user.entries.monthly_tasks(month).pluck(:text)
+      assert_equal [ "monthly task", "inventory", "monthly event", "monthly note" ],
+        @user.entries.monthly_tasks(month).pluck(:text)
     end
   end
 
@@ -79,7 +77,7 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to monthly_log_path(month: "2035-11", view: "tasks")
   end
 
-  test "Schedule admits an event once and rejects a same-month destination" do
+  test "Schedule routes later current-month dates to Calendar and later months to Future" do
     travel_to Time.zone.local(2026, 8, 25, 12) do
       event = @user.entries.create!(
         kind: "event", state: nil, text: "conference", tags: [],
@@ -87,15 +85,20 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
       )
 
       post schedule_entry_path(event), params: { viewed_on: "2026-08-25", date: "2026-08-31" }
-      assert_equal "That entry can't do that.", flash[:alert]
-      assert_nil event.reload.successor
+      assert_nil flash[:alert]
+      assert_equal [ "monthly_calendar", Date.new(2026, 8, 1), Date.new(2026, 8, 31) ],
+        event.reload.successor.values_at(:page_kind, :page_on, :occurs_on)
 
-      post schedule_entry_path(event), params: { viewed_on: "2026-08-25", date: "2026-09-05" }
+      future_event = @user.entries.create!(
+        kind: "event", state: nil, text: "later conference", tags: [],
+        page_kind: "daily", page_on: Date.new(2026, 8, 25)
+      )
+      post schedule_entry_path(future_event), params: { viewed_on: "2026-08-25", date: "2026-09-05" }
       assert_equal [ "future", Date.new(2026, 9, 5) ],
-        [ event.reload.successor.page_kind, event.successor.occurs_on ]
+        [ future_event.reload.successor.page_kind, future_event.successor.occurs_on ]
 
       assert_no_difference -> { @user.entries.count } do
-        post schedule_entry_path(event), params: { viewed_on: "2026-08-25", date: "2026-10-01" }
+        post schedule_entry_path(future_event), params: { viewed_on: "2026-08-25", date: "2026-10-01" }
       end
       assert_equal "That entry can't do that.", flash[:alert]
     end
@@ -184,15 +187,19 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
   # a missing-date refusal cannot masquerade as the residency guard.
   test "every entry member command still refuses a Future resident" do
     commands = member_entry_commands
-    assert_equal %w[complete reopen strike migrate schedule move_to_collection].sort, commands.sort
+    assert_equal %w[complete reopen strike migrate move_to_collection schedule update].sort, commands.sort
     schedule_on = Time.zone.today.next_month.beginning_of_month.iso8601
 
     commands.each do |command|
+      next if command == "update"
+
       task = create_lifecycle_task(:complete, **future_placement)
       original_attributes = task.attributes
       params = { viewed_on: Time.zone.today.iso8601 }
       params[:date] = schedule_on if command == "schedule"
       params[:topic] = "Camping Trip" if command == "move_to_collection"
+      params[:line] = "corrected" if command == "update"
+      params[:default_kind] = "task" if command == "update"
 
       assert_no_difference -> { @user.entries.count } do
         post lifecycle_path(command, task), params: params
@@ -246,6 +253,8 @@ class PageCaptureControllerTest < ActionDispatch::IntegrationTest
   end
 
   def lifecycle_path(command, task)
+    return entry_path(task) if command.to_s == "update"
+
     public_send("#{command}_entry_path", task)
   end
 

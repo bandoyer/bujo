@@ -137,7 +137,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     reveal_actions(task)
     within(entry_selector(task)) { click_button "Complete" }
 
-    assert_selector "#monthly_task_#{task.id} #entry_#{task.id}.entry--muted"
+    assert_no_selector "#monthly_task_#{task.id} #entry_#{task.id}.entry--muted"
     within("#monthly_task_#{task.id}") { assert_text "x" }
     assert_equal initial_open_count - 1, displayed_month_open_count
     assert_text "2 logged"
@@ -186,7 +186,9 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_selector ".future-log__month--empty", count: RUNWAY_MONTHS - 1
     assert_no_field "Rapid log…"
     within "#future_entry_#{successor.id}" do
-      assert_no_selector ".entry__toggle"
+      assert_selector ".entry__toggle"
+      find(".entry__toggle").click
+      assert_button "Edit"
       assert_no_button "Complete"
     end
     find("#future_entry_#{successor.id}").click
@@ -214,7 +216,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
     within calendar_day(day) do
       find("button[aria-label='Write on Calendar for #{day.strftime('%B %-d')}']").click
-      assert_no_button "Note"
+      assert_selector "button[aria-label='Note']"
       fill_in "Rapid log…", with: "calendar-only task"
       click_button "Log", exact: true
     end
@@ -253,8 +255,8 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       find("#monthly_tasks_capture_reveal").click unless width == 320
     end
 
-    assert_no_button "Event"
-    assert_no_button "Note"
+    assert_selector "button[aria-label='Event']"
+    assert_selector "button[aria-label='Note']"
     fill_in "Rapid log…", with: "curated inventory"
     click_button "Log", exact: true
     assert_text "curated inventory"
@@ -346,7 +348,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     end
   end
 
-  test "13 Future residents refuse all crafted entry commands hidden by the page" do
+  test "13 Future residents offer only Edit and refuse all other crafted entry commands" do
     open_task = create_future_task("open future resident", state: "open")
     done_task = create_future_task("done future resident", state: "done")
     sign_in
@@ -354,8 +356,11 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
     [ open_task, done_task ].each do |task|
       within "#future_entry_#{task.id}" do
-        assert_no_selector ".entry__toggle"
-        assert_no_selector "form"
+        assert_selector ".entry__toggle"
+        find(".entry__toggle").click
+        assert_button "Edit"
+        assert_selector "form[action='#{entry_path(task)}']", visible: :all
+        assert_no_button "Complete"
       end
     end
 
@@ -363,7 +368,8 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       original_attributes = task.reload.attributes
       submit_crafted_command(path, params)
 
-      assert_current_path daily_log_path(date: Time.zone.today.iso8601)
+      expected_path = path == schedule_entry_path(task) ? future_log_path : daily_log_path(date: Time.zone.today.iso8601)
+      assert_current_path expected_path
       assert_text "That entry can't do that."
       assert_equal original_attributes, task.reload.attributes
       assert_nil task.successor
@@ -460,8 +466,8 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     page.evaluate_script(<<~JAVASCRIPT)
       (() => {
         const root = document.querySelector("#{future_month(Time.zone.today.next_month)}")
-        const selected = root.querySelector("button[aria-label='Task']")
-        const other = root.querySelector("button[aria-label='Event']")
+        const selected = root.querySelector(".future-log__add-row:not([hidden]) button[aria-label='Task']")
+        const other = root.querySelector(".future-log__add-row:not([hidden]) button[aria-label='Event']")
         const selectedStyle = getComputedStyle(selected)
         const otherStyle = getComputedStyle(other)
         const box = selected.getBoundingClientRect()
@@ -489,7 +495,7 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     reveal_actions(task)
     within entry_selector(task) do
       click_button "Schedule…", exact: true
-      set_date_field "Schedule date", scheduled_on
+      set_date_field "Schedule for", scheduled_on
       click_button "Schedule", exact: true
     end
     assert_selector "#{entry_selector(task)} .entry__glyph", text: "<"

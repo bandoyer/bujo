@@ -14,7 +14,10 @@ class PageModelTest < ActiveSupport::TestCase
       attributes(page_kind: "daily", page_on: AS_OF, kind: "note", state: nil),
       attributes(page_kind: "monthly_calendar", page_on: PAGE_ON, occurs_on: AS_OF, kind: "task", state: "open"),
       attributes(page_kind: "monthly_calendar", page_on: PAGE_ON, occurs_on: AS_OF, kind: "event", state: nil),
+      attributes(page_kind: "monthly_calendar", page_on: PAGE_ON, occurs_on: AS_OF, kind: "note", state: nil),
       attributes(page_kind: "monthly_tasks", page_on: PAGE_ON, kind: "task", state: "open"),
+      attributes(page_kind: "monthly_tasks", page_on: PAGE_ON, kind: "event", state: nil),
+      attributes(page_kind: "monthly_tasks", page_on: PAGE_ON, kind: "note", state: nil),
       attributes(page_kind: "future", page_on: nil, occurs_on: AS_OF.next_month, kind: "task", state: "open"),
       attributes(page_kind: "future", page_on: nil, occurs_on: AS_OF.next_month, kind: "event", state: nil),
       attributes(page_kind: "collection", page_on: nil, collection: collections(:camping), kind: "task", state: "open"),
@@ -25,11 +28,8 @@ class PageModelTest < ActiveSupport::TestCase
     valid_roots.each { |root_attributes| assert_predicate Entry.new(root_attributes), :valid? }
   end
 
-  test "rejects every incompatible root kind" do
+  test "rejects the one incompatible root kind" do
     invalid_roots = [
-      attributes(page_kind: "monthly_calendar", page_on: PAGE_ON, occurs_on: AS_OF, kind: "note", state: nil),
-      attributes(page_kind: "monthly_tasks", page_on: PAGE_ON, kind: "event", state: nil),
-      attributes(page_kind: "monthly_tasks", page_on: PAGE_ON, kind: "note", state: nil),
       attributes(page_kind: "future", page_on: nil, occurs_on: AS_OF.next_month, kind: "note", state: nil)
     ]
 

@@ -1,8 +1,17 @@
 <%# The bullet vocabulary a capture form offers. Every capture surface shows the
     same three buttons in the same order, narrowed to the kinds its page admits
     at root, so one page's glyph strip never drifts from another's. %>
+<% selected_kind = local_assigns.fetch(:selected_kind, "task") %>
 <div class="rapid-log__kinds" aria-label="Entry kind">
-  <% if allowed_kinds.include?("task") %><button type="button" class="rapid-log__kind rapid-log__kind--selected" aria-label="Task" aria-pressed="true" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="task">•</button><% end %>
-  <% if allowed_kinds.include?("event") %><button type="button" class="rapid-log__kind" aria-label="Event" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="event"><%= hand_glyph("○") %></button><% end %>
-  <% if allowed_kinds.include?("note") %><button type="button" class="rapid-log__kind" aria-label="Note" aria-pressed="false" data-rapid-log-target="kindButton" data-action="rapid-log#selectKind" data-kind="note">–</button><% end %>
+  <% { "task" => "•", "event" => hand_glyph("○"), "note" => "–" }.each do |kind, glyph| %>
+    <% next unless allowed_kinds.include?(kind) %>
+    <% selected = kind == selected_kind %>
+    <button type="button"
+            class="rapid-log__kind <%= "rapid-log__kind--selected" if selected %>"
+            aria-label="<%= kind.capitalize %>"
+            aria-pressed="<%= selected %>"
+            data-rapid-log-target="kindButton"
+            data-action="rapid-log#selectKind"
+            data-kind="<%= kind %>"><%= glyph %></button>
+  <% end %>
 </div>

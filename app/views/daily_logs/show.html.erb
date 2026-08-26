@@ -25,9 +25,9 @@
   </header>
 
   <section class="entry-list" id="entries" aria-label="Entries" data-controller="task-actions">
-    <% if @entries.empty? %>
+    <% if @entries.empty? && !@capture_open %>
       <p class="entry-list__empty" id="empty_daily_log">Nothing logged yet.</p>
-    <% else %>
+    <% elsif @entries.any? %>
       <%= render partial: "entries/entry", collection: @entries, locals: { viewed_on: @date } %>
     <% end %>
   </section>
@@ -41,7 +41,11 @@
               aria-expanded="false"
               aria-controls="rapid_log_panel"
               data-placement-target="toggle"
-              data-action="placement#toggle"></button>
+              data-action="placement#toggle">
+        <% if @entries.empty? %>
+          <span class="entry-list__empty" id="empty_daily_log">Nothing logged yet.</span>
+        <% end %>
+      </button>
       <div id="rapid_log_panel" class="daily-log__capture-panel" data-placement-target="panel" hidden>
         <% unless viewing_today %>
           <p class="daily-log__capture-cue">→ logging to <%= @date.strftime("%b %-d").upcase %></p>

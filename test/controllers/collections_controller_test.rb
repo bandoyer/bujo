@@ -66,6 +66,7 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     collection = @user.collections.find_by!(name: "Camping   Notes")
     assert_nil collection.index_position
     assert_redirected_to collection_path(collection)
+    assert_equal "Collection created.", flash[:notice]
   end
 
   test "create refusal keeps the New Collection form open and preserves the submitted Topic" do
@@ -115,7 +116,7 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes bodies.first, "Foreign Topic"
   end
 
-  test "Collection page renders kept roots recursively and leaves plain rows plain" do
+  test "Collection page renders kept roots recursively with Edit as their only note command" do
     collection = @user.collections.create!(name: "Rendered Topic")
     timestamp = Time.zone.parse("2026-08-25 15:00:00")
     later = create_collection_entry(collection, text: "Later root", kind: "note", state: nil,
@@ -138,8 +139,9 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".entry-list > #entry_#{later.id}"
     assert_select "#entry_#{earlier.id} #entry_#{child.id}"
     assert_select "#entry_#{deleted.id}", count: 0
-    assert_select ".entry__action-strip", count: 0
-    assert_select ".entry__toggle", count: 0
+    assert_select ".entry__action-strip", count: 3
+    assert_select ".entry__toggle", count: 3
+    assert_select "button", text: "Edit", count: 3
     assert_select "form[action*='/complete']", count: 0
     assert_select ".tab-bar__item[aria-current='page']", text: "Index", count: 1
   end
@@ -147,7 +149,8 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
   test "empty and filled Collection controls mirror registration and deletion guards" do
     empty = @user.collections.create!(name: "Empty Topic")
     get collection_path(empty)
-    assert_select ".entry-list__empty", text: /Nothing logged yet.*Add a first entry before indexing/m
+    assert_select "button[aria-label='Write on this page'] .entry-list__empty",
+      text: /Nothing logged yet.*Add a first entry, then add it to the Index\./m
     assert_select "form[action='#{register_collection_path(empty)}']", count: 0
     assert_select "form[action='#{collection_path(empty)}'][data-turbo-confirm]", count: 1
 

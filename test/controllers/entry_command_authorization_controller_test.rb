@@ -4,14 +4,14 @@ require "test_helper"
 # lives. Request parameters may choose an established reader return only for
 # Daily and Monthly pages; they never grant a command.
 class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
-  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection].freeze
+  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection update].freeze
   PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future collection].freeze
   ALLOWED_COMMANDS = {
     "daily" => COMMANDS,
     "monthly_calendar" => COMMANDS,
     "monthly_tasks" => COMMANDS,
-    "future" => [],
-    "collection" => %w[complete reopen strike]
+    "future" => %w[update],
+    "collection" => %w[complete reopen strike update]
   }.freeze
 
   setup do
@@ -118,7 +118,7 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
   end
 
   def assert_command_succeeds(command, entry)
-    expected_destination = command_destination(entry)
+    expected_destination = command_destination(entry, command)
 
     if command.in?(%w[migrate schedule move_to_collection])
       assert_difference -> { Entry.count }, 1 do
@@ -132,6 +132,14 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
         "move_to_collection" => "collection"
       }.fetch(command)
       assert_equal expected_page, entry.successor.page_kind
+    elsif command == "update"
+      original_state = entry.state
+      assert_no_difference -> { Entry.count } do
+        post_command(command, entry, standard_params(command, entry.page_kind))
+      end
+      assert_match(/\Acorrected /, entry.reload.text)
+      assert_equal original_state, entry.state
+      assert_nil entry.successor
     else
       assert_no_difference -> { Entry.count } do
         post_command(command, entry, standard_params(command, entry.page_kind))
@@ -152,31 +160,48 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal "That entry can't do that.", flash[:alert],
       "#{command} must be refused for persisted #{entry.page_kind} residency"
-    assert_redirected_to command_destination(entry)
+    assert_redirected_to command_destination(entry, command)
     assert_equal original_journal, journal_snapshot
     assert_nil entry.reload.successor
     follow_redirect!
   end
 
   def post_command(command, entry_or_id, params)
+    return patch entry_path(entry_or_id), params: params if command == "update"
+
     post public_send("#{command}_entry_path", entry_or_id), params: params
   rescue NoMethodError => error
     flunk "#{command} must be refused before the action body runs; it dereferenced nil (#{error.message})"
   end
 
   def standard_params(command, page_kind)
-    params = case page_kind
-    when "monthly_calendar"
-      { viewed_on: Time.zone.today.beginning_of_month.iso8601, return_to: "monthly_calendar" }
-    when "monthly_tasks"
-      { viewed_on: Time.zone.today.beginning_of_month.iso8601, return_to: "monthly_tasks" }
-    when "collection"
-      malicious_collection_params(command)
+    params = if command == "update" && page_kind == "collection"
+      {}
     else
-      { viewed_on: Time.zone.today.iso8601 }
+      case page_kind
+      when "monthly_calendar"
+        { viewed_on: Time.zone.today.beginning_of_month.iso8601, return_to: "monthly_calendar" }
+      when "monthly_tasks"
+        { viewed_on: Time.zone.today.beginning_of_month.iso8601, return_to: "monthly_tasks" }
+      when "collection"
+        malicious_collection_params(command)
+      else
+        { viewed_on: Time.zone.today.iso8601 }
+      end
     end
     params[:date] = Time.zone.today.next_month.beginning_of_month.iso8601 if command == "schedule"
     params[:topic] = @collection.name if command == "move_to_collection"
+    if command == "update"
+      date_suffix = if page_kind == "monthly_calendar"
+        " #{Time.zone.today.iso8601}"
+      elsif page_kind == "future"
+        " #{Time.zone.today.next_month.beginning_of_month.iso8601}"
+      else
+        ""
+      end
+      params[:line] = "corrected #{SecureRandom.hex(2)}#{date_suffix}"
+    end
+    params[:default_kind] = "task" if command == "update"
     params
   end
 
@@ -191,7 +216,7 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
     }.compact
   end
 
-  def command_destination(entry)
+  def command_destination(entry, command)
     case entry.page_kind
     when "monthly_calendar"
       monthly_log_path(month: Time.zone.today.strftime("%Y-%m"))
@@ -199,6 +224,8 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
       monthly_log_path(month: Time.zone.today.strftime("%Y-%m"), view: "tasks")
     when "collection"
       collection_path(@collection)
+    when "future"
+      command.in?(%w[update schedule]) ? future_log_path : daily_log_path(date: Time.zone.today.iso8601)
     else
       daily_log_path(date: Time.zone.today.iso8601)
     end

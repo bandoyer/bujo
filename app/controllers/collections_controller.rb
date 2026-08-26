@@ -21,7 +21,7 @@ class CollectionsController < ApplicationController
   def create
     @new_collection = user_collections.new(collection_params)
     if @new_collection.save
-      redirect_to collection_path(@new_collection)
+      redirect_to collection_path(@new_collection), notice: "Collection created."
     else
       @form_errors = @new_collection.errors.full_messages
       @new_collection_name = params.dig(:collection, :name)

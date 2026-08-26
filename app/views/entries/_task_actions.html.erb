@@ -3,8 +3,11 @@
     resolved which commands it may offer; this strip only renders them. %>
 <% viewed_on_iso = viewed_on.iso8601 %>
 <% return_params = { viewed_on: viewed_on_iso, return_to: return_to }.compact %>
-<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
-  <div class="entry__actions" data-step="actions">
+<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" <%= "hidden" unless edit_open %>>
+  <div class="entry__actions" data-step="actions" <%= "hidden" if edit_open %>>
+    <% if offered_commands.include?("update") %>
+      <button type="button" class="entry-action" data-action="task-actions#showEdit">Edit</button>
+    <% end %>
     <% if offered_commands.include?("complete") %>
       <%= button_to "Complete", complete_entry_path(entry), params: return_params, class: "entry-action" %>
     <% end %>
@@ -25,6 +28,30 @@
     <% end %>
   </div>
 
+  <% if offered_commands.include?("update") %>
+    <% editable_kinds = entry.kind_change_allowed? ? Entry::ROOT_KINDS.fetch(entry.page_kind) : [ entry.kind ] %>
+    <div class="entry__edit-step" data-step="edit" <%= "hidden" unless edit_open %>>
+      <%= form_with url: entry_path(entry), method: :patch,
+                    class: "entry__edit", data: { controller: "rapid-log" } do |form| %>
+        <%= render "entries/kind_buttons", allowed_kinds: editable_kinds, selected_kind: entry.kind %>
+        <%= form.hidden_field :default_kind, value: entry.kind, data: { rapid_log_target: "kind" } %>
+        <%= form.label :line, "Edit entry", for: "edit_line_#{entry.id}" %>
+        <div class="entry__edit-row">
+          <%= form.text_field :line,
+                              id: "edit_line_#{entry.id}",
+                              value: (edit_open ? flash[:edit_line] : entry.canonical_edit_line),
+                              required: true,
+                              autocomplete: "off",
+                              data: { rapid_log_target: "line" } %>
+          <%= form.submit "Save", class: "entry-action" %>
+        </div>
+      <% end %>
+      <button type="button"
+              class="entry-action entry-action--cancel"
+              data-action="task-actions#cancelStep">Cancel</button>
+    </div>
+  <% end %>
+
   <%# The date step belongs only to a row that may actually schedule, so a
       Collection row never carries a hidden second step it can never reach. %>
   <% if offered_commands.include?("schedule") %>
@@ -32,14 +59,13 @@
       <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
         <%= form.hidden_field :return_to, value: return_to if return_to %>
-        <%= form.label :date, "Schedule date", class: "visually-hidden" %>
-        <%= form.date_field :date, required: true, aria: { label: "Schedule date" } %>
+        <%= form.label :date, "Schedule for" %>
+        <%= form.date_field :date, required: true %>
         <%= form.submit "Schedule", class: "entry-action" %>
       <% end %>
       <button type="button"
               class="entry-action entry-action--cancel"
-              aria-label="Cancel scheduling"
-              data-action="task-actions#cancelStep">×</button>
+              data-action="task-actions#cancelStep">Cancel</button>
     </div>
   <% end %>
 

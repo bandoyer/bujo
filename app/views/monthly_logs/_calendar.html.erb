@@ -46,7 +46,7 @@
           <%= render "entries/rapid_log_form",
                      capture_date: day,
                      placement: "monthly_calendar",
-                     allowed_kinds: %w[task event],
+                     allowed_kinds: %w[task event note],
                      form_id: "calendar_form_#{day.iso8601}" %>
         </div>
       <% end %>

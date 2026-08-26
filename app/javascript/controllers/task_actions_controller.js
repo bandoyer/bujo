@@ -18,13 +18,21 @@ export default class extends Controller {
     this.showStep(this.stripFor(event.currentTarget), "schedule")
   }
 
+  showEdit(event) {
+    const strip = this.stripFor(event.currentTarget)
+    this.showStep(strip, "edit")
+    strip.querySelector("[data-rapid-log-target='line']")?.focus()
+  }
+
   showMove(event) {
     this.showStep(this.stripFor(event.currentTarget), "move")
   }
 
   // Every step rewinds to the same place, so one handler serves them all.
   cancelStep(event) {
-    this.showStep(this.stripFor(event.currentTarget), "actions")
+    const strip = this.stripFor(event.currentTarget)
+    this.showStep(strip, "actions")
+    strip.closest(".entry").querySelector(".entry__toggle")?.focus()
   }
 
   // One row is open at a time, and a strip always reopens on its actions -

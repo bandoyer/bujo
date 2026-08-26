@@ -158,7 +158,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
       find("button[aria-label='Event']").click
       assert_selector "button[aria-label='Event'][aria-pressed='true'].rapid-log__kind--selected"
       assert_selector "button[aria-label='Task'][aria-pressed='false']"
-      assert_equal "event", find("input[name='default_kind']", visible: :all).value
+      assert_equal "event", find(".future-log__add-row:not([hidden]) input[name='default_kind']", visible: :all).value
       assert_match(/line$/, active_element_id)
       find("input[placeholder='Rapid log…']").fill_in(with: "future dentist 9am")
       click_button "Log", exact: true
@@ -180,7 +180,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
       find("button[aria-label='Task']").click
       assert_selector "button[aria-label='Task'][aria-pressed='true'].rapid-log__kind--selected"
       assert_selector "button[aria-label='Event'][aria-pressed='false']"
-      assert_equal "task", find("input[name='default_kind']", visible: :all).value
+      assert_equal "task", find(".future-log__add-row:not([hidden]) input[name='default_kind']", visible: :all).value
       assert_match(/line$/, active_element_id)
       find("input[placeholder='Rapid log…']").fill_in(with: "future campsite task")
       click_button "Log", exact: true
@@ -229,7 +229,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_hidden_daily_capture
     reveal_actions(task)
     within("#entry_#{task.id}") { click_button "Complete", exact: true }
-    assert_selector "#entry_#{task.id}.entry--muted"
+    assert_no_selector "#entry_#{task.id}.entry--muted"
     assert_hidden_daily_capture
 
     click_button "Theme: system", exact: true

@@ -650,13 +650,7 @@ a {
   padding: 0.65rem 0;
 }
 
-.entry--muted {
-  color: var(--faint);
-}
-
 .entry--selected {
-  padding-right: 0.5rem;
-  padding-left: 0.5rem;
   border-radius: 0.5rem;
   background: var(--selected-row);
 }
@@ -701,7 +695,8 @@ a {
 
 .entry__text--struck {
   text-decoration: line-through;
-  text-decoration-color: var(--warn);
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 2px;
 }
 
 /* Entry text and Collection destination Topics are reader-written and
@@ -725,6 +720,7 @@ a {
 }
 
 .entry__actions,
+.entry__edit-step,
 .entry__schedule-step,
 .entry__schedule,
 .entry__move-step,
@@ -745,6 +741,7 @@ a {
 
 .entry__action-strip[hidden],
 .entry__actions[hidden],
+.entry__edit-step[hidden],
 .entry__schedule-step[hidden],
 .entry__move-step[hidden] {
   display: none;
@@ -763,6 +760,7 @@ a {
 }
 
 .entry-action {
+  min-width: 44px;
   padding: 0 0.65rem;
   cursor: pointer;
 }
@@ -772,13 +770,69 @@ a {
 }
 
 .entry-action--cancel {
-  width: 44px;
-  padding: 0;
+  padding: 0 0.65rem;
 }
 
 .entry__schedule input[type="date"] {
-  max-width: 8.6rem;
+  width: 100%;
+  min-width: 0;
   padding: 0 0.4rem;
+}
+
+.entry__schedule-step,
+.entry__edit-step {
+  align-items: end;
+}
+
+.entry__schedule,
+.entry__edit {
+  min-width: 0;
+  flex: 1 1 15rem;
+}
+
+.entry__schedule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.entry__schedule label {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__edit {
+  display: block;
+}
+
+.entry__edit .rapid-log__kinds {
+  margin-bottom: 0.35rem;
+}
+
+.entry__edit label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__edit-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem;
+}
+
+.entry__edit-row input[type="text"] {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .entry__move input[type="text"] {
@@ -865,6 +919,11 @@ a {
   color: var(--surface);
   cursor: pointer;
   font-size: 0.72rem;
+}
+
+.daily-log__capture-reveal .entry-list__empty {
+  display: grid;
+  color: var(--muted);
 }
 
 .tab-bar {
@@ -966,9 +1025,21 @@ a {
 .monthly-migration__inventory,
 .monthly-migration__tree,
 .monthly-migration__complete,
-.monthly-migration__checkpoint {
+.monthly-migration__checkpoint,
+.monthly-migration__confirmation {
   min-width: 0;
   margin-top: 1rem;
+}
+
+.monthly-migration__confirmation {
+  min-height: 44px;
+  padding: 0.35rem 0 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.monthly-migration__confirmation p,
+.monthly-migration__confirmation form {
+  margin: 0;
 }
 
 .monthly-migration__checkpoint p {

@@ -116,7 +116,7 @@ class DailyLogTest < ApplicationSystemTestCase
     within entry_selector(first_task) do
       assert_button "Complete"
       click_button "Schedule…", exact: true
-      assert_field "Schedule date"
+      assert_field "Schedule for"
     end
 
     reveal_actions(second_task)
@@ -129,7 +129,7 @@ class DailyLogTest < ApplicationSystemTestCase
     within entry_selector(first_task) do
       assert_button "Complete"
       assert_button "Schedule…", exact: true
-      assert_no_field "Schedule date"
+      assert_no_field "Schedule for"
     end
   end
 
@@ -143,7 +143,8 @@ class DailyLogTest < ApplicationSystemTestCase
 
     reveal_actions(task)
     within(entry_selector(task)) { click_button "Complete" }
-    assert_selector "#{entry_selector(task)}.entry--muted"
+    assert_selector "#{entry_selector(task)} .entry__glyph", text: "x"
+    assert_no_selector "#{entry_selector(task)}.entry--muted"
     assert_equal open_count - 1, displayed_open_count
 
     reveal_actions(task)
@@ -176,6 +177,18 @@ class DailyLogTest < ApplicationSystemTestCase
         "getComputedStyle(document.querySelector('#{entry_selector(task)} .entry__text')).textDecorationLine"
       )
       assert_includes text_decoration, "line-through"
+      strike_ink = page.evaluate_script(<<~JAVASCRIPT)
+        (() => {
+          const text = getComputedStyle(document.querySelector("#{entry_selector(task)} .entry__text"))
+          const glyph = getComputedStyle(document.querySelector("#{entry_selector(task)} .entry__glyph"))
+          return { color: text.color, decorationColor: text.textDecorationColor,
+                   thickness: parseFloat(text.textDecorationThickness),
+                   glyphDecoration: glyph.textDecorationLine }
+        })()
+      JAVASCRIPT
+      assert_equal strike_ink.fetch("color"), strike_ink.fetch("decorationColor")
+      assert_operator strike_ink.fetch("thickness"), :>=, 2
+      assert_equal "none", strike_ink.fetch("glyphDecoration")
     end
 
     reveal_actions(task)
@@ -198,13 +211,13 @@ class DailyLogTest < ApplicationSystemTestCase
     reveal_actions(scheduled_task)
     within entry_selector(scheduled_task) do
       click_button "Schedule…", exact: true
-      assert_field "Schedule date"
-      find("button[aria-label='Cancel scheduling']").click
-      assert_no_field "Schedule date"
+      assert_field "Schedule for"
+      click_button "Cancel", exact: true
+      assert_no_field "Schedule for"
       assert_button "Schedule…", exact: true
 
       click_button "Schedule…", exact: true
-      set_date_field "Schedule date", scheduled_on
+      set_date_field "Schedule for", scheduled_on
       click_button "Schedule", exact: true
     end
     assert_selector "#{entry_selector(scheduled_task)} .entry__glyph", text: "<"

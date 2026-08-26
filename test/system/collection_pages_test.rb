@@ -21,7 +21,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
     collection = Collection.find(page.current_path.split("/").last)
     assert_equal [ @user, "Camping Notes" ], [ collection.user, collection.name ]
     assert_current_path collection_path(collection)
-    assert_text "Add a first entry before indexing."
+    assert_text "Add a first entry, then add it to the Index."
     assert_no_button "Add to Index"
 
     capture "reserve campsite", kind: "Task", expected_text: "reserve campsite"
@@ -33,8 +33,8 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_text "campfire"
     assert_text "call after five"
     assert_button "Add to Index"
-    assert_selector ".entry__toggle", count: 1
-    assert_selector ".entry__action-strip", count: 1, visible: :all
+    assert_selector ".entry__toggle", count: 3
+    assert_selector ".entry__action-strip", count: 3, visible: :all
   end
 
   test "2 register rename unindex and re-register in deliberate order" do
@@ -500,7 +500,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
     visit collection_path(collection)
     assert_selector "html[data-theme='#{theme}']", visible: :all
     assert_text "Nothing logged yet."
-    assert_text "Add a first entry before indexing."
+    assert_text "Add a first entry, then add it to the Index."
     assert_no_button "Add to Index"
     assert_target_size "button[aria-label='Write on this page']"
     assert_reader_layout_safe

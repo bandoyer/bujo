@@ -17,8 +17,8 @@ class Entry < ApplicationRecord
   # Bullet vocabulary admitted at each page root.
   ROOT_KINDS = {
     "daily" => KINDS,
-    "monthly_calendar" => %w[task event],
-    "monthly_tasks" => %w[task],
+    "monthly_calendar" => KINDS,
+    "monthly_tasks" => KINDS,
     "future" => %w[task event],
     "collection" => KINDS
   }.freeze
@@ -149,14 +149,19 @@ class Entry < ApplicationRecord
     private
 
     def enforce_capture_admission!(entry, as_of, admission_context, target_month)
+      if admission_context == :monthly_migration
+        return if monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
+
+        entry.errors.add(:base, :invalid)
+        raise ActiveRecord::RecordInvalid, entry
+      end
+
       return if capture_admitted?(
         page_kind: entry.page_kind,
         page_on: entry.page_on,
         occurs_on: entry.occurs_on,
         as_of: as_of
       )
-      return if monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
-
       entry.errors.add(:base, :invalid)
       raise ActiveRecord::RecordInvalid, entry
     end
@@ -166,7 +171,7 @@ class Entry < ApplicationRecord
     # must remain closed for next month.
     def monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
       return false unless admission_context == :monthly_migration
-      return false unless entry.page_kind == "monthly_tasks" && target_month
+      return false unless entry.page_kind == "monthly_tasks" && entry.kind == "task" && target_month
 
       canonical_target = target_month.beginning_of_month
       entry.page_on == canonical_target && migration_target_admitted?(canonical_target, as_of: as_of)
@@ -227,6 +232,55 @@ class Entry < ApplicationRecord
     end
   end
 
+  # Corrects the current live row without changing its residency, ownership,
+  # tree position, movement links, or settled task lifecycle.
+  def correct!(parsed, kind:)
+    raise LifecycleError unless parsed && KINDS.include?(kind)
+
+    with_lock do
+      ensure_correctable!(kind)
+      assign_attributes(correction_attributes(parsed, kind))
+      save!
+    end
+  end
+
+  # Answers whether correction may reinterpret this row's bullet kind. A live
+  # movement end may fix its words, but its inherited kind records history.
+  def kind_change_allowed?
+    predecessor.nil? && successor.nil? && unresolved?
+  end
+
+  # Renders correction's glyph-free rapid-log line in canonical metadata
+  # order, so reparsing does not depend on the request date.
+  def canonical_edit_line
+    tokens = [ text ]
+    tokens.concat(tags.map { |tag| "+#{tag}" })
+    tokens << occurs_on if occurs_on
+    tokens << time_of_day if time_of_day
+    tokens.unshift("*") if priority?
+    tokens.join(" ")
+  end
+
+  # Appends a compensating successor at an earlier row's exact residency. It
+  # intentionally bypasses ordinary Future admission because restoration may
+  # occur after that persisted date has become current or overdue.
+  def compensate_to!(source)
+    self.class.transaction do
+      source.lock!
+      lock!
+      ensure_compensatable!(source)
+
+      restored = self.class.new(compensating_attributes(source))
+      raise LifecycleError unless restored.valid?
+
+      restored.save!
+      update!(state: "migrated") if kind == "task"
+      restored
+    end
+  rescue ActiveRecord::RecordNotUnique
+    raise LifecycleError
+  end
+
   # Counts predecessors in this entry's visible movement chain.
   def carried_count
     count = 0
@@ -251,6 +305,66 @@ class Entry < ApplicationRecord
   end
 
   private
+
+  def ensure_correctable!(requested_kind)
+    raise LifecycleError unless kept? && successor.nil?
+    raise LifecycleError unless ROOT_KINDS.fetch(page_kind, []).include?(requested_kind)
+    raise LifecycleError if requested_kind != kind && !kind_change_allowed?
+  end
+
+  def correction_attributes(parsed, requested_kind)
+    {
+      kind: requested_kind,
+      state: corrected_state(requested_kind),
+      text: parsed.text,
+      priority: parsed.priority,
+      tags: parsed.tags,
+      occurs_on: parsed.date,
+      time_of_day: parsed.time
+    }
+  end
+
+  def corrected_state(requested_kind)
+    return state if requested_kind == kind
+
+    requested_kind == "task" ? "open" : nil
+  end
+
+  def unresolved?
+    kind == "task" ? state == "open" : state.nil?
+  end
+
+  def ensure_compensatable!(source)
+    reload
+    source.reload
+    raise LifecycleError unless kept_chain_members?(source)
+    raise LifecycleError unless current_successor_of?(source)
+    raise LifecycleError unless unresolved?
+    raise LifecycleError unless source_collection_kept?(source)
+  end
+
+  def kept_chain_members?(source)
+    kept? && source.kept? && user == source.user
+  end
+
+  def current_successor_of?(source)
+    predecessor == source && source.successor == self && successor.nil?
+  end
+
+  def source_collection_kept?(source)
+    source.collection.nil? || source.collection.kept?
+  end
+
+  def compensating_attributes(source)
+    successor_attributes.merge(
+      page_kind: source.page_kind,
+      page_on: source.page_on,
+      collection: source.collection,
+      occurs_on: source.occurs_on,
+      time_of_day: source.time_of_day,
+      predecessor: self
+    )
+  end
 
   def state_matches_kind
     if kind == "task"

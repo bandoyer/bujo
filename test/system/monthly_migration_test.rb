@@ -229,6 +229,46 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1400)
   end
 
+  test "every immediate Undo preserves history and restores the ritual candidate" do
+    outgoing = create_entry(text: "undo outgoing", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
+    due_event = create_entry(
+      text: "undo event", kind: "event", state: nil, page_kind: "future", page_on: nil,
+      occurs_on: TARGET_MONTH + 4.days, time_of_day: "10:15"
+    )
+    sign_in
+    visit migration_outgoing_path
+
+    click_button "Strike"
+    assert_selector ".monthly-migration__confirmation", text: "Struck."
+    click_button "Undo"
+    assert_no_selector ".monthly-migration__confirmation"
+    assert_equal "open", outgoing.reload.state
+    assert_selector "#entry_#{outgoing.id}[aria-label='Review this task']"
+
+    click_button target_tasks_label
+    assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_tasks_label}."
+    first_successor = outgoing.reload.successor
+    click_button "Undo"
+    assert_no_selector ".monthly-migration__confirmation"
+    restored_outgoing = first_successor.reload.successor
+    assert_equal [ outgoing.id, first_successor.id ],
+      [ first_successor.migrated_from_id, restored_outgoing.migrated_from_id ]
+    assert_equal [ "monthly_tasks", SOURCE_MONTH, "open" ],
+      restored_outgoing.values_at(:page_kind, :page_on, :state)
+    within("#entry_#{restored_outgoing.id}") { click_button "Strike" }
+
+    visit migration_future_path
+    within("#entry_#{due_event.id}") { click_button target_calendar_label }
+    assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_calendar_label}."
+    first_event_successor = due_event.reload.successor
+    click_button "Undo"
+    assert_no_selector ".monthly-migration__confirmation"
+    restored_event = first_event_successor.reload.successor
+    assert_equal [ "future", nil, due_event.occurs_on, "10:15", nil ],
+      restored_event.values_at(:page_kind, :page_on, :occurs_on, :time_of_day, :state)
+    assert_selector "#entry_#{restored_event.id}[aria-label='Review this task']"
+  end
+
 
   test "empty ritual checkpoints require Scan and Finish gestures" do
     sign_in

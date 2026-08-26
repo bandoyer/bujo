@@ -8,11 +8,26 @@ class MonthlyMigrationsController < ApplicationController
     outgoing_strike outgoing_tasks outgoing_collection outgoing_future
     future_strike future_tasks future_calendar
   ].freeze
+  # Every ritual result whose one-shot offer may be revalidated by Undo.
+  UNDO_RESOLUTIONS = %w[
+    outgoing_strike outgoing_tasks outgoing_collection outgoing_future
+    future_strike future_tasks future_calendar
+  ].freeze
+  # Destination predicates for movement results, keyed by the resolution the
+  # ritual actually offered rather than trusting a submitted destination.
+  MOVEMENT_UNDO_CHECKS = {
+    "outgoing_tasks" => :target_tasks_result?,
+    "future_tasks" => :target_tasks_result?,
+    "outgoing_collection" => :collection_result?,
+    "outgoing_future" => :future_result?,
+    "future_calendar" => :calendar_result?
+  }.freeze
 
   before_action :set_target_month
   before_action :set_migration_entry, only: ITEM_ACTIONS
   helper_method :target_param
-  rescue_from Entry::LifecycleError, ActiveRecord::RecordInvalid, with: :refuse_command
+  rescue_from Entry::LifecycleError, ActiveRecord::RecordInvalid,
+    ActiveRecord::RecordNotUnique, with: :refuse_command
   rescue_from ActiveRecord::RecordNotFound, with: :render_item_not_found
 
   # Shows the fresh-inventory setup for one admitted target month.
@@ -58,19 +73,19 @@ class MonthlyMigrationsController < ApplicationController
 
   # Strikes the current outgoing task as no longer vital.
   def outgoing_strike
-    resolve_outgoing { @entry.strike! }
+    resolve_outgoing(:outgoing_strike) { @entry.strike! }
   end
 
   # Rewrites the current outgoing task onto the target Tasks page.
   def outgoing_tasks
-    resolve_outgoing do
+    resolve_outgoing(:outgoing_tasks) do
       @entry.move_to!(page_kind: "monthly_tasks", page_on: @target_month, as_of: @today)
     end
   end
 
   # Rewrites the current outgoing task into one exact known Topic.
   def outgoing_collection
-    resolve_outgoing do
+    resolve_outgoing(:outgoing_collection) do
       destination = user_collections.kept.with_exact_topic(params[:topic]).first
       raise Entry::LifecycleError unless destination
 
@@ -80,7 +95,7 @@ class MonthlyMigrationsController < ApplicationController
 
   # Schedules the current outgoing task beyond the target month's horizon.
   def outgoing_future
-    resolve_outgoing do
+    resolve_outgoing(:outgoing_future) do
       date = parsed_iso_date(params[:date])
       raise Entry::LifecycleError unless date
 
@@ -110,19 +125,19 @@ class MonthlyMigrationsController < ApplicationController
 
   # Strikes one due Future task without creating a successor.
   def future_strike
-    resolve_future("task") { @entry.strike! }
+    resolve_future("task", :future_strike) { @entry.strike! }
   end
 
   # Rewrites one due Future task onto target Monthly Tasks.
   def future_tasks
-    resolve_future("task") do
+    resolve_future("task", :future_tasks) do
       @entry.move_to!(page_kind: "monthly_tasks", page_on: @target_month, as_of: @today)
     end
   end
 
   # Rewrites one due Future event onto its dated target Calendar row.
   def future_calendar
-    resolve_future("event") do
+    resolve_future("event", :future_calendar) do
       @entry.move_to!(
         page_kind: "monthly_calendar",
         page_on: @target_month,
@@ -130,6 +145,23 @@ class MonthlyMigrationsController < ApplicationController
         as_of: @today
       )
     end
+  end
+
+  # Revalidates the one offered ritual result and either reopens its strike or
+  # appends a compensating movement back to the exact persisted source.
+  def undo
+    resolution = params[:resolution].to_s
+    raise Entry::LifecycleError unless UNDO_RESOLUTIONS.include?(resolution)
+
+    original = user_entries.kept.find(params[:original_id])
+    result = user_entries.kept.find(params[:result_id])
+    Entry.transaction do
+      [ original, result ].uniq.sort_by(&:id).each(&:lock!)
+      raise Entry::LifecycleError unless undo_admitted?(original, result, resolution)
+
+      strike_resolution?(resolution) ? original.reopen! : result.compensate_to!(original)
+    end
+    redirect_to canonical_stage_path
   end
 
   # Canonicalizes a copied completion URL to the earliest live stage.
@@ -200,28 +232,122 @@ class MonthlyMigrationsController < ApplicationController
     render :checkpoint
   end
 
-  def resolve_outgoing(&action)
-    resolve_ritual_item(action, monthly_migration_outgoing_path(month: target_param)) do
+  def resolve_outgoing(resolution, &action)
+    resolve_ritual_item(resolution, action, monthly_migration_outgoing_path(month: target_param)) do
       outgoing_candidates.first == @entry
     end
   end
 
-  def resolve_future(kind, &action)
-    resolve_ritual_item(action, monthly_migration_future_path(month: target_param)) do
+  def resolve_future(kind, resolution, &action)
+    resolve_ritual_item(resolution, action, monthly_migration_future_path(month: target_param)) do
       outgoing_candidates.none? && future_candidates.first == @entry && @entry.kind == kind
     end
   end
 
-  def resolve_ritual_item(action, return_path)
-    resolved = Entry.transaction do
+  def resolve_ritual_item(resolution, action, return_path)
+    result = Entry.transaction do
       next false unless yield
 
       action.call
-      true
     end
-    return refuse_command unless resolved
+    return refuse_command unless result
 
+    offer_undo(resolution, result)
     redirect_to return_path
+  end
+
+  def offer_undo(resolution, result)
+    result_entry = strike_resolution?(resolution.to_s) ? @entry : result
+    flash[:migration_undo] = {
+      "message" => undo_message(resolution.to_s, result_entry),
+      "original_id" => @entry.id,
+      "result_id" => result_entry.id,
+      "resolution" => resolution.to_s
+    }
+  end
+
+  def undo_message(resolution, result)
+    case resolution
+    when "outgoing_strike", "future_strike" then "Struck."
+    when "outgoing_tasks", "future_tasks" then "Moved to #{@target_month.strftime('%B')} Tasks."
+    when "outgoing_collection" then "Moved to #{result.collection.name}."
+    when "outgoing_future" then "Moved to Future · #{result.occurs_on.strftime('%b %-d')}."
+    when "future_calendar" then "Moved to #{@target_month.strftime('%B')} Calendar."
+    end
+  end
+
+  def undo_admitted?(original, result, resolution)
+    original.reload
+    result.reload
+    return false unless resolution_source_admitted?(original, resolution)
+
+    if strike_resolution?(resolution)
+      original == result && original.kind == "task" && original.state == "struck" && original.successor.nil?
+    else
+      movement_undo_admitted?(original, result, resolution)
+    end
+  end
+
+  def resolution_source_admitted?(original, resolution)
+    if resolution.start_with?("outgoing_")
+      original.kind == "task" && outgoing_source_ids.include?(original.id)
+    else
+      future_source_admitted?(original)
+    end
+  end
+
+  def outgoing_source_ids
+    @outgoing_source_ids ||= outgoing_roots.flat_map { |root| kept_resident_tree(root) }.map(&:id)
+  end
+
+  def future_source_admitted?(original)
+    original.parent_id.nil? && original.page_kind == "future" &&
+      original.occurs_on && @target_month.all_month.cover?(original.occurs_on)
+  end
+
+  def movement_undo_admitted?(original, result, resolution)
+    return false unless current_movement_result?(original, result)
+    return false unless unresolved_result?(result)
+
+    resolution_destination_matches?(original, result, resolution)
+  end
+
+  def resolution_destination_matches?(original, result, resolution)
+    check = MOVEMENT_UNDO_CHECKS[resolution]
+    check ? send(check, original, result) : false
+  end
+
+  def current_movement_result?(original, result)
+    result.predecessor == original && original.successor == result && result.successor.nil?
+  end
+
+  def unresolved_result?(result)
+    (result.kind == "task" && result.state == "open") ||
+      (result.kind == "event" && result.state.nil?)
+  end
+
+  def target_tasks_result?(_original, result)
+    result.kind == "task" && result.page_kind == "monthly_tasks" && result.page_on == @target_month
+  end
+
+  def collection_result?(_original, result)
+    result.kind == "task" && result.page_kind == "collection" &&
+      user_collections.kept.exists?(result.collection_id)
+  end
+
+  def future_result?(_original, result)
+    result.kind == "task" && result.page_kind == "future" &&
+      result.occurs_on && result.occurs_on > @target_month.end_of_month
+  end
+
+  def calendar_result?(original, result)
+    original.kind == "event" && result.kind == "event" &&
+      result.page_kind == "monthly_calendar" && result.page_on == @target_month &&
+      result.occurs_on == original.occurs_on
+  end
+
+  def strike_resolution?(resolution)
+    resolution.end_with?("_strike")
   end
 
   def canonical_stage_path

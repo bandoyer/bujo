@@ -9,6 +9,7 @@ module EntryCommandAuthorization
   REFUSAL_ALERT = "That entry can't do that.".freeze
 
   COMMAND_RESIDENCIES = {
+    "update" => Entry::PAGE_KINDS,
     "complete" => %w[daily monthly_calendar monthly_tasks collection],
     "reopen" => %w[daily monthly_calendar monthly_tasks collection],
     "strike" => %w[daily monthly_calendar monthly_tasks collection],
@@ -41,7 +42,7 @@ module EntryCommandAuthorization
 
   # Unknown commands have no residency row and are refused by default.
   def entry_command_allowed?(entry, command)
-    COMMAND_RESIDENCIES.fetch(command.to_s, NO_RESIDENCIES).include?(entry.page_kind)
+    entry.successor.nil? && COMMAND_RESIDENCIES.fetch(command.to_s, NO_RESIDENCIES).include?(entry.page_kind)
   end
 
   # Every command this row may be offered: what its lifecycle supports, kept
@@ -56,8 +57,13 @@ module EntryCommandAuthorization
   # carries the journal forward, so the predecessor offers nothing at all.
   def lifecycle_commands(entry)
     return NO_COMMANDS if entry.successor
-    return TASK_COMMANDS_BY_STATE.fetch(entry.state, NO_COMMANDS) if entry.kind == "task"
 
-    NON_TASK_COMMANDS_BY_KIND.fetch(entry.kind, NO_COMMANDS)
+    commands = if entry.kind == "task"
+      TASK_COMMANDS_BY_STATE.fetch(entry.state, NO_COMMANDS)
+    else
+      NON_TASK_COMMANDS_BY_KIND.fetch(entry.kind, NO_COMMANDS)
+    end
+
+    [ "update", *commands ]
   end
 end

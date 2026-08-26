@@ -13,6 +13,12 @@ class EntriesController < ApplicationController
   CLOCK_PARSED_PAGE_KINDS = %w[monthly_tasks collection].freeze
   # Placements whose capture refreshes in place instead of re-rendering a screen.
   TURBO_CAPTURE_TEMPLATES = { "daily" => :create, "future" => :create_future }.freeze
+  # Any presence of these ownership, residency, tree, history, deletion, or
+  # dormant-sync claims refuses correction as a whole command.
+  FORBIDDEN_CORRECTION_PARAMS = %w[
+    id user_id page_kind page_on collection_id parent_id migrated_from_id
+    created_at deleted_at hlc server_seq state
+  ].freeze
 
   # Both filters cover every member action rather than naming them, so a
   # command added later arrives gated instead of silently reachable from any
@@ -21,6 +27,7 @@ class EntriesController < ApplicationController
   before_action :require_actionable_residency, except: :create
   rescue_from ActiveRecord::RecordNotFound, with: :render_entry_not_found
   rescue_from Entry::LifecycleError, with: :refuse_lifecycle_change
+  rescue_from ActiveRecord::RecordInvalid, with: :refuse_lifecycle_change
 
   # Captures a rapid-log line on the page selected by the gesture.
   def create
@@ -55,6 +62,20 @@ class EntriesController < ApplicationController
     redirect_to_viewed_page
   end
 
+  # Corrects the current live row from one reparsed rapid-log line.
+  def update
+    @submitted_edit_line = params[:line].to_s
+    raise Entry::LifecycleError if forbidden_correction_claim?
+
+    parsed = Bujo::RapidLog.parse(
+      @submitted_edit_line,
+      today: correction_parser_today,
+      default_kind: correction_kind.to_sym
+    )
+    @entry.correct!(parsed, kind: correction_kind)
+    redirect_to_entry_page
+  end
+
   # Carries an eligible task to the Tasks page after its resident month.
   def migrate
     destination_month = @entry.page_on.next_month.beginning_of_month
@@ -66,19 +87,16 @@ class EntriesController < ApplicationController
     redirect_to_viewed_page
   end
 
-  # Schedules an eligible task or event into the Future Log.
+  # Schedules an eligible task or event to Calendar later this month or Future
+  # after this month, deriving every destination field from the submitted day.
   def schedule
     date = requested_date(:date)
     eligible_kind = @entry.kind.in?(Entry::ROOT_KINDS.fetch("future"))
-    return refuse_lifecycle_change unless date && eligible_kind
+    return refuse_lifecycle_change unless date && date > @today && eligible_kind
 
-    @entry.move_to!(
-      page_kind: "future",
-      page_on: nil,
-      occurs_on: date,
-      as_of: @today
-    )
-    redirect_to_viewed_page
+    destination = schedule_destination(date)
+    @entry.move_to!(occurs_on: date, as_of: @today, **destination)
+    redirect_to_entry_page
   end
 
   # Rewrites one eligible Daily or Monthly resident into an exact known
@@ -105,6 +123,35 @@ class EntriesController < ApplicationController
   def set_entry
     @entry = user_entries.kept.find(params[:id])
     @collection = user_collections.kept.find(@entry.collection_id) if @entry.page_kind == "collection"
+  end
+
+  def forbidden_correction_claim?
+    body_claims = request.request_parameters
+    nested_claims = body_claims["entry"].respond_to?(:keys) ? body_claims["entry"].keys : []
+    FORBIDDEN_CORRECTION_PARAMS.any? do |attribute|
+      body_claims.key?(attribute) || nested_claims.include?(attribute)
+    end
+  end
+
+  def correction_kind
+    params[:default_kind].presence_in(Entry::KINDS) || raise(Entry::LifecycleError)
+  end
+
+  def correction_parser_today
+    root = resident_root(@entry)
+    case root.page_kind
+    when "daily" then root.page_on
+    when "monthly_calendar", "future" then root.occurs_on
+    else @today
+    end
+  end
+
+  def schedule_destination(date)
+    if date <= @today.end_of_month
+      { page_kind: "monthly_calendar", page_on: @today.beginning_of_month }
+    else
+      { page_kind: "future", page_on: nil }
+    end
   end
 
   # Every routed member action crosses the policy before its body runs.
@@ -222,6 +269,16 @@ class EntriesController < ApplicationController
     redirect_to page_path(return_page, viewed_date), **response_options
   end
 
+  def redirect_to_entry_page(**response_options)
+    redirect_to entry_page_path, **response_options
+  end
+
+  def entry_page_path
+    return collection_path(@collection) if @entry.page_kind == "collection"
+
+    page_path(@entry.page_kind, @entry.page_on || @entry.occurs_on || @today)
+  end
+
   # Which lookup failed decides the response. A resolved Collection resident
   # whose Collection is gone gets the themed page that screen already shows;
   # a missing entry has no screen to theme, so it answers with the bare status.
@@ -236,6 +293,13 @@ class EntriesController < ApplicationController
   end
 
   def refuse_lifecycle_change
+    if action_name == "update"
+      flash[:edit_entry_id] = @entry.id
+      flash[:edit_line] = @submitted_edit_line || params[:line].to_s
+    end
+
+    return redirect_to_entry_page(alert: REFUSAL_ALERT) if action_name.in?(%w[update schedule])
+
     redirect_to_viewed_page(alert: REFUSAL_ALERT)
   end
 

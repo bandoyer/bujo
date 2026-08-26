@@ -4,7 +4,7 @@ require "test_helper"
 # persisted residency and Entry's lifecycle, with the same rules behind
 # crafted requests when no control is rendered.
 class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
-  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection].freeze
+  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection update].freeze
 
   setup do
     @user = users(:one)
@@ -27,7 +27,7 @@ class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
         original_journal = journal_snapshot
 
         assert_no_difference -> { Entry.count } do
-          post public_send("#{command}_entry_path", entry), params: crafted_params(command)
+          request_command(command, entry, crafted_params(command))
         rescue NoMethodError => error
           flunk "#{command} must be refused on a Collection resident before the action body runs; it dereferenced nil (#{error.message})"
         end
@@ -44,13 +44,13 @@ class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
 
   def collection_rows
     @collection_rows ||= [
-      [ create_collection_entry("open task", kind: "task", state: "open"), %w[complete strike] ],
-      [ create_collection_entry("done task", kind: "task", state: "done"), %w[reopen] ],
-      [ create_collection_entry("struck task", kind: "task", state: "struck"), %w[reopen] ],
-      [ create_collection_entry("migrated task", kind: "task", state: "migrated"), [] ],
-      [ create_collection_entry("event", kind: "event", state: nil), [] ],
+      [ create_collection_entry("open task", kind: "task", state: "open"), %w[update complete strike] ],
+      [ create_collection_entry("done task", kind: "task", state: "done"), %w[update reopen] ],
+      [ create_collection_entry("struck task", kind: "task", state: "struck"), %w[update reopen] ],
+      [ create_collection_entry("migrated task", kind: "task", state: "migrated"), %w[update] ],
+      [ create_collection_entry("event", kind: "event", state: nil), %w[update] ],
       [ moved_collection_entry("moved event", kind: "event"), [] ],
-      [ create_collection_entry("note", kind: "note", state: nil), [] ],
+      [ create_collection_entry("note", kind: "note", state: nil), %w[update] ],
       [ moved_collection_entry("moved note", kind: "note"), [] ]
     ]
   end
@@ -77,7 +77,7 @@ class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
 
     COMMANDS.each do |command|
       expected_count = expected_commands.include?(command) ? 1 : 0
-      assert_select "#{selector} form[action='#{public_send("#{command}_entry_path", entry)}']",
+      assert_select "#{selector} form[action='#{command_path(command, entry)}']",
         count: expected_count
     end
   end
@@ -90,7 +90,22 @@ class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
       collection_id: @foreign_collection.id,
       topic: @foreign_collection.name,
       date: (Time.zone.today.next_month.beginning_of_month.iso8601 if command == "schedule")
-    }.compact
+    }.tap do |params|
+      params[:line] = "corrected" if command == "update"
+      params[:default_kind] = "task" if command == "update"
+    end.compact
+  end
+
+  def request_command(command, entry, params)
+    return patch entry_path(entry), params: params if command == "update"
+
+    post public_send("#{command}_entry_path", entry), params: params
+  end
+
+  def command_path(command, entry)
+    return entry_path(entry) if command == "update"
+
+    public_send("#{command}_entry_path", entry)
   end
 
   def journal_snapshot

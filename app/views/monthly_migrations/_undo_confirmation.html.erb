@@ -1,0 +1,16 @@
+<%# One redirect-scoped offer; every posted value is revalidated server-side. %>
+<% if (offer = flash[:migration_undo]) %>
+  <section class="monthly-migration__confirmation" aria-label="Most recent migration result">
+    <div class="entry__line">
+      <span class="entry__signifier" aria-hidden="true"></span>
+      <span class="entry__glyph" aria-hidden="true"></span>
+      <p class="entry__text"><%= offer["message"] %></p>
+      <%= form_with url: undo_monthly_migration_path(month: target_param) do |form| %>
+        <%= form.hidden_field :original_id, value: offer["original_id"] %>
+        <%= form.hidden_field :result_id, value: offer["result_id"] %>
+        <%= form.hidden_field :resolution, value: offer["resolution"] %>
+        <%= form.submit "Undo", class: "monthly-migration__button" %>
+      <% end %>
+    </div>
+  </section>
+<% end %>

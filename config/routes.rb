@@ -22,6 +22,7 @@ Rails.application.routes.draw do
     as: :tasks_monthly_migration_future
   post "month/:month/migration/future/:id/calendar", to: "monthly_migrations#future_calendar",
     as: :calendar_monthly_migration_future
+  post "month/:month/migration/undo", to: "monthly_migrations#undo", as: :undo_monthly_migration
   get "month/:month/migration/complete", to: "monthly_migrations#complete", as: :monthly_migration_complete
   get "future", to: "future_logs#show", as: :future_log
   get "index", to: "collections#index", as: :journal_index
@@ -34,7 +35,7 @@ Rails.application.routes.draw do
       delete :registration, action: :unindex
     end
   end
-  resources :entries, only: :create do
+  resources :entries, only: %i[create update] do
     member do
       post :complete
       post :reopen
