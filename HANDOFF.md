@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.3a implementation in progress (2026-08-26)
+# Handoff — slice 1.5.3a landed; operator review next (2026-08-26)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -23,14 +23,30 @@ Never seed work from the historical `recovered/1.5.1-accepted-spec` branch;
 it remains a recovery artifact only.
 
 Slice 1.5.3's approved terminal candidate is `329b8f6` and is integrated on
-`main`. Its completed swarm is retired. Slice 1.5.3a is approved at
+`main`. Slice 1.5.3a's terminal candidate is `92c43e2`; it is also integrated
+on `main`, and its completed six-role swarm is retired. Its contract is
 `docs/slices/1.5.3a-phone-capture-and-ritual-clarity.md`, with the approved
-review board at `mockups/PhoneCaptureCorrection.dc.html`; its implementation
-started in isolated `mix-*` worktrees from pushed baseline `2a4fb8e`. No
-candidate is integrated or deployed by this handoff.
+review board at `mockups/PhoneCaptureCorrection.dc.html`. Nothing from 1.5.3a
+has been deployed by this handoff.
 
 ## Exact landed state
 
+- Daily no longer repeats its date under the page title. Its centered date
+  remains between day-navigation chevrons, and the trailing page canvas opens
+  the same rapid-log form as the visible entries.
+- Monthly Calendar dates and blank row space open capture for that exact day;
+  the separate labelled 44px chevron opens the Daily Log. Monthly Tasks uses
+  the same trailing-canvas capture behavior as Daily.
+- Future uses the shared Task/Event glyph controls and rapid-log anatomy,
+  aligns resident glyph/day/content/time fields, and lets either a month
+  heading or the trailing month canvas open the same form with truthful focus
+  return.
+- Index keeps its explicit New Collection control and also opens that same
+  create form from the trailing canvas. Reveal remains ephemeral and creates
+  nothing by itself.
+- Empty outgoing and Future migration stages are truthful checkpoints. The
+  operator explicitly chooses Scan the Future Log and Finish Monthly Migration;
+  completion remains derived from live entry state rather than a new flag.
 - Monthly Migration is an explicitly opened target-month ritual. It never
   starts on page view or month rollover and never silently carries work.
 - Setup gives the ritual alone a task-only admission context for target Monthly
@@ -48,38 +64,25 @@ candidate is integrated or deployed by this handoff.
   residency, soft deletion without cascades, exact NULL event/note state, and
   dormant `hlc`/`server_seq` behavior preserved. `lib/`, `Gemfile`, and parser
   grammar are untouched.
-- Final receipts: `bin/rails test` 200 runs / 3360 assertions;
-  `bin/rails test:system` 56 / 1220; RuboCop clean; all 194 measured methods at
-  CRAP ≤ 6; jscpd zero clones; `Bujo::RapidLog*` mutation 1105/1105.
+- Slice 1.5.3a candidate receipts: 201 fast tests / 3412 assertions; 61 system
+  tests / 1383 assertions; RuboCop clean; all 195 measured methods at CRAP ≤ 6;
+  jscpd zero clones; `Bujo::RapidLog*` mutation 1105/1105. Root repeated the
+  fast and system lanes plus RuboCop after integration. The first parallel
+  system run had two transient sign-in setup failures; both exact cases passed
+  together in isolation and the complete rerun passed.
 - Architect review recorded one non-blocking dogfood seam: a populated
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
 
-## Next work — implement the approved 1.5.3a amendment
+## Next work — phone review, then the next approved track
 
-Phone dogfooding produced one deliberately small correction before Daily
-Reflection:
+Run the merged app locally and repeat the reported phone flows in both themes:
+Daily and Monthly trailing capture, Calendar capture versus its Daily chevron,
+Future kind selection/alignment/trailing capture, Index trailing creation, and
+the empty Monthly Migration checkpoints. Record any dogfood corrections before
+starting another implementation slice.
 
-- remove the duplicate date beneath `Daily Log` while retaining the centered
-  date between the day-navigation chevrons;
-- make the real trailing canvas open capture on Daily, Monthly Tasks, Future,
-  and Index, without making reveal itself persist anything;
-- make Calendar day/blank-row taps open that exact Calendar capture while a
-  separate 44px chevron opens the Daily Log;
-- reuse the shared Task/Event glyph controls in Future, restore their visible
-  selected state and focus behavior, and align each resident on one baseline;
-- render truthful outgoing-empty and Future-empty Monthly Migration checkpoints
-  and require explicit Scan and Finish gestures before completion.
-
-This is presentation and orchestration only. Preserve every residency,
-capture-admission, return-destination, same-user, UUIDv7, append-only movement,
-soft-deletion, and dormant sync-field invariant. Do not change models, schema,
-routes, parser grammar, `lib/`, or dependencies. The required system tests use
-real phone coordinates and rendered geometry in the existing Rails
-headless-Chrome lane; selector clicks on invisible controls do not prove the
-reported gestures.
-
-After 1.5.3a lands and is dogfooded, the next method-spine slice is **1.5.4
+After 1.5.3a is dogfooded, the next method-spine slice is **1.5.4
 Daily Reflection**. Its current plan boundary remains a small AM/PM reference
 lens:
 
@@ -95,13 +98,19 @@ Morning Reflection, Evening Reflection, Daily Log, and Migration passages only
 where project authority leaves a source question unresolved. Surface genuinely
 digital decisions to Dan rather than guessing.
 
+The separate authentication track is also unblocked: Step 1 is Resend delivery
+plus short-lived, single-use magic links, governed by
+`docs/resend-transactional-email.md`. Phone review is the immediate gate; do
+not infer whether Daily Reflection or authentication starts next without Dan's
+choice.
+
 ## Build and review
 
 Keep the proven loop: source-aligned spec and smallest review mock → Dan's
 explicit approval → `six-mix-fable-review` swarm → operator review → Dan's
 explicit integration approval → merge and push. Do not deploy for Dan.
 
-For 1.5.3a the compatibility-named pack is the approved experimental roster:
+For 1.5.3a the compatibility-named pack used this experimental roster:
 Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok
 High hardener, and Sol XHigh QA. Passing QA is terminal only for implementation;
 it does not authorize root integration or push.
@@ -111,10 +120,10 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-The 1.5.3a spec, mock, and roster are committed in baseline `2a4fb8e`. The
-six-role swarm is active; handoffd runs for this pack while squadd correctly
-remains off. Do not start a second swarm, integrate a candidate, or push
-implementation without the remaining operator and human approval gates.
+The 1.5.3a spec, mock, and roster were committed in baseline `2a4fb8e`.
+Terminal candidate `92c43e2` is integrated and the swarm, its role worktrees,
+and both daemons are retired. Do not start another swarm before its
+source-aligned specification and any necessary review mock are approved.
 
 After Daily Reflection, the remaining method-spine slice is `!` inspiration
 and master-task completion gating (1.5.5). Settings polish, broad search,
