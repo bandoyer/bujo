@@ -10,7 +10,8 @@
     { "file": "AltDark.dc.html", "title": "Alt · Terminal-kin Dark", "x": 1410, "y": 760, "w": 390, "h": 844 },
     { "file": "MonthTasks.dc.html", "title": "Mobile · Monthly Tasks", "x": 470, "y": 1760, "w": 390, "h": 844 },
     { "file": "Future.dc.html", "title": "Mobile · Future Log", "x": 940, "y": 1760, "w": 390, "h": 844 },
-    { "file": "MonthlyMigration.dc.html", "title": "Mobile · Monthly Migration review", "x": 0, "y": 2760, "w": 1360, "h": 920 }
+    { "file": "MonthlyMigration.dc.html", "title": "Mobile · Monthly Migration review", "x": 0, "y": 2760, "w": 1360, "h": 920 },
+    { "file": "PhoneCaptureCorrection.dc.html", "title": "Mobile · Capture and ritual clarity", "x": 0, "y": 3780, "w": 1320, "h": 930 }
   ],
   "annotations": [
     { "id": "rapid-log-grammar", "x": 1900, "y": 780, "w": 300, "text": "The shared core is Ryder Carroll's rapid-logging grammar:\n• task   x done   > migrated   < scheduled\n○ event   – note   * priority\n\nIt's plain text, so one parser in Rails can serve the TUI, the web app, and even piped stdin." },

@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.3 landed; review, then specify 1.5.4 (2026-08-26)
+# Handoff — slice 1.5.3a approved; prepare its swarm baseline (2026-08-26)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -22,9 +22,11 @@ preserved `.swarmforge/` audit logs.
 Never seed work from the historical `recovered/1.5.1-accepted-spec` branch;
 it remains a recovery artifact only.
 
-Slice 1.5.3's approved terminal candidate is `329b8f6`. It is integrated on
-`main`; no implementation is deployed by this handoff. Retire its completed
-`six-mix-fable-review` swarm before another pack is selected.
+Slice 1.5.3's approved terminal candidate is `329b8f6` and is integrated on
+`main`. Its completed swarm is retired. Slice 1.5.3a is approved at
+`docs/slices/1.5.3a-phone-capture-and-ritual-clarity.md`, with the approved
+review board at `mockups/PhoneCaptureCorrection.dc.html`; its implementation
+has not started and no implementation is deployed by this handoff.
 
 ## Exact landed state
 
@@ -52,16 +54,33 @@ Slice 1.5.3's approved terminal candidate is `329b8f6`. It is integrated on
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
 
-## Next work — review 1.5.3, then specify 1.5.4
+## Next work — implement the approved 1.5.3a amendment
 
-First use the landed Monthly Migration flow locally. Check whether the
-one-item-at-a-time friction, setup copy, destination steps, Future scan, and
-completion state feel faithful in a real month. Product friction found here is
-evidence for a focused amendment, not permission for automatic rollover.
+Phone dogfooding produced one deliberately small correction before Daily
+Reflection:
 
-After that review, the next planned slice is **1.5.4 Daily Reflection**. Write
-and obtain operator approval for a source-aligned specification before code or
-a swarm begins. The current plan boundary is a small AM/PM reference lens:
+- remove the duplicate date beneath `Daily Log` while retaining the centered
+  date between the day-navigation chevrons;
+- make the real trailing canvas open capture on Daily, Monthly Tasks, Future,
+  and Index, without making reveal itself persist anything;
+- make Calendar day/blank-row taps open that exact Calendar capture while a
+  separate 44px chevron opens the Daily Log;
+- reuse the shared Task/Event glyph controls in Future, restore their visible
+  selected state and focus behavior, and align each resident on one baseline;
+- render truthful outgoing-empty and Future-empty Monthly Migration checkpoints
+  and require explicit Scan and Finish gestures before completion.
+
+This is presentation and orchestration only. Preserve every residency,
+capture-admission, return-destination, same-user, UUIDv7, append-only movement,
+soft-deletion, and dormant sync-field invariant. Do not change models, schema,
+routes, parser grammar, `lib/`, or dependencies. The required system tests use
+real phone coordinates and rendered geometry in the existing Rails
+headless-Chrome lane; selector clicks on invisible controls do not prove the
+reported gestures.
+
+After 1.5.3a lands and is dogfooded, the next method-spine slice is **1.5.4
+Daily Reflection**. Its current plan boundary remains a small AM/PM reference
+lens:
 
 - morning reflection brings the current month's open tasks into view;
 - evening reflection walks today's entries deliberately through appropriate
@@ -70,10 +89,10 @@ a swarm begins. The current plan boundary is a small AM/PM reference lens:
   duplicate residency, background sweep, notification system, or automatic
   movement.
 
-Start with `docs/METHOD.md`; return to the book's Morning Reflection, Evening
-Reflection, Daily Log, and Migration passages only where project authority
-leaves a source question unresolved. Surface genuinely digital decisions to
-Dan rather than guessing.
+When 1.5.4 is specified, start with `docs/METHOD.md`; return to the book's
+Morning Reflection, Evening Reflection, Daily Log, and Migration passages only
+where project authority leaves a source question unresolved. Surface genuinely
+digital decisions to Dan rather than guessing.
 
 ## Build and review
 
@@ -81,13 +100,18 @@ Keep the proven loop: source-aligned spec and smallest review mock → Dan's
 explicit approval → `six-mix-fable-review` swarm → operator review → Dan's
 explicit integration approval → merge and push. Do not deploy for Dan.
 
+For 1.5.3a the compatibility-named pack is the approved experimental roster:
+Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok
+High hardener, and Sol XHigh QA. Passing QA is terminal only for implementation;
+it does not authorize root integration or push.
+
 Herdr roles have no Codex Desktop in-app Browser backend. QA must not attempt
 or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-After the completed 1.5.3 swarm is retired, no new swarm starts until the
-1.5.4 specification and any required mock are explicitly approved.
+The 1.5.3a spec and mock are approved. Before `swarm up`, they and the roster
+must be committed on the baseline branch so isolated worktrees can read them.
 
 After Daily Reflection, the remaining method-spine slice is `!` inspiration
 and master-task completion gating (1.5.5). Settings polish, broad search,

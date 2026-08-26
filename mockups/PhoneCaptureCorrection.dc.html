@@ -1,0 +1,487 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Permanent+Marker&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #d9d4c8; font-family: "Permanent Marker", system-ui, sans-serif; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .correction-board {
+      display: grid;
+      width: 1320px;
+      min-height: 930px;
+      grid-template-columns: 390px 390px 450px;
+      gap: 32px;
+      align-items: start;
+      padding: 32px;
+      background: #d9d4c8;
+    }
+    .phone {
+      position: relative;
+      display: flex;
+      width: 390px;
+      height: 844px;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #c8c1b1;
+      border-radius: 30px;
+      box-shadow: 0 18px 45px rgba(32, 29, 24, 0.16);
+    }
+    .phone--light {
+      background-color: #f6f1e6;
+      background-image: radial-gradient(rgba(32, 29, 24, 0.09) 1px, transparent 1.1px);
+      background-size: 22px 22px;
+      color: #201d18;
+    }
+    .phone--dark {
+      border-color: #2f3549;
+      background-color: #16161e;
+      background-image: radial-gradient(rgba(192, 202, 245, 0.07) 1px, transparent 1.1px);
+      background-size: 22px 22px;
+      color: #c0caf5;
+      box-shadow: 0 18px 45px rgba(22, 22, 30, 0.35);
+    }
+    .phone__page {
+      display: flex;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+      padding: 28px 18px 82px;
+    }
+    .page-title {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 40px;
+      font-weight: 400;
+      line-height: 0.98;
+    }
+    .rule {
+      height: 1px;
+      flex: 0 0 auto;
+      margin-top: 18px;
+      background: #e0d8c4;
+    }
+    .phone--dark .rule { background: #2f3549; }
+    .month-heading {
+      min-height: 44px;
+      margin: 22px 0 2px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #a8722a;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      text-align: left;
+    }
+    .phone--dark .month-heading { color: #7aa2f7; }
+    .month-heading--muted { color: #a39a89; }
+    .phone--dark .month-heading--muted { color: #565f89; }
+    .capture-card {
+      padding: 11px;
+      border: 1px solid #e0d8c4;
+      border-radius: 18px;
+      background: rgba(253, 250, 242, 0.95);
+      box-shadow: 0 10px 24px rgba(32, 29, 24, 0.09);
+    }
+    .phone--dark .capture-card {
+      border-color: #2f3549;
+      background: rgba(26, 27, 38, 0.96);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+    .kind-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .kind-control {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid #e0d8c4;
+      border-radius: 50%;
+      background: #fdfaf2;
+      color: #8d8574;
+      font-family: "Permanent Marker", "JetBrains Mono", monospace;
+      font-size: 20px;
+    }
+    .phone--dark .kind-control {
+      border-color: #2f3549;
+      background: #1a1b26;
+      color: #565f89;
+    }
+    .kind-control[aria-pressed="true"] {
+      border-color: #a8722a;
+      color: #a8722a;
+    }
+    .phone--dark .kind-control[aria-pressed="true"] {
+      border-color: #7aa2f7;
+      color: #7aa2f7;
+    }
+    .capture-row {
+      display: grid;
+      min-height: 46px;
+      grid-template-columns: 54px minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid #e0d8c4;
+      border-radius: 999px;
+      background: #fdfaf2;
+    }
+    .phone--dark .capture-row { border-color: #2f3549; background: #1a1b26; }
+    .capture-row input {
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      outline: 0;
+    }
+    .capture-day {
+      width: 54px;
+      border-right: 1px solid #e0d8c4 !important;
+      text-align: center;
+    }
+    .phone--dark .capture-day { border-right-color: #2f3549 !important; }
+    .capture-line { padding: 0 10px; }
+    .capture-line::placeholder { color: #8d8574; opacity: 1; }
+    .phone--dark .capture-line::placeholder { color: #565f89; }
+    .capture-submit {
+      min-width: 58px;
+      border: 0;
+      background: #a8722a;
+      color: #fdfaf2;
+    }
+    .phone--dark .capture-submit { background: #7aa2f7; color: #1a1b26; }
+    .future-entry {
+      display: grid;
+      min-height: 44px;
+      grid-template-columns: 32px 16px 20px minmax(0, 1fr) auto;
+      gap: 4px;
+      align-items: baseline;
+      padding: 7px 4px;
+    }
+    .future-day { color: #8d8574; text-align: right; }
+    .phone--dark .future-day { color: #565f89; }
+    .future-glyph { font-family: "JetBrains Mono", monospace; }
+    .future-meta { color: #8d8574; font-size: 12px; }
+    .phone--dark .future-meta { color: #565f89; }
+    .future-write-space {
+      min-height: 44px;
+      border: 0;
+      background: transparent;
+    }
+    .view-switch {
+      display: flex;
+      align-self: center;
+      margin-top: 16px;
+      padding: 3px;
+      border: 1px solid #2f3549;
+      border-radius: 999px;
+      background: #1a1b26;
+    }
+    .view-switch span {
+      display: grid;
+      min-height: 44px;
+      padding: 0 14px;
+      place-items: center;
+      border-radius: 999px;
+      color: #565f89;
+      font-size: 13px;
+    }
+    .view-switch .view-switch__active { background: #23263a; color: #7aa2f7; }
+    .month-navigation {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      margin: 8px 0 2px;
+      color: #7aa2f7;
+      text-align: center;
+    }
+    .month-navigation span:first-child,
+    .month-navigation span:last-child {
+      display: grid;
+      min-height: 44px;
+      place-items: center;
+      color: #c0caf5;
+      font-size: 24px;
+    }
+    .migration-link {
+      display: grid;
+      min-height: 44px;
+      align-self: flex-start;
+      padding: 0 12px;
+      place-items: center;
+      border: 1px solid #2f3549;
+      border-radius: 10px;
+      background: #1a1b26;
+      color: #c0caf5;
+      font-size: 13px;
+    }
+    .calendar-list { margin-top: 10px; }
+    .calendar-day {
+      display: grid;
+      min-height: 46px;
+      grid-template-columns: 70px minmax(0, 1fr) 44px;
+      align-items: center;
+      border-radius: 10px;
+    }
+    .calendar-day--selected { background: #20243a; }
+    .calendar-date {
+      display: grid;
+      min-height: 44px;
+      grid-template-columns: 30px 20px;
+      gap: 5px;
+      align-items: center;
+      padding: 0 6px;
+      border: 0;
+      background: transparent;
+      color: #c0caf5;
+      text-align: right;
+    }
+    .calendar-day--selected .calendar-date { color: #7aa2f7; }
+    .calendar-weekday { color: #565f89; }
+    .calendar-chevron {
+      display: grid;
+      min-width: 44px;
+      min-height: 44px;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      color: #c0caf5;
+      font-size: 24px;
+    }
+    .calendar-write-space {
+      min-height: 44px;
+      border: 0;
+      background: transparent;
+    }
+    .calendar-panel { grid-column: 1 / -1; padding: 4px 4px 10px; }
+    .calendar-panel .capture-card { box-shadow: none; }
+    .tab-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 66px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid #e0d8c4;
+      background: #fdfaf2;
+    }
+    .phone--dark .tab-bar { border-color: #2f3549; background: #1a1b26; }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: #a39a89;
+      font-size: 11px;
+    }
+    .phone--dark .tab { color: #565f89; }
+    .tab--future { color: #a8722a; }
+    .phone--dark .tab--month { color: #7aa2f7; }
+    .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .checkpoint-column { display: grid; gap: 24px; }
+    .checkpoint {
+      position: relative;
+      width: 450px;
+      min-height: 380px;
+      overflow: hidden;
+      padding: 28px 22px 78px;
+      border: 1px solid #c8c1b1;
+      border-radius: 26px;
+      background-color: #f6f1e6;
+      background-image: radial-gradient(rgba(32, 29, 24, 0.09) 1px, transparent 1.1px);
+      background-size: 22px 22px;
+      color: #201d18;
+      box-shadow: 0 18px 45px rgba(32, 29, 24, 0.12);
+    }
+    .checkpoint .page-title { font-size: 34px; }
+    .checkpoint-context { margin: 8px 0 0; color: #a8722a; font-size: 14px; }
+    .checkpoint-stage {
+      margin: 10px 0 0;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e0d8c4;
+      color: #8d8574;
+      font-size: 14px;
+    }
+    .preference-row { display: flex; gap: 8px; margin-top: 14px; }
+    .preference {
+      display: grid;
+      min-height: 44px;
+      padding: 0 10px;
+      place-items: center;
+      border: 1px solid #e0d8c4;
+      border-radius: 9px;
+      background: #fdfaf2;
+      color: #8d8574;
+      font-size: 12px;
+    }
+    .checkpoint-copy { margin: 28px 0 14px; font-size: 18px; }
+    .checkpoint-action {
+      display: inline-grid;
+      min-height: 44px;
+      padding: 0 14px;
+      place-items: center;
+      border: 1px solid #e0d8c4;
+      border-radius: 10px;
+      background: #fdfaf2;
+      color: #201d18;
+      font-size: 14px;
+    }
+    .checkpoint .tab-bar { height: 64px; }
+  </style>
+</helmet>
+
+<div class="correction-board">
+  <section class="phone phone--light" aria-label="Future Log capture with shared rapid-log controls">
+    <div class="phone__page">
+      <h1 class="page-title">Future Log</h1>
+      <div class="rule"></div>
+
+      <button class="month-heading" type="button">SEPTEMBER 2026</button>
+      <div class="capture-card">
+        <div class="kind-row" aria-label="Entry kind">
+          <button class="kind-control" type="button" aria-label="Task" aria-pressed="true">•</button>
+          <button class="kind-control" type="button" aria-label="Event" aria-pressed="false">O</button>
+        </div>
+        <div class="capture-row">
+          <input class="capture-day" value="5" aria-label="Day of the month">
+          <input class="capture-line" placeholder="Rapid log…" aria-label="Rapid log">
+          <button class="capture-submit" type="button">Log</button>
+        </div>
+      </div>
+
+      <div class="future-entry">
+        <span class="future-day">5</span>
+        <span></span>
+        <span class="future-glyph">O</span>
+        <span>Haircut @</span>
+        <span class="future-meta">12:30</span>
+      </div>
+      <button class="future-write-space" type="button" aria-label="Write in September 2026"></button>
+
+      <button class="month-heading month-heading--muted" type="button">OCTOBER 2026</button>
+      <button class="month-heading month-heading--muted" type="button">NOVEMBER 2026</button>
+      <button class="month-heading month-heading--muted" type="button">DECEMBER 2026</button>
+    </div>
+
+    <nav class="tab-bar" aria-label="Primary">
+      <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+      <span class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+      <span class="tab tab--future"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+      <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+    </nav>
+  </section>
+
+  <section class="phone phone--dark" aria-label="Monthly Calendar capture with separate Daily Log chevron">
+    <div class="phone__page">
+      <h1 class="page-title">Monthly Log</h1>
+      <div class="view-switch" aria-label="Monthly Log view">
+        <span class="view-switch__active">Calendar</span>
+        <span>Tasks</span>
+      </div>
+      <div class="month-navigation">
+        <span>‹</span><span>AUG · 2026</span><span>›</span>
+      </div>
+      <span class="migration-link">Monthly Migration</span>
+
+      <div class="calendar-list">
+        <div class="calendar-day">
+          <button class="calendar-date" type="button"><span>24</span><span class="calendar-weekday">M</span></button>
+          <button class="calendar-write-space" type="button" aria-label="Write on Calendar for August 24"></button>
+          <button class="calendar-chevron" type="button" aria-label="Open Daily Log for August 24, 2026">›</button>
+        </div>
+        <div class="calendar-day">
+          <button class="calendar-date" type="button"><span>25</span><span class="calendar-weekday">T</span></button>
+          <button class="calendar-write-space" type="button" aria-label="Write on Calendar for August 25"></button>
+          <button class="calendar-chevron" type="button" aria-label="Open Daily Log for August 25, 2026">›</button>
+        </div>
+        <div class="calendar-day calendar-day--selected">
+          <button class="calendar-date" type="button"><span>26</span><span class="calendar-weekday">W</span></button>
+          <button class="calendar-write-space" type="button" aria-label="Write on Calendar for August 26"></button>
+          <button class="calendar-chevron" type="button" aria-label="Open Daily Log for August 26, 2026">›</button>
+          <div class="calendar-panel">
+            <div class="capture-card">
+              <div class="kind-row" aria-label="Entry kind">
+                <button class="kind-control" type="button" aria-label="Task" aria-pressed="true">•</button>
+                <button class="kind-control" type="button" aria-label="Event" aria-pressed="false">O</button>
+              </div>
+              <div class="capture-row">
+                <input class="capture-line" style="grid-column: 1 / 3;" placeholder="Rapid log…" aria-label="Rapid log">
+                <button class="capture-submit" type="button">Log</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="calendar-day">
+          <button class="calendar-date" type="button"><span>27</span><span class="calendar-weekday">T</span></button>
+          <button class="calendar-write-space" type="button" aria-label="Write on Calendar for August 27"></button>
+          <button class="calendar-chevron" type="button" aria-label="Open Daily Log for August 27, 2026">›</button>
+        </div>
+        <div class="calendar-day">
+          <button class="calendar-date" type="button"><span>28</span><span class="calendar-weekday">F</span></button>
+          <button class="calendar-write-space" type="button" aria-label="Write on Calendar for August 28"></button>
+          <button class="calendar-chevron" type="button" aria-label="Open Daily Log for August 28, 2026">›</button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tab-bar" aria-label="Primary">
+      <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+      <span class="tab tab--month"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+      <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+      <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+    </nav>
+  </section>
+
+  <aside class="checkpoint-column" aria-label="Monthly Migration empty checkpoints">
+    <section class="checkpoint">
+      <h1 class="page-title">Monthly Migration</h1>
+      <p class="checkpoint-context">JULY → AUGUST 2026</p>
+      <p class="checkpoint-stage">Review outgoing tasks</p>
+      <div class="preference-row">
+        <span class="preference">Theme: light</span>
+        <span class="preference">Hand: marker</span>
+      </div>
+      <p class="checkpoint-copy">No unresolved outgoing tasks.</p>
+      <span class="checkpoint-action">Scan the Future Log</span>
+      <nav class="tab-bar" aria-label="Primary">
+        <span class="tab">Today</span><span class="tab tab--future">Month</span><span class="tab">Future</span><span class="tab">Index</span>
+      </nav>
+    </section>
+
+    <section class="checkpoint">
+      <h1 class="page-title">Monthly Migration</h1>
+      <p class="checkpoint-context">JULY → AUGUST 2026</p>
+      <p class="checkpoint-stage">Scan the Future Log</p>
+      <div class="preference-row">
+        <span class="preference">Theme: light</span>
+        <span class="preference">Hand: marker</span>
+      </div>
+      <p class="checkpoint-copy">Nothing due for August.</p>
+      <span class="checkpoint-action">Finish Monthly Migration</span>
+      <nav class="tab-bar" aria-label="Primary">
+        <span class="tab">Today</span><span class="tab tab--future">Month</span><span class="tab">Future</span><span class="tab">Index</span>
+      </nav>
+    </section>
+  </aside>
+</div>
+
+<script>
+  document.querySelectorAll(".kind-row").forEach((row) => {
+    row.querySelectorAll(".kind-control").forEach((control) => {
+      control.addEventListener("click", () => {
+        row.querySelectorAll(".kind-control").forEach((candidate) => {
+          candidate.setAttribute("aria-pressed", String(candidate === control))
+        })
+      })
+    })
+  })
+</script>
+</x-dc>
+</body>
+</html>

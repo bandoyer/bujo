@@ -7,11 +7,11 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.3 LANDED (2026-08-26); hands-on review is next, then
-> the 1.5.4 Daily Reflection specification.**
-> Monthly Migration terminal candidate `329b8f6` is integrated on `main`,
-> with 200 fast tests, 56 system tests, clean quality bars, and RapidLog
-> mutation 1105/1105. Production still runs 1.4.1.
+> **Status: slice 1.5.3a APPROVED (2026-08-26); implementation is next and no
+> swarm is running.** The source-aligned phone-capture amendment and its
+> smallest review mock are approved. The pre-swarm baseline remains green at
+> 200 fast tests / 3360 assertions and 56 system tests / 1220 assertions.
+> Production still runs 1.4.1.
 > See `HANDOFF.md` for the exact landed and process boundaries.
 
 ## What this is
@@ -39,16 +39,18 @@ Reference material:
 
 The working loop, proven on [crap4rb](https://github.com/bandoyer/crap4rb):
 
-1. **Plan** — Claude (Fable) writes the slice spec: a `SLICE.md`-style
-   brief with scope, decisions pre-made, tests required, and review
-   criteria. Specs live in `docs/slices/` as they are written.
+1. **Plan** — the planning session writes a source-aligned `SLICE.md`-style
+   brief with scope, decisions pre-made, tests required, and review criteria.
+   Specs live in `docs/slices/` as they are written.
 2. **Build** — the swarm implements it:
    [swarm-forge-herdr](https://github.com/bandoyer/swarm-forge-herdr),
-   pack `six-mix-fable-review` for the next review (selected only after the
-   completed 1.5.2 swarm is retired). `swarm up` from a herdr session, feed
-   the approved slice as tasks.
-3. **Review** — Fable reviews against the spec before merge: parity
-   with the plan, quality bars, and mutation spot-checks on the tests.
+   compatibility-named pack `six-mix-fable-review` for 1.5.3a. Its experimental
+   roster is Sol Max specifier; Sol High coder; Grok High cleaner; Sol High
+   architect; Grok High hardener; Sol XHigh QA. `swarm up` from a herdr
+   session, then feed the approved slice as tasks.
+3. **Review** — the architect, hardener, QA, and operator verify parity with
+   the spec, quality bars, and mutation spot-checks before human-approved
+   integration.
 
 Quality bars are in `swarmforge/constitution/articles/project.prompt`
 (unit tests, rubocop, crap4rb ≤ 6, jscpd). The `ruby` toolset article
@@ -76,9 +78,11 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-26 | **Mock source joined the app repository.** The pre-project `bujo-mockups` checkout now lives at `mockups/`; new page mocks use the current app tokens, one selected hand for all visible text, and page-title-first hierarchy |
 | 2026-08-26 | **Slice 1.5.3 approved.** Monthly Migration uses target-month URLs for past/current/next month, derives progress from Entry state, reviews Calendar → Tasks → Daily trees, scans only exact-target-month Future roots, and clears temporal fields only from tasks rewritten to Monthly Tasks. `six-mix-fable-review` may begin |
 | 2026-08-26 | **Slice 1.5.3 landed.** The deliberate Monthly Migration ritual shipped with no schema or persisted progress state. Terminal candidate `329b8f6`; 200 fast / 56 system tests, CRAP ≤ 6 over 194 methods, zero clones, and RapidLog mutation 1105/1105. Dogfood the ritual before freezing Daily Reflection behavior |
+| 2026-08-26 | **Slice 1.5.3a approved from phone dogfooding.** Daily and Monthly Tasks gain truthful trailing writing surfaces; Calendar date rows capture with a separate Daily chevron; Future reuses the shared kind controls and gains reachable trailing capture plus aligned residents; Index gains a trailing create gesture; empty Monthly Migration stages require explicit Scan and Finish gestures. The approved mock is `mockups/PhoneCaptureCorrection.dc.html`; no page semantics, schema, parser, automatic behavior, or persisted ritual state changes |
+| 2026-08-26 | **Experimental 1.5.3a swarm roster.** Keep the compatibility pack name `six-mix-fable-review`, with Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok High hardener, and Sol XHigh QA. All roles remain isolated and the terminal candidate still requires operator review and explicit human integration approval |
 | 2026-08-26 | **`blackcat.dev` acquired and will replace `questlog.dev` as the umbrella domain.** Bujo's planned origin is `bujo.blackcat.dev`; Press Start is tentatively `lift.blackcat.dev`, pending its own deployment ruling. Resend's Cloudflare setup installed DKIM, SPF, and return-path MX, monitoring-mode DMARC is saved, and the aggregate domain is verified. Bujo's domain-restricted production key is stored in 1Password; application implementation and production cutover remain, while Press Start gets its own key only during its later slice |
 | 2026-08-26 | **Transactional email provider selected: Resend over HTTPS.** Bujo and Press Start will share the one verified `blackcat.dev` sending domain and free-plan quota, using `bujo@blackcat.dev` and `lift@blackcat.dev`, but keep separate domain-restricted Sending access keys, code, secrets, and deployments. See `docs/resend-transactional-email.md` |
-| 2026-08-26 | **Rails authentication rollout fixed at five ordered steps.** (1) Resend delivery plus short-lived, single-use magic links; (2) canonical cutover to `bujo.blackcat.dev`; (3) discoverable passkey registration/sign-in with exact RP ID `bujo.blackcat.dev`; (4) prove two passkeys plus email recovery; (5) retire the password UI. Provider/DNS/key setup is complete and Step 1 is next. The approved direction is `mockups/SignIn.dc.html`; full gates live in `docs/resend-transactional-email.md` |
+| 2026-08-26 | **Rails authentication rollout fixed at five ordered steps.** (1) Resend delivery plus short-lived, single-use magic links; (2) canonical cutover to `bujo.blackcat.dev`; (3) discoverable passkey registration/sign-in with exact RP ID `bujo.blackcat.dev`; (4) prove two passkeys plus email recovery; (5) retire the password UI. Provider/DNS/key setup is complete and Step 1 is next in the authentication track after the immediate 1.5.3a journal correction. The approved direction is `mockups/SignIn.dc.html`; full gates live in `docs/resend-transactional-email.md` |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -207,6 +211,15 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             `mockups/MonthlyMigration.dc.html`. Terminal candidate `329b8f6`;
             at merge: 200 fast + 56 system runs green, RuboCop clean, CRAP ≤ 6
             over 194 methods, jscpd zero clones, parser mutation 1105/1105.
+      - [ ] **1.5.3a Phone capture and ritual clarity** — approved dogfood
+            correction before Daily Reflection. Make the real blank canvas
+            writable on Daily, Monthly Tasks, Future, and Index; make Calendar
+            row capture primary with a separate Daily chevron; align Future
+            residents and reuse the shared Task/Event controls; require
+            explicit participation at both empty migration checkpoints.
+            Contract at
+            `docs/slices/1.5.3a-phone-capture-and-ritual-clarity.md`; approved
+            review mock at `mockups/PhoneCaptureCorrection.dc.html`.
       - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
             review: AM sees the current month's open tasks; PM walks
             today's entries to complete, strike, or schedule and makes
@@ -291,12 +304,13 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - Auth direction (decided 2026-08-24, build later): go passwordless
   like press-start — passkeys first, magic email links second. The
   generator's email/password remains only as a transitional rollback. The
-  provider foundation is complete; Step 1 of the fixed five-step rollout is
-  next. `docs/resend-transactional-email.md` owns its live checklist and safety
-  gates. Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host
-  or Press Start. Recovery is proven before password retirement by registering
-  two passkeys (phone + laptop) and retaining the magic-email fallback. Pairs
-  with the multi-user item below (same email decision gates both)
+  provider foundation is complete; Step 1 is next in the authentication track
+  after the immediate 1.5.3a journal correction.
+  `docs/resend-transactional-email.md` owns its live checklist and safety gates.
+  Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
+  Start. Recovery is proven before password retirement by registering two
+  passkeys (phone + laptop) and retaining the magic-email fallback. Pairs with
+  the multi-user item below (same email decision gates both)
 - Multi-user: the data layer is already tenant-clean (assessed
   2026-08-24 — `user_id` FKs, per-user indexes/uniqueness, user-scoped
   model API; the 1.3 spec scopes all queries via `Current.user`).
