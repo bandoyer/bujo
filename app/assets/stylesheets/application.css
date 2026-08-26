@@ -640,7 +640,7 @@ a {
   display: grid;
   width: 100%;
   min-height: 44px;
-  grid-template-columns: 1rem 1.25rem minmax(0, 1fr) auto;
+  grid-template-columns: 1rem 1.25rem minmax(0, 1fr) fit-content(45%);
   gap: 0.25rem;
   align-items: baseline;
 }
@@ -672,6 +672,14 @@ a {
 .entry__text--struck {
   text-decoration: line-through;
   text-decoration-color: var(--warn);
+}
+
+/* Entry text and Collection destination Topics are reader-written and
+   unbounded, so both columns may shrink and wrap instead of widening the row. */
+.entry__text,
+.entry__meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .entry__meta {

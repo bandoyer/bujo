@@ -127,6 +127,50 @@ class MoveToCollectionTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1400)
   end
 
+  test "5 unbroken Collection Topics and entry text wrap on every returned source page" do
+    long_topic = "ExpeditionPlansForTheEntireUpperPeninsulaWithEveryCampsiteTrailheadWaterSourcePermitDeadlineAndEmergencyContactKeptReadable"
+    long_entry_text = "ThisResidentEntryTextIsAlsoOneUnbrokenReaderWrittenStringThatMustWrapInsideTheSameJournalRowWithoutWideningThePage"
+    @destination = @user.collections.create!(name: long_topic)
+    month = Time.zone.today.beginning_of_month
+    daily_entry = create_note("daily overflow move", page_kind: "daily", page_on: Time.zone.today)
+    daily_sibling = create_note(long_entry_text, page_kind: "daily", page_on: Time.zone.today)
+    dated_entry = create_task("dated destination", page_kind: "daily", page_on: Time.zone.today)
+    dated_on = month.next_month
+    dated_entry.move_to!(page_kind: "monthly_tasks", page_on: dated_on, as_of: Time.zone.today)
+    calendar_entry = create_task(
+      "calendar overflow move", page_kind: "monthly_calendar", page_on: month, occurs_on: Time.zone.today
+    )
+    calendar_sibling = create_task(
+      long_entry_text, page_kind: "monthly_calendar", page_on: month, occurs_on: Time.zone.today
+    )
+    tasks_entry = create_task("tasks overflow move", page_kind: "monthly_tasks", page_on: month)
+    tasks_sibling = create_task(long_entry_text, page_kind: "monthly_tasks", page_on: month)
+    sources = [
+      [ daily_log_path(date: Time.zone.today.iso8601), daily_entry, daily_sibling, dated_entry ],
+      [ monthly_log_path(month: month.strftime("%Y-%m")), calendar_entry, calendar_sibling, nil ],
+      [ monthly_log_path(month: month.strftime("%Y-%m"), view: "tasks"), tasks_entry, tasks_sibling, nil ]
+    ]
+
+    sign_in
+    click_button "Theme: system", exact: true
+    sources.each do |path, entry, _sibling, _dated|
+      visit path
+      move_visible_entry(entry)
+      assert_current_path path
+    end
+
+    assert_returned_source_layouts(
+      sources, long_topic:, long_entry_text:, dated_meta: "→ #{dated_on.strftime("%b %-d").upcase}", theme: "light"
+    )
+    visit root_path
+    click_button "Theme: light", exact: true
+    assert_returned_source_layouts(
+      sources, long_topic:, long_entry_text:, dated_meta: "→ #{dated_on.strftime("%b %-d").upcase}", theme: "dark"
+    )
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   private
 
   def sign_in
@@ -247,6 +291,55 @@ class MoveToCollectionTest < ApplicationSystemTestCase
     assert_no_horizontal_overflow
     assert_minimum_targets
     assert_no_tab_bar_collision
+  end
+
+  def assert_returned_source_layouts(sources, long_topic:, long_entry_text:, dated_meta:, theme:)
+    [ 390, 320 ].each do |width|
+      page.current_window.resize_to(width, 844)
+      sources.each do |path, entry, sibling, dated_entry|
+        visit path
+        page.execute_script("window.scrollTo(0, 0)")
+        assert_selector "html[data-theme='#{theme}']", visible: :all
+        assert_wrapped_visible_text(
+          "#{entry_selector(entry)} .entry__meta > span", "→ #{long_topic}"
+        )
+        assert_wrapped_visible_text("#{entry_selector(sibling)} .entry__text", long_entry_text)
+        if dated_entry
+          assert_selector "#{entry_selector(dated_entry)} .entry__meta > span",
+            text: dated_meta, exact_text: true
+        end
+        assert_no_horizontal_overflow
+        assert_minimum_targets
+        page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        assert_no_tab_bar_collision
+      end
+    end
+  end
+
+  def assert_wrapped_visible_text(selector, expected_text)
+    assert_selector selector, text: expected_text, exact_text: true
+    layout = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const element = document.querySelector(#{selector.to_json})
+        const range = document.createRange()
+        range.selectNodeContents(element)
+        const style = getComputedStyle(element)
+        const lineTops = Array.from(range.getClientRects()).map((rect) => Math.round(rect.top))
+        return {
+          text: element.textContent.trim(),
+          lineCount: new Set(lineTops).size,
+          overflow: style.overflow,
+          textOverflow: style.textOverflow,
+          fullyVisible: element.scrollWidth <= element.clientWidth + 1 &&
+            element.scrollHeight <= element.clientHeight + 1
+        }
+      })()
+    JAVASCRIPT
+    assert_equal expected_text, layout.fetch("text")
+    assert_operator layout.fetch("lineCount"), :>, 1, "#{selector} must wrap across lines"
+    assert_equal "visible", layout.fetch("overflow")
+    assert_not_equal "ellipsis", layout.fetch("textOverflow")
+    assert layout.fetch("fullyVisible"), "#{selector} must not clip any reader-written text"
   end
 
   def assert_no_horizontal_overflow
