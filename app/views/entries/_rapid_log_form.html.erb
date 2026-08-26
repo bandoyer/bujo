@@ -3,14 +3,16 @@
 <% form_id = local_assigns.fetch(:form_id, "rapid_log_form") %>
 <% line_id = local_assigns.fetch(:line_id, "rapid-log-line") %>
 <% future_month = local_assigns[:future_month] %>
-<% form_actions = [ "turbo:submit-end->placement#submitted" ] %>
-<% form_actions.unshift("submit->placement#composeDate") if future_month %>
+<% line_data = { rapid_log_target: "line", placement_target: ("focus" unless future_month) }.compact %>
 <%= form_with url: entries_path,
               id: form_id,
               class: "rapid-log",
               data: {
                 controller: "rapid-log",
-                action: form_actions.join(" "),
+                action: [
+                  ("submit->placement#composeDate" if future_month),
+                  "turbo:submit-end->placement#submitted"
+                ].compact.join(" "),
                 month: (future_month.strftime("%Y-%m") if future_month)
               }.compact do |form| %>
   <%= render "entries/kind_buttons", allowed_kinds: allowed_kinds %>
@@ -32,11 +34,11 @@
                             data: { placement_target: "day focus" } %>
     <% end %>
     <div class="rapid-log__input-wrap">
-    <%= form.text_field :line,
-                        id: line_id,
-                        placeholder: "Rapid log…",
-                        autocomplete: "off",
-                        data: { rapid_log_target: "line", placement_target: "focus" } %>
+      <%= form.text_field :line,
+                          id: line_id,
+                          placeholder: "Rapid log…",
+                          autocomplete: "off",
+                          data: line_data %>
       <%= form.submit "Log", class: "rapid-log__submit" %>
     </div>
   </div>

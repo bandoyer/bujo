@@ -43,14 +43,17 @@ class MonthlyMigrationsController < ApplicationController
   # Shows the first unresolved outgoing task in its complete resident tree.
   def outgoing
     @candidate = outgoing_candidates.first
-    return present_checkpoint(
-      "Review outgoing tasks",
-      "No unresolved outgoing tasks.",
-      "Scan the Future Log",
-      monthly_migration_future_path(month: target_param)
-    ) unless @candidate
-
-    present_candidate("Review outgoing tasks", "Task tree", :outgoing)
+    stage = "Review outgoing tasks"
+    if @candidate
+      present_candidate(stage, "Task tree", :outgoing)
+    else
+      present_checkpoint(
+        stage: stage,
+        message: "No unresolved outgoing tasks.",
+        link_text: "Scan the Future Log",
+        path: monthly_migration_future_path(month: target_param)
+      )
+    end
   end
 
   # Strikes the current outgoing task as no longer vital.
@@ -92,14 +95,17 @@ class MonthlyMigrationsController < ApplicationController
     return redirect_to(canonical_stage_path) if outgoing_candidates.any?
 
     @candidate = future_candidates.first
-    return present_checkpoint(
-      "Scan the Future Log",
-      "Nothing due for #{@target_month.strftime('%B')}.",
-      "Finish Monthly Migration",
-      monthly_migration_complete_path(month: target_param)
-    ) unless @candidate
-
-    present_candidate("Scan the Future Log", "Due Future tree", :future)
+    stage = "Scan the Future Log"
+    if @candidate
+      present_candidate(stage, "Due Future tree", :future)
+    else
+      present_checkpoint(
+        stage: stage,
+        message: "Nothing due for #{@target_month.strftime('%B')}.",
+        link_text: "Finish Monthly Migration",
+        path: monthly_migration_complete_path(month: target_param)
+      )
+    end
   end
 
   # Strikes one due Future task without creating a successor.
@@ -186,7 +192,7 @@ class MonthlyMigrationsController < ApplicationController
     render :review
   end
 
-  def present_checkpoint(stage, message, link_text, path)
+  def present_checkpoint(stage:, message:, link_text:, path:)
     @stage = stage
     @checkpoint_message = message
     @checkpoint_link_text = link_text

@@ -6,6 +6,8 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["toggle", "panel", "focus", "day", "on"]
 
+  // Future months have two buttons for one panel. Remember the control that
+  // opened it so success can restore that one, not the first matching toggle.
   activeToggle = null
 
   toggle(event) {
@@ -27,17 +29,16 @@ export default class extends Controller {
   submitted(event) {
     if (!event.detail.success) return
 
-    const panel = event.currentTarget.closest("[data-placement-target~='panel']")
     const toggle = this.activeToggle
     event.currentTarget.reset()
-    panel.closest(".future-log__month")?.classList.remove("future-log__month--empty")
-    this.setExpanded(toggle, false)
+    this.panelFor(toggle).closest(".future-log__month")?.classList.remove("future-log__month--empty")
+    this.closeAll()
     toggle.focus()
-    this.activeToggle = null
   }
 
   closeAll() {
     this.toggleTargets.forEach((toggle) => this.setExpanded(toggle, false))
+    this.activeToggle = null
   }
 
   open(toggle) {

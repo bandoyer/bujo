@@ -6,6 +6,7 @@
              data-controller="placement task-actions"
              data-page-capture="monthly_calendar"
              data-date="<%= day.iso8601 %>">
+      <% weekday_letter = day.strftime("%a").first.upcase %>
       <% if @capture_open %>
         <button type="button"
                 class="monthly-calendar__capture-reveal"
@@ -15,12 +16,12 @@
                 data-placement-target="toggle"
                 data-action="placement#toggle">
           <span class="monthly-calendar__number"><%= day.day %></span>
-          <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase %></span>
+          <span class="monthly-calendar__weekday"><%= weekday_letter %></span>
         </button>
       <% else %>
         <div class="monthly-calendar__date">
           <span class="monthly-calendar__number"><%= day.day %></span>
-          <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase %></span>
+          <span class="monthly-calendar__weekday"><%= weekday_letter %></span>
         </div>
       <% end %>
 

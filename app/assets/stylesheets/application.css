@@ -103,6 +103,8 @@
   box-sizing: border-box;
 }
 
+/* Column flex lets each page fill the viewport so trailing blank writing
+   surfaces can grow down to the tab bar instead of sitting under inert padding. */
 body {
   display: flex;
   min-height: 100vh;
@@ -166,20 +168,12 @@ a {
   border-bottom: 1px solid var(--line);
 }
 
-.daily-log__eyebrow,
 .daily-log__open-count,
 .day-navigation,
 .entry__glyph,
 .entry__meta,
 .tab-bar {
   font-family: var(--font-mono);
-}
-
-.daily-log__eyebrow {
-  margin: 0.25rem 0 0;
-  color: var(--accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
 }
 
 .daily-log h1 {
@@ -301,20 +295,6 @@ a {
   margin-top: 0.75rem;
 }
 
-.collection-index__create-reveal {
-  min-height: 44px;
-  flex: 1;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: text;
-}
-
-.collection-index__create-reveal:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .collection-page__registration {
   display: flex;
   justify-content: flex-end;
@@ -423,6 +403,8 @@ a {
   color: var(--ink);
 }
 
+/* The date control spans under the residents so blank row space writes on
+   that day; entries and the Daily chevron sit above and keep their own clicks. */
 .monthly-calendar__capture-reveal,
 .monthly-calendar__date {
   display: grid;
@@ -561,16 +543,6 @@ a {
 .future-log__trailing-reveal {
   display: block;
   width: 100%;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: text;
-}
-
-.future-log__trailing-reveal:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .future-log__add-row .rapid-log {
@@ -592,7 +564,6 @@ a {
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
-  border-right: 1px solid var(--line);
   font-family: var(--font-mono);
   text-align: center;
 }
@@ -640,15 +611,23 @@ a {
   flex-direction: column;
 }
 
+.collection-index__create-reveal,
+.future-log__trailing-reveal,
 .daily-log__capture-reveal {
   min-height: 44px;
-  flex: 1;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: text;
 }
 
+.collection-index__create-reveal,
+.daily-log__capture-reveal {
+  flex: 1;
+}
+
+.collection-index__create-reveal:focus-visible,
+.future-log__trailing-reveal:focus-visible,
 .daily-log__capture-reveal:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

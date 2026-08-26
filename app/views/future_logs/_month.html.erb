@@ -1,6 +1,7 @@
 <%# One month of the runway: its header, which doubles as the reveal control
     for writing under it, the add row, and the month's entries. %>
 <% month_key = month.strftime("%Y_%m") %>
+<% month_label = month.strftime("%B %Y") %>
 <% add_row_id = "future_month_#{month_key}_add" %>
 <%# Only a month after the current one takes new entries; the rest render. %>
 <% add_open = month_add_open?(month) %>
@@ -13,9 +14,9 @@
               aria-expanded="false"
               aria-controls="<%= add_row_id %>"
               data-placement-target="toggle"
-              data-action="placement#toggle"><%= month.strftime("%B %Y").upcase %></button>
+              data-action="placement#toggle"><%= month_label.upcase %></button>
     <% else %>
-      <span><%= month.strftime("%B %Y").upcase %></span>
+      <span><%= month_label.upcase %></span>
     <% end %>
   </h2>
   <div id="<%= future_month_entries_id(month) %>" class="future-log__entries">
@@ -25,7 +26,7 @@
     <button type="button"
             id="future_month_<%= month_key %>_trailing_toggle"
             class="future-log__trailing-reveal"
-            aria-label="Write in <%= month.strftime("%B %Y") %>"
+            aria-label="Write in <%= month_label %>"
             aria-expanded="false"
             aria-controls="<%= add_row_id %>"
             data-placement-target="toggle"
