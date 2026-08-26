@@ -11,7 +11,8 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     sign_in
 
     assert_hidden_daily_capture
-    reveal_daily_capture
+    click_trailing_space_after("#entries", "#capture_reveal")
+    assert_selector "#rapid_log_panel:not([hidden])"
     assert_button "Log", exact: true
     assert_equal "rapid-log-line", active_element_id
 
@@ -30,6 +31,31 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     find("button[aria-label='Write on this page']").click
 
     assert_hidden_daily_capture
+  end
+
+  test "Daily trailing space starts below rendered content and reaches the fixed tabs" do
+    task = Entry.capture!(
+      "A wrapped task whose words deliberately continue across more than one narrow phone line",
+      user: @user, today: Time.zone.today, as_of: Time.zone.today,
+      page_kind: "daily", page_on: Time.zone.today
+    )
+    sign_in
+
+    [ 390, 320 ].each do |width|
+      page.current_window.resize_to(width, 844)
+      visit root_path
+      reveal_actions(task)
+
+      geometry = trailing_surface_geometry("#entries", "#capture_reveal")
+      assert_in_delta geometry.fetch("contentBottom"), geometry.fetch("revealTop"), 1
+      assert_operator geometry.fetch("revealHeight"), :>=, 44
+      assert_operator geometry.fetch("revealBottom"), :<=, geometry.fetch("tabsTop")
+
+      click_trailing_space_after("#entries", "#capture_reveal")
+      assert_equal "rapid-log-line", active_element_id
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
   end
 
   test "3 another day's page captures there and migrates from that viewed date" do
@@ -73,7 +99,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_no_field "Rapid log…"
   end
 
-  test "5 Future Log adds under one month at a time and places the entry on its calendar day" do
+  test "5 Future Log trailing space shares kind controls and restores the actual opener" do
     first_month = Time.zone.today.next_month.beginning_of_month
     create_future_entry("later twentieth", first_month + 19.days)
     create_future_entry("later twenty-fifth", first_month + 24.days)
@@ -81,26 +107,33 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     visit future_log_path
     second_month = first_month.next_month
 
-    reveal_future_month(first_month)
+    reveal_future_month(first_month, from: :trailing)
     assert_equal future_day_field_id(first_month), active_element_id
     reveal_future_month(second_month)
     assert_future_month_closed(first_month)
-    reveal_future_month(first_month)
+    reveal_future_month(first_month, from: :trailing)
 
     target_day = first_month + 4.days
     within future_month(first_month) do
       find("input[aria-label='Day of the month']").fill_in(with: target_day.day)
-      find("input[aria-label='Entry text']").fill_in(with: "○ future dentist 9am")
+      assert_selector "button[aria-label='Task'][aria-pressed='true'].rapid-log__kind--selected"
+      find("button[aria-label='Event']").click
+      assert_selector "button[aria-label='Event'][aria-pressed='true'].rapid-log__kind--selected"
+      assert_selector "button[aria-label='Task'][aria-pressed='false']"
+      assert_equal "event", find("input[name='default_kind']", visible: :all).value
+      assert_match(/line$/, active_element_id)
+      find("input[placeholder='Rapid log…']").fill_in(with: "future dentist 9am")
       click_button "Log", exact: true
     end
 
     assert_text "future dentist"
     captured = @user.entries.find_by!(text: "future dentist")
     assert_equal [ nil, target_day ], [ captured.page_on, captured.occurs_on ]
+    assert_equal "event", captured.kind
     assert_selector "#future_entry_#{captured.id}", text: "future dentist"
     assert_equal %w[5 20 25], all("#{future_month(first_month)} .future-entry__day").map(&:text)
     assert_future_month_closed(first_month)
-    assert_equal future_month_toggle_id(first_month), active_element_id
+    assert_equal future_month_trailing_id(first_month), active_element_id
 
     visit monthly_log_path(month: first_month.strftime("%Y-%m"))
     within ".monthly-calendar__day[data-date='#{target_day.iso8601}']" do
@@ -118,7 +151,7 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     reveal_future_month(target_month)
     within future_month(target_month) do
       find("input[aria-label='Day of the month']").fill_in(with: 32)
-      find("input[aria-label='Entry text']").fill_in(with: "impossible future entry")
+      find("input[placeholder='Rapid log…']").fill_in(with: "impossible future entry")
       click_button "Log", exact: true
     end
 
@@ -175,9 +208,20 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_selector "#rapid_log_panel[hidden]", visible: :all
   end
 
-  def reveal_future_month(month)
+  def reveal_future_month(month, from: :heading)
     within future_month(month) do
-      find_button(formatted_month(month), exact: true).click
+      if from == :trailing
+        point = page.evaluate_script(<<~JAVASCRIPT)
+          (() => {
+            const reveal = document.querySelector("##{future_month_trailing_id(month)}").getBoundingClientRect()
+            return { x: reveal.left + reveal.width / 2, y: reveal.top + 2 }
+          })()
+        JAVASCRIPT
+        page.execute_script("document.elementFromPoint(arguments[0], arguments[1]).click()",
+          point.fetch("x"), point.fetch("y"))
+      else
+        find_button(formatted_month(month), exact: true).click
+      end
       assert_selector ".future-log__add-row:not([hidden])"
     end
   end
@@ -214,6 +258,10 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     "future_month_#{month.strftime('%Y_%m')}_toggle"
   end
 
+  def future_month_trailing_id(month)
+    "future_month_#{month.strftime('%Y_%m')}_trailing_toggle"
+  end
+
   def future_day_field_id(month)
     "future_month_#{month.strftime('%Y_%m')}_day"
   end
@@ -228,5 +276,33 @@ class PlacementCaptureTest < ApplicationSystemTestCase
 
   def short_day(date)
     date.strftime("%b %-d").upcase
+  end
+
+  def click_trailing_space_after(content_selector, reveal_selector)
+    point = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const content = document.querySelector(#{content_selector.to_json}).getBoundingClientRect()
+        const reveal = document.querySelector(#{reveal_selector.to_json}).getBoundingClientRect()
+        return { x: reveal.left + (reveal.width / 2), y: Math.max(content.bottom + 2, reveal.top + 2) }
+      })()
+    JAVASCRIPT
+    page.execute_script("document.elementFromPoint(arguments[0], arguments[1]).click()", point.fetch("x"), point.fetch("y"))
+  end
+
+  def trailing_surface_geometry(content_selector, reveal_selector)
+    page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const content = document.querySelector(#{content_selector.to_json}).getBoundingClientRect()
+        const reveal = document.querySelector(#{reveal_selector.to_json}).getBoundingClientRect()
+        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        return {
+          contentBottom: content.bottom,
+          revealTop: reveal.top,
+          revealBottom: reveal.bottom,
+          revealHeight: reveal.height,
+          tabsTop: tabs.top
+        }
+      })()
+    JAVASCRIPT
   end
 end

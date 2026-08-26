@@ -60,5 +60,14 @@
     <% end %>
   </section>
 
+  <button type="button"
+          id="index_create_reveal"
+          class="collection-index__create-reveal"
+          aria-label="New Collection"
+          aria-expanded="false"
+          aria-controls="new_collection_panel"
+          data-placement-target="toggle"
+          data-action="placement#toggle"></button>
+
   <%= render "shared/tab_bar", active: :index %>
 </main>

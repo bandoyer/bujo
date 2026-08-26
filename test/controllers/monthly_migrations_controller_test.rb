@@ -145,7 +145,7 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
 
     [ first, monthly, daily ].each do |candidate|
       post migration_outgoing_strike_path(candidate)
-      assert_redirected_to(candidate == daily ? migration_future_path : migration_outgoing_path)
+      assert_redirected_to migration_outgoing_path
       assert_equal "struck", candidate.reload.state
       follow_redirect!
       next if candidate == daily
@@ -153,7 +153,9 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
       expected = candidate == first ? monthly : daily
       assert_select "#entry_#{expected.id}[aria-label='Review this task']"
     end
-    assert_select ".monthly-migration__complete h2", text: "Monthly Migration complete"
+    assert_select ".monthly-migration__stage", text: "Review outgoing tasks"
+    assert_select ".monthly-migration__checkpoint p", text: "No unresolved outgoing tasks."
+    assert_select "a[href='#{migration_future_path}']", text: "Scan the Future Log"
   end
 
   test "each outgoing movement rewrites only the selected row with exact destination semantics" do
@@ -173,7 +175,7 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
 
     post migration_outgoing_tasks_path(to_tasks)
 
-    assert_redirected_to migration_future_path
+    assert_redirected_to migration_outgoing_path
     successor = to_tasks.reload.successor
     assert_equal [ "migrated", ">" ], [ to_tasks.state, to_tasks.glyph ]
     assert_equal [ "task", "open", "carry dated task", true, %w[camp], "monthly_tasks", TARGET_MONTH, nil, nil, nil ],
@@ -287,7 +289,7 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal ">", untimed_event.glyph
   end
 
-  test "Future task strike and completion are live derived states that cannot skip outgoing work" do
+  test "empty stages require explicit scan and finish before live completion" do
     due_task = create_entry(
       text: "strike due task", page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH + 7.days
     )
@@ -296,6 +298,12 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to migration_future_path
     assert_equal "struck", due_task.reload.state
     follow_redirect!
+    assert_select ".monthly-migration__stage", text: "Scan the Future Log"
+    assert_select ".monthly-migration__checkpoint p", text: "Nothing due for September."
+    assert_select "a[href='#{migration_complete_path}']", text: "Finish Monthly Migration"
+    assert_select ".monthly-migration__complete", count: 0
+
+    get migration_complete_path
     assert_select ".monthly-migration__complete h2", text: "Monthly Migration complete"
     assert_select "a", text: "September Calendar"
     assert_select "a", text: "September Tasks"
@@ -308,6 +316,23 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
 
     get migration_future_path
     assert_redirected_to migration_outgoing_path
+  end
+
+  test "an empty outgoing stage renders its own checkpoint before the Future scan" do
+    get migration_outgoing_path
+
+    assert_response :success
+    assert_select ".monthly-migration__stage", text: "Review outgoing tasks"
+    assert_select ".monthly-migration__checkpoint p", text: "No unresolved outgoing tasks."
+    assert_select "a[href='#{migration_future_path}']", text: "Scan the Future Log"
+    assert_select ".monthly-migration__complete", count: 0
+
+    get migration_future_path
+    assert_response :success
+    assert_select ".monthly-migration__stage", text: "Scan the Future Log"
+    assert_select ".monthly-migration__checkpoint p", text: "Nothing due for September."
+    assert_select "a[href='#{migration_complete_path}']", text: "Finish Monthly Migration"
+    assert_select ".monthly-migration__complete", count: 0
   end
 
   test "missing foreign and deleted item ids share the themed non-disclosing 404" do

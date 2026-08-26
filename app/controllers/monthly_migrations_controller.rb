@@ -43,7 +43,12 @@ class MonthlyMigrationsController < ApplicationController
   # Shows the first unresolved outgoing task in its complete resident tree.
   def outgoing
     @candidate = outgoing_candidates.first
-    return redirect_to(canonical_stage_path) unless @candidate
+    return present_checkpoint(
+      "Review outgoing tasks",
+      "No unresolved outgoing tasks.",
+      "Scan the Future Log",
+      monthly_migration_future_path(month: target_param)
+    ) unless @candidate
 
     present_candidate("Review outgoing tasks", "Task tree", :outgoing)
   end
@@ -82,12 +87,17 @@ class MonthlyMigrationsController < ApplicationController
     end
   end
 
-  # Shows the first due Future root, or the live complete state once empty.
+  # Shows the first due Future root, or the explicit empty Future checkpoint.
   def future
     return redirect_to(canonical_stage_path) if outgoing_candidates.any?
 
     @candidate = future_candidates.first
-    return render(:complete) unless @candidate
+    return present_checkpoint(
+      "Scan the Future Log",
+      "Nothing due for #{@target_month.strftime('%B')}.",
+      "Finish Monthly Migration",
+      monthly_migration_complete_path(month: target_param)
+    ) unless @candidate
 
     present_candidate("Scan the Future Log", "Due Future tree", :future)
   end
@@ -176,17 +186,27 @@ class MonthlyMigrationsController < ApplicationController
     render :review
   end
 
+  def present_checkpoint(stage, message, link_text, path)
+    @stage = stage
+    @checkpoint_message = message
+    @checkpoint_link_text = link_text
+    @checkpoint_path = path
+    render :checkpoint
+  end
+
   def resolve_outgoing(&action)
-    resolve_ritual_item(action) { outgoing_candidates.first == @entry }
+    resolve_ritual_item(action, monthly_migration_outgoing_path(month: target_param)) do
+      outgoing_candidates.first == @entry
+    end
   end
 
   def resolve_future(kind, &action)
-    resolve_ritual_item(action) do
+    resolve_ritual_item(action, monthly_migration_future_path(month: target_param)) do
       outgoing_candidates.none? && future_candidates.first == @entry && @entry.kind == kind
     end
   end
 
-  def resolve_ritual_item(action)
+  def resolve_ritual_item(action, return_path)
     resolved = Entry.transaction do
       next false unless yield
 
@@ -195,7 +215,7 @@ class MonthlyMigrationsController < ApplicationController
     end
     return refuse_command unless resolved
 
-    redirect_to canonical_stage_path
+    redirect_to return_path
   end
 
   def canonical_stage_path

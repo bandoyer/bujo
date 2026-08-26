@@ -72,15 +72,22 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     end
   end
 
-  test "4 calendar day rows open that day's Daily Log" do
+  test "4 calendar day rows capture primarily and use a separate Daily chevron" do
     sign_in
     target_day = Time.zone.today.beginning_of_month
     click_link "Month", exact: true
 
-    find("#{calendar_day(target_day)} .monthly-calendar__date-link").click
+    within calendar_day(target_day) do
+      assert_no_field "Rapid log…"
+      find(".monthly-calendar__capture-reveal").click
+      assert_field "Rapid log…"
+    end
+    assert_no_difference -> { @user.entries.count } do
+      find("#{calendar_day(target_day)} .monthly-calendar__daily-link").click
+    end
 
     assert_current_path daily_log_path(date: target_day.iso8601)
-    assert_selector ".daily-log__eyebrow", text: formatted_day(target_day)
+    assert_selector ".day-navigation__viewed-day", text: formatted_day(target_day)
   end
 
   test "5 month navigation preserves the Tasks view; the Month tab returns" do
@@ -223,11 +230,31 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
   end
 
   test "11 Monthly Tasks captures tasks in place and future pages stay capture-closed" do
+    create_monthly_task("existing inventory", Time.zone.today.beginning_of_month)
     sign_in
-    click_link "Month", exact: true
-    click_link "Tasks", exact: true
+    visit monthly_log_path(month: Time.zone.today.strftime("%Y-%m"), view: "tasks")
+    assert_tasks_view
 
-    find("button[aria-label='Write on Monthly Tasks']").click
+    geometry = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const content = document.querySelector(".monthly-task-count").getBoundingClientRect()
+        const reveal = document.querySelector("#monthly_tasks_capture_reveal").getBoundingClientRect()
+        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        return { contentBottom: content.bottom, revealTop: reveal.top, revealHeight: reveal.height,
+                 revealBottom: reveal.bottom, tabsTop: tabs.top }
+      })()
+    JAVASCRIPT
+    assert_in_delta geometry.fetch("contentBottom"), geometry.fetch("revealTop"), 1
+    assert_operator geometry.fetch("revealHeight"), :>=, 44
+    assert_operator geometry.fetch("revealBottom"), :<=, geometry.fetch("tabsTop")
+    point = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const reveal = document.querySelector("#monthly_tasks_capture_reveal").getBoundingClientRect()
+        return { x: reveal.left + reveal.width / 2, y: reveal.top + 2 }
+      })()
+    JAVASCRIPT
+    page.execute_script("document.elementFromPoint(arguments[0], arguments[1]).click()",
+      point.fetch("x"), point.fetch("y"))
     assert_no_button "Event"
     assert_no_button "Note"
     fill_in "Rapid log…", with: "curated inventory"
@@ -238,6 +265,45 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     find("a[aria-label='Next month']").click
     assert_no_button "Write on Monthly Tasks"
     assert_no_field "Rapid log…"
+  end
+
+
+  test "Future resident columns share a baseline and never widen a narrow phone" do
+    future_on = Time.zone.today.next_month.beginning_of_month + 12.days
+    task = create_future_task(
+      "A very long future resident that wraps while its day bullet and metadata remain anchored together",
+      state: "open"
+    )
+    task.update!(occurs_on: future_on, time_of_day: "09:30", priority: true)
+    sign_in
+
+    [ 390, 320 ].each do |width|
+      page.current_window.resize_to(width, 844)
+      visit future_log_path
+      geometry = page.evaluate_script(<<~JAVASCRIPT)
+        (() => {
+          const root = document.querySelector("#future_entry_#{task.id}")
+          const firstTextBottom = (selector) => {
+            const element = root.querySelector(selector)
+            const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+            let text = walker.nextNode()
+            while (text && text.nodeValue.trim() === "") text = walker.nextNode()
+            const range = document.createRange()
+            range.setStart(text, 0)
+            range.setEnd(text, 1)
+            return range.getBoundingClientRect().bottom
+          }
+          const selectors = [".future-entry__day", ".entry__signifier", ".entry__glyph", ".entry__text", ".entry__meta"]
+          const baselines = selectors.map(firstTextBottom)
+          return { baselines, body: document.documentElement.scrollWidth,
+                   viewport: document.documentElement.clientWidth }
+        })()
+      JAVASCRIPT
+      assert_operator geometry.fetch("baselines").max - geometry.fetch("baselines").min, :<=, 4
+      assert_operator geometry.fetch("body"), :<=, geometry.fetch("viewport")
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
   end
 
   test "12 overdue Future residents remain while only later months can add" do

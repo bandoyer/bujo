@@ -6,11 +6,22 @@
              data-controller="placement task-actions"
              data-page-capture="monthly_calendar"
              data-date="<%= day.iso8601 %>">
-      <%= link_to daily_log_path(date: day.iso8601),
-                  class: "monthly-calendar__date-link",
-                  aria: { label: "Open Daily Log for #{day.strftime("%B %-d, %Y")}" } do %>
-        <span class="monthly-calendar__number"><%= day.day %></span>
-        <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase %></span>
+      <% if @capture_open %>
+        <button type="button"
+                class="monthly-calendar__capture-reveal"
+                aria-label="Write on Calendar for <%= day.strftime("%B %-d") %>"
+                aria-expanded="false"
+                aria-controls="<%= panel_id %>"
+                data-placement-target="toggle"
+                data-action="placement#toggle">
+          <span class="monthly-calendar__number"><%= day.day %></span>
+          <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase %></span>
+        </button>
+      <% else %>
+        <div class="monthly-calendar__date">
+          <span class="monthly-calendar__number"><%= day.day %></span>
+          <span class="monthly-calendar__weekday"><%= day.strftime("%a").first.upcase %></span>
+        </div>
       <% end %>
 
       <div class="monthly-calendar__residents">
@@ -24,14 +35,12 @@
         <% end %>
       </div>
 
+      <%= link_to "›",
+                  daily_log_path(date: day.iso8601),
+                  class: "monthly-calendar__daily-link",
+                  aria: { label: "Open Daily Log for #{day.strftime("%B %-d, %Y")}" } %>
+
       <% if @capture_open %>
-        <button type="button"
-                class="monthly-calendar__capture-reveal"
-                aria-label="Write on Calendar for <%= day.strftime("%B %-d") %>"
-                aria-expanded="false"
-                aria-controls="<%= panel_id %>"
-                data-placement-target="toggle"
-                data-action="placement#toggle"></button>
         <div id="<%= panel_id %>" class="monthly-calendar__capture-panel" data-placement-target="panel" hidden>
           <%= render "entries/rapid_log_form",
                      capture_date: day,

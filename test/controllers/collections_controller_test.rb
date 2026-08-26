@@ -38,6 +38,8 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
       document.css(".collection-index__topics a").map { |link| link.text.strip }
     assert_select "a", text: unindexed.name, count: 0
     assert_select "a", text: foreign.name, count: 0
+    assert_select "button.collection-index__create-reveal[aria-controls='new_collection_panel']",
+      text: "", count: 1
     assert_select ".tab-bar__item[aria-current='page']", text: "Index", count: 1
   end
 
@@ -361,7 +363,8 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     get daily_log_path(date: Time.zone.today.iso8601)
-    assert_select ".daily-log__heading h1 + .daily-log__eyebrow"
+    assert_select ".daily-log__heading h1", count: 1
+    assert_select ".daily-log__heading h1 + .daily-log__eyebrow", count: 0
     get journal_index_path
     assert_select ".collection-page__heading h1 + .collection-page__context"
     get collection_path(collection)

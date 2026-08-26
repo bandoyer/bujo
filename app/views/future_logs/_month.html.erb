@@ -18,34 +18,26 @@
       <span><%= month.strftime("%B %Y").upcase %></span>
     <% end %>
   </h2>
-  <% if add_open %>
-    <div id="<%= add_row_id %>" class="future-log__add-row" data-placement-target="panel" hidden>
-      <%= form_with url: entries_path,
-                    data: {
-                      controller: "rapid-log",
-                      month: month.strftime("%Y-%m"),
-                      action: "submit->placement#composeDate turbo:submit-end->placement#submitted"
-                    } do |form| %>
-        <%= render "entries/kind_buttons", allowed_kinds: %w[task event] %>
-        <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
-        <%= form.hidden_field :placement, value: "future" %>
-        <%= form.hidden_field :on, value: "", data: { placement_target: "on" } %>
-        <%= form.number_field :day,
-                              id: "future_month_#{month_key}_day",
-                              inputmode: "numeric",
-                              required: true,
-                              aria: { label: "Day of the month" },
-                              data: { placement_target: "day focus" } %>
-        <%= form.text_field :line,
-                            id: "future_month_#{month_key}_line",
-                            required: true,
-                            autocomplete: "off",
-                            aria: { label: "Entry text" } %>
-        <%= form.submit "Log" %>
-      <% end %>
-    </div>
-  <% end %>
-  <div id="<%= future_month_entries_id(month) %>">
+  <div id="<%= future_month_entries_id(month) %>" class="future-log__entries">
     <%= render partial: "future_logs/entry", collection: entries %>
   </div>
+  <% if add_open %>
+    <button type="button"
+            id="future_month_<%= month_key %>_trailing_toggle"
+            class="future-log__trailing-reveal"
+            aria-label="Write in <%= month.strftime("%B %Y") %>"
+            aria-expanded="false"
+            aria-controls="<%= add_row_id %>"
+            data-placement-target="toggle"
+            data-action="placement#toggle"></button>
+    <div id="<%= add_row_id %>" class="future-log__add-row" data-placement-target="panel" hidden>
+      <%= render "entries/rapid_log_form",
+                 capture_date: nil,
+                 placement: "future",
+                 allowed_kinds: %w[task event],
+                 form_id: "future_month_#{month_key}_form",
+                 line_id: "future_month_#{month_key}_line",
+                 future_month: month %>
+    </div>
+  <% end %>
 </section>
