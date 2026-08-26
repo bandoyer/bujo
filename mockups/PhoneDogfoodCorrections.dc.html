@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bujo phone dogfood corrections</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Permanent+Marker&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --paper: #f6f1e6;
+      --paper-surface: #fdfaf2;
+      --paper-ink: #201d18;
+      --paper-muted: #8d8574;
+      --paper-faint: #a39a89;
+      --paper-line: #e0d8c4;
+      --paper-accent: #a8722a;
+      --paper-selected: #eee5d4;
+      --dark: #16161e;
+      --dark-surface: #1a1b26;
+      --dark-ink: #c0caf5;
+      --dark-muted: #787c99;
+      --dark-faint: #565f89;
+      --dark-line: #2f3549;
+      --dark-accent: #7aa2f7;
+      --dark-selected: #20243a;
+    }
+    body {
+      margin: 0;
+      background: #d9d4c8;
+      font-family: "Permanent Marker", system-ui, sans-serif;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .board {
+      display: grid;
+      width: 1320px;
+      min-height: 930px;
+      grid-template-columns: 390px 390px 450px;
+      gap: 32px;
+      align-items: start;
+      padding: 32px;
+    }
+    .phone, .inset {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background-color: var(--background);
+      background-image: radial-gradient(var(--dot) 1px, transparent 1.1px);
+      background-size: 22px 22px;
+      color: var(--ink);
+      box-shadow: 0 18px 45px rgba(32, 29, 24, 0.16);
+    }
+    .light {
+      --background: var(--paper);
+      --surface: var(--paper-surface);
+      --ink: var(--paper-ink);
+      --muted: var(--paper-muted);
+      --faint: var(--paper-faint);
+      --line: var(--paper-line);
+      --accent: var(--paper-accent);
+      --selected: var(--paper-selected);
+      --dot: rgba(32, 29, 24, 0.09);
+    }
+    .dark {
+      --background: var(--dark);
+      --surface: var(--dark-surface);
+      --ink: var(--dark-ink);
+      --muted: var(--dark-muted);
+      --faint: var(--dark-faint);
+      --line: var(--dark-line);
+      --accent: var(--dark-accent);
+      --selected: var(--dark-selected);
+      --dot: rgba(192, 202, 245, 0.07);
+      box-shadow: 0 18px 45px rgba(22, 22, 30, 0.35);
+    }
+    .phone {
+      display: flex;
+      width: 390px;
+      height: 844px;
+      flex-direction: column;
+      border-radius: 30px;
+    }
+    .page {
+      display: flex;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+      padding: 28px 18px 82px;
+    }
+    h1 {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 40px;
+      font-weight: 400;
+      line-height: 0.98;
+    }
+    .context, .stage, .count, .notice, .label {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .context { color: var(--accent); }
+    .view-switch {
+      display: flex;
+      align-self: center;
+      margin-top: 16px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+    }
+    .view-switch span {
+      display: grid;
+      min-height: 44px;
+      padding: 0 14px;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--faint);
+      font-size: 13px;
+    }
+    .view-switch .active { background: var(--selected); color: var(--accent); }
+    .month-nav, .day-nav {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      margin-top: 8px;
+      color: var(--accent);
+      text-align: center;
+    }
+    .month-nav span:first-child, .month-nav span:last-child,
+    .day-nav span:first-child, .day-nav span:last-child {
+      display: grid;
+      min-height: 44px;
+      place-items: center;
+      color: var(--ink);
+      font-size: 24px;
+    }
+    .migration-link {
+      display: grid;
+      min-height: 44px;
+      align-self: flex-start;
+      padding: 0 12px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .entries { margin-top: 18px; }
+    .entry {
+      padding: 10px 0;
+      border-radius: 9px;
+      color: var(--ink);
+    }
+    .entry.selected { background: var(--selected); }
+    .entry-line {
+      display: grid;
+      min-height: 44px;
+      grid-template-columns: 16px 20px minmax(0, 1fr) fit-content(40%);
+      gap: 4px;
+      align-items: baseline;
+      padding: 0;
+    }
+    .signifier { color: var(--accent); }
+    .glyph { font-family: "JetBrains Mono", monospace; color: var(--ink); }
+    .meta { color: var(--muted); font-size: 11px; text-align: right; }
+    .struck {
+      color: var(--ink);
+      text-decoration-line: line-through;
+      text-decoration-color: currentColor;
+      text-decoration-thickness: 2px;
+    }
+    .count { margin-left: auto; }
+    .card {
+      margin-top: 8px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--surface) 96%, transparent);
+      box-shadow: 0 10px 24px rgba(32, 29, 24, 0.08);
+    }
+    .kind-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .kind {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+      font-family: "Permanent Marker", "JetBrains Mono", monospace;
+      font-size: 20px;
+    }
+    .kind[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+    .pill {
+      display: flex;
+      min-width: 0;
+      min-height: 46px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+    }
+    .pill input {
+      min-width: 0;
+      flex: 1;
+      padding: 0 12px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+    .primary, .secondary, .undo {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--ink);
+    }
+    .pill .primary {
+      border: 0;
+      border-radius: 0;
+      background: var(--accent);
+      color: var(--surface);
+    }
+    .form-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .form-actions .primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+    .schedule {
+      margin: 8px 0 0 40px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+    .schedule .label { display: block; margin: 0 0 6px; }
+    .schedule input[type="date"] {
+      display: block;
+      width: 100%;
+      min-height: 46px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--ink);
+      font: inherit;
+    }
+    .tab-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 66px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--faint);
+      font-size: 11px;
+    }
+    .tab.active { color: var(--accent); }
+    .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .insets { display: grid; gap: 24px; }
+    .inset {
+      width: 450px;
+      min-height: 398px;
+      padding: 28px 22px 34px;
+      border-radius: 26px;
+    }
+    .inset h1 { font-size: 34px; }
+    .stage {
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .confirmation {
+      display: flex;
+      min-height: 54px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 8px 10px 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface);
+    }
+    .source { margin: 18px 0 4px; color: var(--muted); font-size: 12px; }
+    .created-copy { margin: 16px 0 0; color: var(--accent); }
+    .empty-copy { margin: 32px 0 3px; text-align: center; }
+    .empty-guidance { margin: 0; color: var(--muted); text-align: center; font-size: 13px; }
+    .collection-card { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="phone light" aria-label="Monthly Tasks with complete capture vocabulary and aligned entries">
+      <div class="page">
+        <h1>Monthly Log</h1>
+        <div class="view-switch" aria-label="Monthly Log view">
+          <span>Calendar</span><span class="active">Tasks</span>
+        </div>
+        <div class="month-nav"><span>‹</span><span>AUG · 2026</span><span>›</span></div>
+        <span class="migration-link">Monthly Migration</span>
+
+        <div class="entries">
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">•</span><span>Merge Vahid's PR</span><span class="meta"></span></div></article>
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">O</span><span>Parents leave for camp</span><span class="meta">SAT 29</span></div></article>
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">–</span><span>Packing notes for the weekend</span><span class="meta">+HOME</span></div></article>
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">x</span><span>Test completed entry</span><span class="meta"></span></div></article>
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">•</span><span class="struck">Test struck entry</span><span class="meta"></span></div></article>
+        </div>
+        <p class="count">1 open · 5 logged</p>
+
+        <div class="card" aria-label="Monthly Tasks capture">
+          <div class="kind-row" aria-label="Entry kind">
+            <button class="kind" type="button" aria-label="Task" aria-pressed="true">•</button>
+            <button class="kind" type="button" aria-label="Event" aria-pressed="false">O</button>
+            <button class="kind" type="button" aria-label="Note" aria-pressed="false">–</button>
+          </div>
+          <div class="pill"><input aria-label="Rapid log" placeholder="Rapid log…"><button class="primary" type="button">Log</button></div>
+        </div>
+      </div>
+      <nav class="tab-bar" aria-label="Primary">
+        <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+        <span class="tab active"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+      </nav>
+    </section>
+
+    <section class="phone dark" aria-label="Daily Entry schedule form with full width native date picker">
+      <div class="page">
+        <h1>Daily Log</h1>
+        <div class="day-nav"><span>‹</span><span>WED · AUG 26</span><span>›</span></div>
+        <div class="entries">
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">O</span><span>Parents leave for camp</span><span class="meta"></span></div></article>
+          <article class="entry selected">
+            <div class="entry-line"><span class="signifier">*</span><span class="glyph">•</span><span>Call the campground</span><span class="meta">+HOME</span></div>
+            <div class="schedule">
+              <label class="label" for="schedule-date">Schedule for</label>
+              <input id="schedule-date" type="date" value="2026-08-29">
+              <div class="form-actions"><button class="primary" type="button">Schedule</button><button class="secondary" type="button">Cancel</button></div>
+            </div>
+          </article>
+          <article class="entry"><div class="entry-line"><span class="signifier"></span><span class="glyph">x</span><span>Book campsite</span><span class="meta"></span></div></article>
+        </div>
+
+        <div class="card" aria-label="Edit entry">
+          <p class="label" style="margin: 0 0 8px;">Edit entry</p>
+          <div class="kind-row" aria-label="Entry kind">
+            <button class="kind" type="button" aria-label="Task" aria-pressed="false">•</button>
+            <button class="kind" type="button" aria-label="Event" aria-pressed="true">O</button>
+            <button class="kind" type="button" aria-label="Note" aria-pressed="false">–</button>
+          </div>
+          <div class="pill"><input aria-label="Entry text" value="Parents leave for camp"></div>
+          <div class="form-actions"><button class="primary" type="button">Save</button><button class="secondary" type="button">Cancel</button></div>
+        </div>
+      </div>
+      <nav class="tab-bar" aria-label="Primary">
+        <span class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+      </nav>
+    </section>
+
+    <aside class="insets" aria-label="Migration Undo and newly created Collection">
+      <section class="inset light">
+        <h1>Monthly Migration</h1>
+        <p class="context">JULY → AUGUST 2026</p>
+        <p class="stage">Review outgoing tasks</p>
+        <div class="confirmation"><span>Moved to August Tasks.</span><button class="undo" type="button">Undo</button></div>
+        <p class="source">Daily Log · July 28, 2026</p>
+        <article class="entry selected">
+          <div class="entry-line"><span class="signifier"></span><span class="glyph">•</span><span>Reserve the campsite</span><span class="meta"></span></div>
+        </article>
+      </section>
+
+      <section class="inset dark">
+        <h1>Camping Trip</h1>
+        <p class="context">Collection · not indexed</p>
+        <p class="created-copy">Collection created.</p>
+        <p class="empty-copy">Nothing logged yet.</p>
+        <p class="empty-guidance">Add a first entry, then add it to the Index.</p>
+        <div class="card collection-card" aria-label="Write first Collection entry">
+          <div class="kind-row" aria-label="Entry kind">
+            <button class="kind" type="button" aria-label="Task" aria-pressed="true">•</button>
+            <button class="kind" type="button" aria-label="Event" aria-pressed="false">O</button>
+            <button class="kind" type="button" aria-label="Note" aria-pressed="false">–</button>
+          </div>
+          <div class="pill"><input aria-label="Rapid log" placeholder="Rapid log…"><button class="primary" type="button">Log</button></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <script>
+    document.querySelectorAll(".kind-row").forEach((row) => {
+      row.querySelectorAll(".kind").forEach((control) => {
+        control.addEventListener("click", () => {
+          row.querySelectorAll(".kind").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === control))
+          })
+        })
+      })
+    })
+  </script>
+</body>
+</html>

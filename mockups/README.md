@@ -21,6 +21,7 @@ Live, editable canvas: https://claude.ai/code/artifact/749c4391-1504-488c-910e-e
 | `Future.dc.html` | Mobile · Future Log |
 | `MonthlyMigration.dc.html` | Mobile · Monthly Migration review states |
 | `PhoneCaptureCorrection.dc.html` | Mobile · Future/Calendar capture and empty migration checkpoints |
+| `PhoneDogfoodCorrections.dc.html` | Mobile · Monthly kind parity, Entry Edit/Schedule, migration Undo, and post-create Collection clarity |
 | `Migrate.dc.html` | Mobile · Migration as card-per-task review |
 | `AltDark.dc.html` | Alt direction · low-fi dark "terminal-kin" variant |
 | `canvas.json` | Canvas layout + design notes (architecture, open questions) |
