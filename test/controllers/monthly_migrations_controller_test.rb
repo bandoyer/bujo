@@ -271,6 +271,14 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{migration_future_tasks_path(untimed_event)}']", count: 0
     assert_select "form[action='#{migration_future_strike_path(untimed_event)}']", count: 0
 
+    [ migration_future_tasks_path(untimed_event), migration_future_strike_path(untimed_event) ].each do |path|
+      original = journal_snapshot
+      post path
+      assert_redirected_to migration_future_path
+      assert_equal "That entry can't do that.", flash[:alert]
+      assert_equal original, journal_snapshot
+    end
+
     post migration_future_calendar_path(untimed_event)
     event_successor = untimed_event.reload.successor
     assert_equal [ "monthly_calendar", TARGET_MONTH, untimed_event.occurs_on, nil, nil ],
@@ -376,6 +384,7 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
 
   def create_outgoing_exclusions
     create_entry(text: "done", state: "done", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
+    create_entry(text: "struck", state: "struck", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
     moved = create_entry(text: "already moved", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
     moved.move_to!(page_kind: "monthly_tasks", page_on: TARGET_MONTH, as_of: AS_OF)
     deleted = create_entry(text: "deleted", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
@@ -383,6 +392,18 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
     hidden_root = create_entry(text: "hidden root", page_kind: "daily", page_on: SOURCE_MONTH + 1.day)
     create_entry(text: "hidden descendant", page_kind: "daily", page_on: SOURCE_MONTH + 1.day, parent: hidden_root)
     hidden_root.soft_delete!
+    visible_root = create_entry(
+      text: "visible context", kind: "note", state: nil,
+      page_kind: "daily", page_on: SOURCE_MONTH + 1.day
+    )
+    hidden_child = create_entry(
+      text: "deleted nested task", page_kind: "daily", page_on: SOURCE_MONTH + 1.day, parent: visible_root
+    )
+    create_entry(
+      text: "descendant below deleted task", page_kind: "daily",
+      page_on: SOURCE_MONTH + 1.day, parent: hidden_child
+    )
+    hidden_child.soft_delete!
     create_entry(text: "wrong month", page_kind: "monthly_tasks", page_on: SOURCE_MONTH.prev_month)
     create_entry(text: "future excluded", page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH.next_month + 1.day)
     collection = @user.collections.create!(name: "Not a source")
