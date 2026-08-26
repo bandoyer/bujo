@@ -1,0 +1,22 @@
+<% selected = entry == candidate %>
+<article id="entry_<%= entry.id %>"
+         class="entry <%= "entry--selected monthly-migration__candidate" if selected %>"
+         <%= tag.attributes(aria: { label: "Review this task" }) if selected %>>
+  <div class="entry__line">
+    <%= render "entries/entry_line", entry: entry %>
+  </div>
+
+  <% if selected %>
+    <%= render "monthly_migrations/actions", entry: entry, stage: stage %>
+  <% end %>
+
+  <% children = entry.children.kept %>
+  <% if children.any? %>
+    <div class="entry__children">
+      <%= render partial: "monthly_migrations/tree_entry",
+                 collection: children,
+                 as: :entry,
+                 locals: { candidate: candidate, stage: stage } %>
+    </div>
+  <% end %>
+</article>

@@ -107,7 +107,7 @@ class Entry < ApplicationRecord
     # supplied page. The parser's +today+ and admission's +as_of+ are separate
     # inputs because a page date never stands in for the wall-clock boundary.
     def capture!(line, user:, today:, as_of:, page_kind:, page_on:, collection: nil, occurs_on: nil,
-      default_kind: :task)
+      default_kind: :task, admission_context: nil, target_month: nil)
       parsed = Bujo::RapidLog.parse(line, today: today, default_kind: default_kind)
       return unless parsed
 
@@ -124,7 +124,7 @@ class Entry < ApplicationRecord
         occurs_on: occurs_on || parsed.date,
         time_of_day: parsed.time
       )
-      enforce_capture_admission!(entry, as_of)
+      enforce_capture_admission!(entry, as_of, admission_context, target_month)
       entry.save!
       entry
     end
@@ -142,16 +142,28 @@ class Entry < ApplicationRecord
 
     private
 
-    def enforce_capture_admission!(entry, as_of)
+    def enforce_capture_admission!(entry, as_of, admission_context, target_month)
       return if capture_admitted?(
         page_kind: entry.page_kind,
         page_on: entry.page_on,
         occurs_on: entry.occurs_on,
         as_of: as_of
       )
+      return if monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
 
       entry.errors.add(:base, :invalid)
       raise ActiveRecord::RecordInvalid, entry
+    end
+
+    # Monthly setup deliberately opens only its URL-derived Tasks page. The
+    # ordinary predicate above stays unchanged because normal Monthly screens
+    # must remain closed for next month.
+    def monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
+      return false unless admission_context == :monthly_migration
+      return false unless entry.page_kind == "monthly_tasks" && target_month
+
+      canonical_target = target_month.beginning_of_month
+      entry.page_on == canonical_target && canonical_target <= as_of.next_month.beginning_of_month
     end
 
     # Each admission rule names only the placement dates it judges and ignores

@@ -29,6 +29,12 @@
                   monthly_log_path(month: @month.next_month.strftime("%Y-%m"), view: navigation_view),
                   aria: { label: "Next month" } %>
     </nav>
+
+    <% if @migration_admitted %>
+      <%= link_to "Monthly Migration",
+                  monthly_migration_path(month: month_value),
+                  class: "monthly-log__migration-link" %>
+    <% end %>
   </header>
 
   <% if tasks_view %>

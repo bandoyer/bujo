@@ -1,0 +1,75 @@
+<% month_name = @target_month.strftime("%B") %>
+<% month_param = @target_month.strftime("%Y-%m") %>
+
+<div class="monthly-migration__actions" data-controller="migration-actions">
+  <div class="monthly-migration__choices" data-migration-actions-target="choices">
+    <% if stage == :outgoing %>
+      <%= button_to "Strike",
+                    strike_monthly_migration_outgoing_path(month: month_param, id: entry),
+                    class: "monthly-migration__button monthly-migration__button--warn" %>
+      <%= button_to "#{month_name} Tasks",
+                    tasks_monthly_migration_outgoing_path(month: month_param, id: entry),
+                    class: "monthly-migration__button",
+                    aria: { label: "Move to #{month_name} Tasks" } %>
+      <button type="button"
+              class="monthly-migration__button"
+              aria-label="Move to Collection"
+              aria-expanded="false"
+              aria-controls="migration_collection_step"
+              data-migration-actions-target="collectionToggle"
+              data-action="migration-actions#showCollection">Collection…</button>
+      <button type="button"
+              class="monthly-migration__button"
+              aria-label="Schedule in Future"
+              aria-expanded="false"
+              aria-controls="migration_future_step"
+              data-migration-actions-target="futureToggle"
+              data-action="migration-actions#showFuture">Future…</button>
+    <% elsif entry.kind == "task" %>
+      <%= button_to "#{month_name} Tasks",
+                    tasks_monthly_migration_future_path(month: month_param, id: entry),
+                    class: "monthly-migration__button",
+                    aria: { label: "Move to #{month_name} Tasks" } %>
+      <%= button_to "Strike",
+                    strike_monthly_migration_future_path(month: month_param, id: entry),
+                    class: "monthly-migration__button monthly-migration__button--warn" %>
+    <% else %>
+      <%= button_to "#{month_name} Calendar",
+                    calendar_monthly_migration_future_path(month: month_param, id: entry),
+                    class: "monthly-migration__button",
+                    aria: { label: "Move to #{month_name} Calendar" } %>
+    <% end %>
+  </div>
+
+  <% if stage == :outgoing %>
+    <div id="migration_collection_step"
+         class="monthly-migration__second-step"
+         data-migration-actions-target="collectionStep"
+         hidden>
+      <%= form_with url: collection_monthly_migration_outgoing_path(month: month_param, id: entry) do |form| %>
+        <%= form.label :topic, "Exact Topic", for: "migration_topic" %>
+        <%= form.text_field :topic, id: "migration_topic", required: true, autocomplete: "off" %>
+        <%= form.submit "Move", class: "monthly-migration__button" %>
+      <% end %>
+      <button type="button"
+              class="monthly-migration__button"
+              aria-label="Cancel moving to Collection"
+              data-action="migration-actions#cancel">Cancel</button>
+    </div>
+
+    <div id="migration_future_step"
+         class="monthly-migration__second-step"
+         data-migration-actions-target="futureStep"
+         hidden>
+      <%= form_with url: future_monthly_migration_outgoing_path(month: month_param, id: entry) do |form| %>
+        <%= form.label :date, "Schedule date", for: "migration_date" %>
+        <%= form.date_field :date, id: "migration_date", required: true %>
+        <%= form.submit "Schedule", class: "monthly-migration__button" %>
+      <% end %>
+      <button type="button"
+              class="monthly-migration__button"
+              aria-label="Cancel scheduling in Future"
+              data-action="migration-actions#cancel">Cancel</button>
+    </div>
+  <% end %>
+</div>

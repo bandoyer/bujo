@@ -10,6 +10,7 @@ class MonthlyLogsController < ApplicationController
     @month = month_or_current(params[:month])
     @view = params[:view] == "tasks" ? :tasks : :calendar
     @capture_open = Entry.capture_admitted?(page_kind: viewed_page_kind, page_on: @month, as_of: @today)
+    @migration_admitted = @month <= @today.next_month.beginning_of_month
 
     @view == :tasks ? load_tasks : load_calendar
   end

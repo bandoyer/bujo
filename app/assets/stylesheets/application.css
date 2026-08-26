@@ -871,3 +871,182 @@ a {
 .tab-bar__item--active {
   color: var(--accent);
 }
+
+/* Monthly Migration is a temporary reading lens, so it uses the established
+   journal shell and tokens while keeping its one current decision prominent. */
+.monthly-log__migration-link,
+.monthly-migration__primary-link,
+.monthly-migration__completion-links a {
+  display: inline-grid;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.monthly-log__migration-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.monthly-migration {
+  gap: 0;
+}
+
+.monthly-migration > h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+.monthly-migration__context,
+.monthly-migration__stage,
+.monthly-migration__source {
+  margin: 0.45rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.monthly-migration__context {
+  color: var(--accent);
+}
+
+.monthly-migration__stage {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.monthly-migration__source {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+}
+
+.monthly-migration__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.monthly-migration__inventory,
+.monthly-migration__tree,
+.monthly-migration__complete {
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.monthly-migration__capture {
+  min-width: 0;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.monthly-migration__capture > label,
+.monthly-migration__second-step label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--muted);
+}
+
+.monthly-migration__capture-row,
+.monthly-migration__choices,
+.monthly-migration__second-step,
+.monthly-migration__second-step form,
+.monthly-migration__completion-links {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.monthly-migration__capture-row input,
+.monthly-migration__second-step input {
+  min-width: 0;
+  min-height: 44px;
+  flex: 1 1 10rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.monthly-migration__primary-link {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.monthly-migration__candidate {
+  min-width: 0;
+}
+
+.monthly-migration__actions {
+  min-width: 0;
+  margin: 0.5rem 0 0 2.5rem;
+}
+
+.monthly-migration__actions form {
+  margin: 0;
+}
+
+.monthly-migration__button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.monthly-migration__button--warn {
+  color: var(--warn);
+}
+
+.monthly-migration__button:focus-visible,
+.monthly-migration__primary-link:focus-visible,
+.monthly-log__migration-link:focus-visible,
+.monthly-migration__completion-links a:focus-visible,
+.monthly-migration input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.monthly-migration__choices[hidden],
+.monthly-migration__second-step[hidden] {
+  display: none;
+}
+
+.monthly-migration__second-step form {
+  flex: 1 1 13rem;
+}
+
+.monthly-migration__complete h2 {
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
+}
+
+@media (max-width: 340px) {
+  .monthly-migration__actions {
+    margin-left: 0;
+  }
+
+  .monthly-migration__button,
+  .monthly-migration__completion-links a {
+    flex: 1 1 8rem;
+  }
+}
