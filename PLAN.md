@@ -76,6 +76,9 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-26 | **Mock source joined the app repository.** The pre-project `bujo-mockups` checkout now lives at `mockups/`; new page mocks use the current app tokens, one selected hand for all visible text, and page-title-first hierarchy |
 | 2026-08-26 | **Slice 1.5.3 approved.** Monthly Migration uses target-month URLs for past/current/next month, derives progress from Entry state, reviews Calendar → Tasks → Daily trees, scans only exact-target-month Future roots, and clears temporal fields only from tasks rewritten to Monthly Tasks. `six-mix-fable-review` may begin |
 | 2026-08-26 | **Slice 1.5.3 landed.** The deliberate Monthly Migration ritual shipped with no schema or persisted progress state. Terminal candidate `329b8f6`; 200 fast / 56 system tests, CRAP ≤ 6 over 194 methods, zero clones, and RapidLog mutation 1105/1105. Dogfood the ritual before freezing Daily Reflection behavior |
+| 2026-08-26 | **`blackcat.dev` acquired and will replace `questlog.dev` as the umbrella domain.** Bujo's planned origin is `bujo.blackcat.dev`; Press Start is tentatively `lift.blackcat.dev`, pending its own deployment ruling. Resend's Cloudflare setup installed DKIM, SPF, and return-path MX, monitoring-mode DMARC is saved, and the aggregate domain is verified. Bujo's domain-restricted production key is stored in 1Password; application implementation and production cutover remain, while Press Start gets its own key only during its later slice |
+| 2026-08-26 | **Transactional email provider selected: Resend over HTTPS.** Bujo and Press Start will share the one verified `blackcat.dev` sending domain and free-plan quota, using `bujo@blackcat.dev` and `lift@blackcat.dev`, but keep separate domain-restricted Sending access keys, code, secrets, and deployments. See `docs/resend-transactional-email.md` |
+| 2026-08-26 | **Rails authentication rollout fixed at five ordered steps.** (1) Resend delivery plus short-lived, single-use magic links; (2) canonical cutover to `bujo.blackcat.dev`; (3) discoverable passkey registration/sign-in with exact RP ID `bujo.blackcat.dev`; (4) prove two passkeys plus email recovery; (5) retire the password UI. Provider/DNS/key setup is complete and Step 1 is next. The approved direction is `mockups/SignIn.dc.html`; full gates live in `docs/resend-transactional-email.md` |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -252,8 +255,23 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   DNS-only/grey-cloud so Let's Encrypt HTTP-01 reaches kamal-proxy —
   don't flip it to proxied without rethinking certs. Zone-scoped DNS
   token at `~/.config/cloudflare/questlog-dns-token` (mode 600, never
-  committed). press-start gets its own domain later if it launches
-  publicly
+  committed). **Replacement acquired 2026-08-26 but not cut over:**
+  `blackcat.dev`, with Bujo at `bujo.blackcat.dev` and Press Start likely at
+  `lift.blackcat.dev`. Resend's generated Cloudflare records were installed
+  and individually verified 2026-08-26; aggregate domain status is verified.
+  Web-origin DNS and the production cutover remain pending. This
+  supersedes the earlier thought that Press Start would need its own
+  registrable domain; its hostname remains tentative until Press Start's own
+  deployment decision
+- Transactional email: **Resend selected 2026-08-26**, using its HTTPS
+  API because DigitalOcean blocks outbound SMTP. Bujo and Press Start will
+  share one exact verified sending domain so the current free plan can cover
+  both; each gets its own domain-restricted Sending access key and From
+  identity: `bujo@blackcat.dev` and `lift@blackcat.dev`. Provider DNS records
+  and monitoring-mode DMARC are installed, the domain is verified, and Bujo's
+  scoped production key is stored in 1Password. Implementation happens before
+  the web cutover; Press Start gets its own key later. Full cross-app plan and gates:
+  `docs/resend-transactional-email.md`
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending (slice 1.1 added a require-graph boundary test for
   `lib/bujo/` in its place)
@@ -272,22 +290,20 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   decision on wiring, revisit before slice 1.3's deploy
 - Auth direction (decided 2026-08-24, build later): go passwordless
   like press-start — passkeys first, magic email links second. The
-  generator's email/password stands in until then. Two constraints to
-  design around: (1) magic links require sending mail, which the
-  questlog.dev no-email lockdown deliberately blocks — either an email
-  provider on a carved-out subdomain or passkeys-only; (2) passkeys-only
-  needs a recovery story without email — register a second passkey
-  (phone + laptop) and bootstrap the first from a signed-in session.
-  Pairs with the multi-user item below (same email decision gates both)
+  generator's email/password remains only as a transitional rollback. The
+  provider foundation is complete; Step 1 of the fixed five-step rollout is
+  next. `docs/resend-transactional-email.md` owns its live checklist and safety
+  gates. Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host
+  or Press Start. Recovery is proven before password retirement by registering
+  two passkeys (phone + laptop) and retaining the magic-email fallback. Pairs
+  with the multi-user item below (same email decision gates both)
 - Multi-user: the data layer is already tenant-clean (assessed
   2026-08-24 — `user_id` FKs, per-user indexes/uniqueness, user-scoped
   model API; the 1.3 spec scopes all queries via `Current.user`).
   Invite-only guests are nearly free: console-created accounts, no new
   code. Public sign-up is one small slice (RegistrationsController +
-  abuse/rate-limit thought) **plus an email decision** — questlog.dev's
-  no-email lockdown blocks password-reset mail, so either add a
-  provider on an email subdomain and relax the lockdown, or stay
-  invite-only with manual resets. Revisit after phase 1
+  abuse/rate-limit work) after the Resend delivery slice is proven; the
+  provider decision is no longer its gate. Revisit after phase 1
 
 ## How to resume (for a future session)
 
