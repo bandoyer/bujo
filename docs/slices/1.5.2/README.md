@@ -23,8 +23,13 @@ that order.
 | 3 | `collection-commands` | **done** — verified and closed at `06a88b788d` |
 | 4 | `move-to-collection` | **done** — verified and closed at `a2493629af` |
 
-**Slice 1.5.2 is complete and is a terminal candidate awaiting operator
-review.** One slice needed a second pass; the other three passed first time.
+| 5 | `collection-topic-overflow` | **active** — operator acceptance defect at `a3ca631`; spec in `e-topic-overflow.md` |
+
+**Slice 1.5.2 reached a terminal candidate at `a3ca631`, and operator review
+found one acceptance defect in it: an unbounded Topic rendered as destination
+metadata widens a 320 px source page. The corrective slice above is running.**
+
+The earlier close-out read: One slice needed a second pass; the other three passed first time.
 No role has integrated it into `main`, and none may: the operator verifies the
 candidate and presents it for human review.
 
