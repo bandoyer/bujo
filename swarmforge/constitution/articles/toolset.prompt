@@ -14,9 +14,13 @@ Rails system tests (Capybara + headless browser) are the acceptance layer — th
 
 ## boundaries
 
-    bin/packwerk check
+    bin/rails test test/lib/bujo/rapid_log_boundary_test.rb
 
-Packwerk enforces package boundaries; start as one root package and carve out a package only when a boundary is worth defending. Plain-Ruby gems: a dedicated Minitest boundary test asserting the require graph instead.
+Bujo deliberately remains one root Rails package, so `PLAN.md` defers Packwerk
+until a package boundary is worth defending. The shared pure-Ruby rapid-log
+grammar is the boundary that exists today; its dedicated Minitest gate proves
+the require graph, Rails isolation, and ambient-state isolation. Do not install
+or invoke Packwerk unless a later approved slice changes that plan.
 
 ## coverage
 

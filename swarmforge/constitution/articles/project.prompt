@@ -29,6 +29,9 @@ Universal — gate every acceptance and handoff:
 Role-specific additions:
 
 - qa: acceptance flows for the slice via `bin/rails test:system`
+- architect: boundary gate via
+  `bin/rails test test/lib/bujo/rapid_log_boundary_test.rb`; Packwerk is
+  deliberately deferred in `PLAN.md` and its absence is not a blocker
 - hardener: none yet — mutation testing lands with the rapid-log
   parser slice (mutant-minitest; see PLAN.md)
 
