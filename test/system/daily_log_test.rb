@@ -14,7 +14,8 @@ class DailyLogTest < ApplicationSystemTestCase
 
     assert_current_path root_path
     assert_text "Daily Log"
-    assert_selector ".daily-log__eyebrow", text: formatted_day(Time.zone.today)
+    assert_no_selector ".daily-log__eyebrow"
+    assert_selector ".day-navigation__viewed-day", text: formatted_day(Time.zone.today), count: 1
     assert_selector "[data-testid='open-count']", text: /\A\d+ open\z/
   end
 
@@ -230,7 +231,7 @@ class DailyLogTest < ApplicationSystemTestCase
 
     find("a[aria-label='Previous day']").click
 
-    assert_selector ".daily-log__eyebrow", text: formatted_day(previous_day)
+    assert_no_selector ".daily-log__eyebrow"
     assert_text "Nothing logged yet."
     assert_selector ".day-navigation__viewed-day", text: formatted_day(previous_day)
     assert_no_link "today", exact: true
@@ -315,7 +316,8 @@ class DailyLogTest < ApplicationSystemTestCase
 
     visit daily_log_path(date: "not-a-date")
 
-    assert_selector ".daily-log__eyebrow", text: formatted_day(Time.zone.today)
+    assert_no_selector ".daily-log__eyebrow"
+    assert_selector ".day-navigation__viewed-day", text: formatted_day(Time.zone.today), count: 1
     assert_text "Daily Log"
   end
 

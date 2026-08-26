@@ -11,11 +11,15 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
 
     get daily_log_path(date: requested_date.iso8601)
     assert_response :success
-    assert_select ".daily-log__eyebrow", text: requested_date.strftime("%a · %b %-d").upcase
+    assert_select ".daily-log__eyebrow", count: 0
+    assert_select ".day-navigation__viewed-day",
+      text: requested_date.strftime("%a · %b %-d").upcase, count: 1
 
     get daily_log_path(date: "not-a-date")
     assert_response :success
-    assert_select ".daily-log__eyebrow", text: Time.zone.today.strftime("%a · %b %-d").upcase
+    assert_select ".daily-log__eyebrow", count: 0
+    assert_select ".day-navigation__viewed-day",
+      text: Time.zone.today.strftime("%a · %b %-d").upcase, count: 1
   end
 
   test "snapshots today once while falling back from an invalid date" do
@@ -35,7 +39,8 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal 1, clock_reads
-    assert_select ".daily-log__eyebrow", text: snapshot.strftime("%a · %b %-d").upcase
+    assert_select ".daily-log__eyebrow", count: 0
+    assert_select ".day-navigation__viewed-day", text: snapshot.strftime("%a · %b %-d").upcase, count: 1
   end
 
   test "counts every kept open task rendered in the day's nested tree" do

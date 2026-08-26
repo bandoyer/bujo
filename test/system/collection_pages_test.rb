@@ -84,6 +84,45 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_current_path collection_path(collection)
   end
 
+  test "Index trailing canvas opens only New Collection and keeps other controls independent" do
+    registered = create_filled_collection("Registered Topic")
+    registered.register!
+    sign_in
+    visit journal_index_path
+
+    point = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const reveal = document.querySelector("#index_create_reveal").getBoundingClientRect()
+        return { x: reveal.left + reveal.width / 2, y: reveal.top + 2 }
+      })()
+    JAVASCRIPT
+    page.execute_script("document.elementFromPoint(arguments[0], arguments[1]).click()",
+      point.fetch("x"), point.fetch("y"))
+    assert_selector "#new_collection_panel:not([hidden])"
+    assert_equal "collection_name", page.evaluate_script("document.activeElement.id")
+    assert_no_difference -> { @user.collections.count } do
+      find("#locate_collection_toggle").click
+      assert_selector "#new_collection_panel[hidden]", visible: :all
+      assert_selector "#locate_collection_panel:not([hidden])"
+      fill_in "Exact Topic", with: "missing topic"
+      click_button "Open", exact: true
+      assert_text "No Collection with that exact Topic."
+      assert_selector "#new_collection_panel[hidden]", visible: :all
+      assert_selector "#locate_collection_panel:not([hidden])"
+      click_link registered.name
+    end
+    assert_current_path collection_path(registered)
+
+    visit journal_index_path
+    assert_no_difference -> { @user.collections.count } do
+      find("#new_collection_toggle").click
+      assert_selector "#new_collection_panel:not([hidden])"
+      find("#new_collection_toggle").click
+      click_link "Future", exact: true
+    end
+    assert_current_path future_log_path
+  end
+
   test "4 guarded delete returns to Index and old or foreign paths share missing chrome" do
     disposable = @user.collections.create!(name: "Disposable Topic")
     foreign = users(:two).collections.create!(name: "Private Topic")

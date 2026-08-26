@@ -6,6 +6,10 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["toggle", "panel", "focus", "day", "on"]
 
+  // Future months have two buttons for one panel. Remember the control that
+  // opened it so success can restore that one, not the first matching toggle.
+  activeToggle = null
+
   toggle(event) {
     const toggle = event.currentTarget
     const shouldOpen = toggle.getAttribute("aria-expanded") === "false"
@@ -25,19 +29,20 @@ export default class extends Controller {
   submitted(event) {
     if (!event.detail.success) return
 
-    const panel = event.currentTarget.closest("[data-placement-target~='panel']")
-    const toggle = this.toggleFor(panel)
+    const toggle = this.activeToggle
     event.currentTarget.reset()
-    panel.closest(".future-log__month")?.classList.remove("future-log__month--empty")
-    this.setExpanded(toggle, false)
+    this.panelFor(toggle).closest(".future-log__month")?.classList.remove("future-log__month--empty")
+    this.closeAll()
     toggle.focus()
   }
 
   closeAll() {
     this.toggleTargets.forEach((toggle) => this.setExpanded(toggle, false))
+    this.activeToggle = null
   }
 
   open(toggle) {
+    this.activeToggle = toggle
     this.setExpanded(toggle, true)
     this.targetWithin(this.panelFor(toggle), "focus")?.focus()
   }
@@ -49,10 +54,6 @@ export default class extends Controller {
 
   panelFor(toggle) {
     return document.getElementById(toggle.getAttribute("aria-controls"))
-  }
-
-  toggleFor(panel) {
-    return this.toggleTargets.find((toggle) => toggle.getAttribute("aria-controls") === panel.id)
   }
 
   // One controller serves every reveal on the page, so its target lists span

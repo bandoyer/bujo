@@ -22,7 +22,7 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "Calendar rows keep a separate Daily link and an in-place capture surface" do
+  test "Calendar rows make capture primary and keep a separate Daily chevron" do
     travel_to Time.zone.local(2026, 8, 25, 12) do
       day = Date.new(2026, 8, 12)
       event = create_resident(
@@ -36,11 +36,21 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
       get monthly_log_path(month: "2026-08")
 
       assert_response :success
-      assert_select "a.monthly-calendar__date-link[href='#{daily_log_path(date: day.iso8601)}']"
+      assert_select "button.monthly-calendar__capture-reveal[aria-controls='calendar_capture_#{day.iso8601}']" do
+        assert_select ".monthly-calendar__number", text: day.day.to_s
+        assert_select ".monthly-calendar__weekday", text: day.strftime("%a").first.upcase
+      end
+      assert_select "a.monthly-calendar__daily-link[href='#{daily_log_path(date: day.iso8601)}']",
+        text: "›", count: 1
+      assert_select "a.monthly-calendar__daily-link[aria-label='Open Daily Log for #{day.strftime('%B %-d, %Y')}']"
       assert_select "[data-page-capture='monthly_calendar'][data-date='#{day.iso8601}']"
       assert_select "#monthly_entry_#{event.id} a[href='#{daily_log_path(date: day.iso8601)}']", count: 0
       assert_select "#monthly_entry_#{event.id} form[action='#{schedule_entry_path(event)}']"
       assert_select "[data-page-capture='monthly_calendar'] [data-kind='note']", count: 0
+
+      get monthly_log_path(month: "2026-09")
+      assert_select "button.monthly-calendar__capture-reveal", count: 0
+      assert_select "a.monthly-calendar__daily-link", count: 30
     end
   end
 
@@ -82,10 +92,19 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
 
       assert_select ".future-log__month[data-month='2026-07'] #future_entry_#{overdue.id}"
       assert_select ".future-log__month[data-month='2026-07'] button[id$='_toggle']", count: 0
-      assert_select ".future-log__month[data-month='2026-09'] button[id$='_toggle']"
+      assert_select ".future-log__month[data-month='2026-09'] button[id$='_toggle']", count: 2
       assert_select "#future_entry_#{overdue.id} a", count: 0
       assert_select "#future_entry_#{future.id} form", count: 0
       assert_select ".future-log__add-row [data-kind='note']", count: 0
+      assert_select ".future-log__month[data-month='2026-09'] form.rapid-log" do
+        assert_select "button.rapid-log__kind[aria-label='Task'][aria-pressed='true']", text: "•"
+        assert_select "button.rapid-log__kind[aria-label='Event'][aria-pressed='false']"
+        assert_select "input[name='default_kind'][value='task']"
+        assert_select "input[name='placement'][value='future']"
+        assert_select "input[name='on'][value='']"
+        assert_select "input[aria-label='Day of the month'][required]"
+        assert_select "input[placeholder='Rapid log…'][data-rapid-log-target~='line']"
+      end
     end
   end
 

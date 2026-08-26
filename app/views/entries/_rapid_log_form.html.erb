@@ -1,21 +1,45 @@
 <% allowed_kinds = local_assigns.fetch(:allowed_kinds, %w[task event note]) %>
 <% placement = local_assigns[:placement] %>
 <% form_id = local_assigns.fetch(:form_id, "rapid_log_form") %>
+<% line_id = local_assigns.fetch(:line_id, "rapid-log-line") %>
+<% future_month = local_assigns[:future_month] %>
+<% line_data = { rapid_log_target: "line", placement_target: ("focus" unless future_month) }.compact %>
 <%= form_with url: entries_path,
               id: form_id,
               class: "rapid-log",
-              data: { controller: "rapid-log", action: "turbo:submit-end->placement#submitted" } do |form| %>
+              data: {
+                controller: "rapid-log",
+                action: [
+                  ("submit->placement#composeDate" if future_month),
+                  "turbo:submit-end->placement#submitted"
+                ].compact.join(" "),
+                month: (future_month.strftime("%Y-%m") if future_month)
+              }.compact do |form| %>
   <%= render "entries/kind_buttons", allowed_kinds: allowed_kinds %>
   <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
   <%= form.hidden_field :placement, value: placement if placement %>
   <%= form.hidden_field :collection_id, value: collection.id if local_assigns[:collection] %>
-  <%= form.hidden_field :on, value: capture_date.iso8601 if capture_date %>
-  <div class="rapid-log__input-wrap">
-    <%= form.text_field :line,
-                        id: "rapid-log-line",
-                        placeholder: "Rapid log…",
-                        autocomplete: "off",
-                        data: { rapid_log_target: "line", placement_target: "focus" } %>
-    <%= form.submit "Log", class: "rapid-log__submit" %>
+  <% if future_month %>
+    <%= form.hidden_field :on, value: "", data: { placement_target: "on" } %>
+  <% elsif capture_date %>
+    <%= form.hidden_field :on, value: capture_date.iso8601 %>
+  <% end %>
+  <div class="rapid-log__capture-row">
+    <% if future_month %>
+      <%= form.number_field :day,
+                            id: "future_month_#{future_month.strftime('%Y_%m')}_day",
+                            inputmode: "numeric",
+                            required: true,
+                            aria: { label: "Day of the month" },
+                            data: { placement_target: "day focus" } %>
+    <% end %>
+    <div class="rapid-log__input-wrap">
+      <%= form.text_field :line,
+                          id: line_id,
+                          placeholder: "Rapid log…",
+                          autocomplete: "off",
+                          data: line_data %>
+      <%= form.submit "Log", class: "rapid-log__submit" %>
+    </div>
   </div>
 <% end %>

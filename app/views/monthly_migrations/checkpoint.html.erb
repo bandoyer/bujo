@@ -1,0 +1,8 @@
+<%= render layout: "monthly_migrations/shell", locals: { stage: @stage } do %>
+  <section class="monthly-migration__checkpoint">
+    <p><%= @checkpoint_message %></p>
+    <%= link_to @checkpoint_link_text,
+                @checkpoint_path,
+                class: "monthly-migration__primary-link" %>
+  </section>
+<% end %>

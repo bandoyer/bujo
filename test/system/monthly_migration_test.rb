@@ -78,7 +78,8 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     assert_selector ".monthly-migration__candidate[aria-label='Review this task']", text: second.text
 
     click_button target_tasks_label
-    assert_selector ".monthly-migration__candidate[aria-label='Review this task']", text: second.text
+    assert_current_path migration_outgoing_path
+    assert_text "No unresolved outgoing tasks."
   end
 
   test "3 outgoing Collection and Future second steps cancel, refuse, and append one successor" do
@@ -117,6 +118,12 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     click_button "Future…"
     set_date_field "Schedule date", TARGET_MONTH.next_month
     click_button "Schedule"
+    assert_current_path migration_outgoing_path
+    assert_text "No unresolved outgoing tasks."
+    click_link "Scan the Future Log"
+    assert_text "Nothing due for #{TARGET_MONTH.strftime('%B')}."
+    assert_no_text "Monthly Migration complete"
+    click_link "Finish Monthly Migration"
     assert_text "Monthly Migration complete"
     future_successor = @user.entries.find_by!(migrated_from_id: to_future.id)
     assert_equal [ "future", TARGET_MONTH.next_month ],
@@ -153,6 +160,10 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
       click_button target_calendar_label
     end
     assert_current_path migration_future_path
+    assert_text "Nothing due for #{TARGET_MONTH.strftime('%B')}."
+    assert_no_text "Monthly Migration complete"
+    click_link "Finish Monthly Migration"
+    assert_current_path migration_complete_path
     assert_text "Monthly Migration complete"
     assert_link "#{TARGET_MONTH.strftime('%B')} Calendar"
     assert_link "#{TARGET_MONTH.strftime('%B')} Tasks"
@@ -178,7 +189,8 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
 
     click_button "Strike"
     assert_text "That entry can't do that."
-    assert_text "Monthly Migration complete"
+    assert_text "Nothing due for #{TARGET_MONTH.strftime('%B')}."
+    assert_no_text "Monthly Migration complete"
     assert_equal 1, @user.entries.where(id: candidate.id).count
 
     submit_post strike_monthly_migration_outgoing_path(month: month_param(TARGET_MONTH), id: foreign)
@@ -212,6 +224,41 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
       assert_selector "#entry_#{candidate.id}[aria-label='Review this task']"
       assert_field "Exact Topic"
       assert_selector "button[aria-expanded='true']"
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
+
+  test "empty ritual checkpoints require Scan and Finish gestures" do
+    sign_in
+
+    [
+      [ 390, "light", "rock-salt" ],
+      [ 320, "dark", "architects-daughter" ]
+    ].each do |width, theme, hand|
+      page.current_window.resize_to(width, 844)
+      visit migration_path
+      set_preferences(theme:, hand:)
+
+      click_link "Review outgoing tasks"
+      assert_current_path migration_outgoing_path
+      assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+      assert_text "No unresolved outgoing tasks."
+      assert_no_text "Monthly Migration complete"
+      assert_no_horizontal_overflow
+      assert_minimum_target_sizes
+
+      click_link "Scan the Future Log"
+      assert_current_path migration_future_path
+      assert_text "Nothing due for #{TARGET_MONTH.strftime('%B')}."
+      assert_no_text "Monthly Migration complete"
+      assert_no_horizontal_overflow
+      assert_minimum_target_sizes
+
+      click_link "Finish Monthly Migration"
+      assert_current_path migration_complete_path
+      assert_text "Monthly Migration complete"
     end
   ensure
     page.current_window.resize_to(1400, 1400)
@@ -264,8 +311,12 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   def set_preferences(theme:, hand:)
-    find("button", text: /Theme:/).click until find("html", visible: :all)["data-theme"] == theme
-    find("button", text: /Hand:/).click until find("html", visible: :all)["data-hand"] == hand
+    until page.has_selector?("html[data-theme='#{theme}']", visible: :all, wait: 0.2)
+      find("button", text: /Theme:/).click
+    end
+    until page.has_selector?("html[data-hand='#{hand}']", visible: :all, wait: 0.2)
+      find("button", text: /Hand:/).click
+    end
   end
 
   def assert_no_horizontal_overflow

@@ -1,15 +1,12 @@
 <% content_for :title, "Daily Log · Bujo" %>
 <%# The controller owns the clock; the screen only asks which day it holds. %>
 <% viewing_today = @date == @today %>
-<%# The eyebrow and the day navigation's centre name the same day the same
-    way; the cue names it more briefly. %>
 <% viewed_day_label = @date.strftime("%a · %b %-d").upcase %>
 
 <main class="daily-log" data-controller="placement">
   <header class="daily-log__header">
     <div class="daily-log__heading">
       <h1>Daily Log</h1>
-      <p class="daily-log__eyebrow"><%= viewed_day_label %></p>
     </div>
 
     <div class="daily-log__utilities">
