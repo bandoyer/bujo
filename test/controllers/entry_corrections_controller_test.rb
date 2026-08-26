@@ -40,7 +40,7 @@ class EntryCorrectionsControllerTest < ActionDispatch::IntegrationTest
     entry = create_entry(text: "unchanged")
     original = entry.attributes
 
-    %w[id user_id page_kind page_on collection_id parent_id migrated_from_id created_at deleted_at hlc server_seq].each do |field|
+    %w[id user_id page_kind page_on collection_id parent_id migrated_from_id created_at deleted_at hlc server_seq state].each do |field|
       assert_no_difference -> { Entry.count } do
         patch entry_path(entry), params: {
           line: "must not change", default_kind: "task", field => "crafted"
@@ -64,6 +64,38 @@ class EntryCorrectionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to daily_log_path(date: entry.page_on.iso8601)
     assert_equal "That entry can't do that.", flash[:alert]
     assert_equal original, entry.reload.attributes
+  end
+
+  test "crafted immutable fields nested under entry refuse the whole correction" do
+    entry = create_entry(text: "unchanged")
+    original = entry.attributes
+
+    patch entry_path(entry), params: {
+      line: "must not change", default_kind: "task", entry: { page_kind: "future", state: "done" }
+    }
+
+    assert_redirected_to daily_log_path(date: entry.page_on.iso8601)
+    assert_equal "That entry can't do that.", flash[:alert]
+    assert_equal original, entry.reload.attributes
+  end
+
+  test "blank text and unknown kind keep the submitted line without a write" do
+    entry = create_entry(text: "unchanged")
+
+    [
+      { line: "", default_kind: "task" },
+      { line: "still a task", default_kind: "bogus" },
+      { line: "still a task" }
+    ].each do |params|
+      original = entry.reload.attributes
+      patch entry_path(entry), params: params
+
+      assert_redirected_to daily_log_path(date: entry.page_on.iso8601)
+      assert_equal "That entry can't do that.", flash[:alert]
+      assert_equal params[:line], flash[:edit_line]
+      assert_equal entry.id, flash[:edit_entry_id]
+      assert_equal original, entry.reload.attributes
+    end
   end
 
   test "invalid correction keeps the submitted line for the canonical page" do

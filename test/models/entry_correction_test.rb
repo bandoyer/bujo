@@ -42,6 +42,29 @@ class EntryCorrectionTest < ActiveSupport::TestCase
     assert_equal [ "task", "open" ], task.reload.values_at(:kind, :state)
   end
 
+  test "done and struck tasks refuse kind changes until reopened" do
+    %w[done struck].each do |state|
+      entry = create_entry(state: state, text: "#{state} words")
+      original = entry.attributes
+
+      assert_raises(Entry::LifecycleError) do
+        entry.correct!(parse("reinterpreted as event", kind: :event), kind: "event")
+      end
+
+      assert_equal original, entry.reload.attributes
+    end
+  end
+
+  test "nil parse and unknown kind refuse correction without a write" do
+    entry = create_entry(text: "unchanged")
+    original = entry.attributes
+
+    assert_raises(Entry::LifecycleError) { entry.correct!(nil, kind: "task") }
+    assert_raises(Entry::LifecycleError) { entry.correct!(parse("still a task"), kind: "bogus") }
+
+    assert_equal original, entry.reload.attributes
+  end
+
   test "kind correction obeys the persisted page vocabulary" do
     future = create_entry(page_kind: "future", page_on: nil, occurs_on: TODAY.next_month)
 
