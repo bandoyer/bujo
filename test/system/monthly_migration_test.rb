@@ -232,21 +232,36 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
 
   test "empty ritual checkpoints require Scan and Finish gestures" do
     sign_in
-    visit migration_path
 
-    click_link "Review outgoing tasks"
-    assert_current_path migration_outgoing_path
-    assert_text "No unresolved outgoing tasks."
-    assert_no_text "Monthly Migration complete"
+    [
+      [ 390, "light", "rock-salt" ],
+      [ 320, "dark", "architects-daughter" ]
+    ].each do |width, theme, hand|
+      page.current_window.resize_to(width, 844)
+      visit migration_path
+      set_preferences(theme:, hand:)
 
-    click_link "Scan the Future Log"
-    assert_current_path migration_future_path
-    assert_text "Nothing due for #{TARGET_MONTH.strftime('%B')}."
-    assert_no_text "Monthly Migration complete"
+      click_link "Review outgoing tasks"
+      assert_current_path migration_outgoing_path
+      assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+      assert_text "No unresolved outgoing tasks."
+      assert_no_text "Monthly Migration complete"
+      assert_no_horizontal_overflow
+      assert_minimum_target_sizes
 
-    click_link "Finish Monthly Migration"
-    assert_current_path migration_complete_path
-    assert_text "Monthly Migration complete"
+      click_link "Scan the Future Log"
+      assert_current_path migration_future_path
+      assert_text "Nothing due for #{TARGET_MONTH.strftime('%B')}."
+      assert_no_text "Monthly Migration complete"
+      assert_no_horizontal_overflow
+      assert_minimum_target_sizes
+
+      click_link "Finish Monthly Migration"
+      assert_current_path migration_complete_path
+      assert_text "Monthly Migration complete"
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
   end
 
   private
@@ -296,8 +311,12 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   def set_preferences(theme:, hand:)
-    find("button", text: /Theme:/).click until find("html", visible: :all)["data-theme"] == theme
-    find("button", text: /Hand:/).click until find("html", visible: :all)["data-hand"] == hand
+    until page.has_selector?("html[data-theme='#{theme}']", visible: :all, wait: 0.2)
+      find("button", text: /Theme:/).click
+    end
+    until page.has_selector?("html[data-hand='#{hand}']", visible: :all, wait: 0.2)
+      find("button", text: /Hand:/).click
+    end
   end
 
   def assert_no_horizontal_overflow

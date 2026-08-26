@@ -232,29 +232,27 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
   test "11 Monthly Tasks captures tasks in place and future pages stay capture-closed" do
     create_monthly_task("existing inventory", Time.zone.today.beginning_of_month)
     sign_in
-    visit monthly_log_path(month: Time.zone.today.strftime("%Y-%m"), view: "tasks")
-    assert_tasks_view
 
-    geometry = page.evaluate_script(<<~JAVASCRIPT)
-      (() => {
-        const content = document.querySelector(".monthly-task-count").getBoundingClientRect()
-        const reveal = document.querySelector("#monthly_tasks_capture_reveal").getBoundingClientRect()
-        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
-        return { contentBottom: content.bottom, revealTop: reveal.top, revealHeight: reveal.height,
-                 revealBottom: reveal.bottom, tabsTop: tabs.top }
-      })()
-    JAVASCRIPT
-    assert_in_delta geometry.fetch("contentBottom"), geometry.fetch("revealTop"), 1
-    assert_operator geometry.fetch("revealHeight"), :>=, 44
-    assert_operator geometry.fetch("revealBottom"), :<=, geometry.fetch("tabsTop")
-    point = page.evaluate_script(<<~JAVASCRIPT)
-      (() => {
-        const reveal = document.querySelector("#monthly_tasks_capture_reveal").getBoundingClientRect()
-        return { x: reveal.left + reveal.width / 2, y: reveal.top + 2 }
-      })()
-    JAVASCRIPT
-    page.execute_script("document.elementFromPoint(arguments[0], arguments[1]).click()",
-      point.fetch("x"), point.fetch("y"))
+    [
+      [ 390, "light", "rock-salt" ],
+      [ 320, "dark", "architects-daughter" ]
+    ].each do |width, theme, hand|
+      page.current_window.resize_to(width, 844)
+      set_preferences(theme:, hand:)
+      visit monthly_log_path(month: Time.zone.today.strftime("%Y-%m"), view: "tasks")
+      assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+      assert_tasks_view
+
+      geometry = monthly_tasks_geometry
+      assert_in_delta geometry.fetch("contentBottom"), geometry.fetch("revealTop"), 1
+      assert_operator geometry.fetch("revealHeight"), :>=, 44
+      assert_operator geometry.fetch("revealBottom"), :<=, geometry.fetch("tabsTop")
+      assert_operator geometry.fetch("body"), :<=, geometry.fetch("viewport")
+      click_monthly_tasks_trailing_space
+      assert_equal "rapid-log-line", active_element_id
+      find("#monthly_tasks_capture_reveal").click unless width == 320
+    end
+
     assert_no_button "Event"
     assert_no_button "Note"
     fill_in "Rapid log…", with: "curated inventory"
@@ -275,11 +273,20 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       state: "open"
     )
     task.update!(occurs_on: future_on, time_of_day: "09:30", priority: true)
+    child = @user.entries.create!(
+      kind: "note", state: nil, text: "nested future context", tags: [],
+      page_kind: "future", page_on: nil, occurs_on: future_on, parent: task
+    )
     sign_in
 
-    [ 390, 320 ].each do |width|
+    [
+      [ 390, "light", "rock-salt", "Rock Salt" ],
+      [ 320, "dark", "architects-daughter", "Architects Daughter" ]
+    ].each do |width, theme, hand, hand_face|
       page.current_window.resize_to(width, 844)
+      set_preferences(theme:, hand:)
       visit future_log_path
+      assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
       geometry = page.evaluate_script(<<~JAVASCRIPT)
         (() => {
           const root = document.querySelector("#future_entry_#{task.id}")
@@ -301,6 +308,21 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
       JAVASCRIPT
       assert_operator geometry.fetch("baselines").max - geometry.fetch("baselines").min, :<=, 4
       assert_operator geometry.fetch("body"), :<=, geometry.fetch("viewport")
+      within "#future_entry_#{task.id}" do
+        assert_selector "#entry_#{child.id}", text: child.text
+        assert_selector ".future-entry__day", count: 1
+        assert_no_selector "#entry_#{child.id}.future-entry"
+      end
+
+      within future_month(future_on) do
+        find("button[id$='_trailing_toggle']").click
+        selection = future_kind_selection_styles
+        refute_equal selection.fetch("selectedBorder"), selection.fetch("otherBorder")
+        refute_equal selection.fetch("selectedColor"), selection.fetch("otherColor")
+        assert_equal [ 44, 44 ], selection.values_at("width", "height").map(&:round)
+        assert_includes selection.fetch("fontFamily"), hand_face
+        find("button[id$='_trailing_toggle']").click
+      end
     end
   ensure
     page.current_window.resize_to(1400, 1400)
@@ -393,6 +415,61 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
 
   def sign_in
     sign_in_through_browser(@user)
+  end
+
+  def set_preferences(theme:, hand:)
+    visit root_path
+    until page.has_selector?("html[data-theme='#{theme}']", visible: :all, wait: 0.2)
+      find("button", text: /Theme:/).click
+    end
+    until page.has_selector?("html[data-hand='#{hand}']", visible: :all, wait: 0.2)
+      find("button", text: /Hand:/).click
+    end
+  end
+
+  def monthly_tasks_geometry
+    page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const content = document.querySelector(".monthly-task-count").getBoundingClientRect()
+        const reveal = document.querySelector("#monthly_tasks_capture_reveal").getBoundingClientRect()
+        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        return { contentBottom: content.bottom, revealTop: reveal.top, revealHeight: reveal.height,
+                 revealBottom: reveal.bottom, tabsTop: tabs.top,
+                 body: document.documentElement.scrollWidth,
+                 viewport: document.documentElement.clientWidth }
+      })()
+    JAVASCRIPT
+  end
+
+  def click_monthly_tasks_trailing_space
+    point = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const reveal = document.querySelector("#monthly_tasks_capture_reveal").getBoundingClientRect()
+        return { x: reveal.left + reveal.width / 2, y: reveal.top + 2 }
+      })()
+    JAVASCRIPT
+    page.execute_script("document.elementFromPoint(arguments[0], arguments[1]).click()",
+      point.fetch("x"), point.fetch("y"))
+  end
+
+  def active_element_id
+    page.evaluate_script("document.activeElement.id")
+  end
+
+  def future_kind_selection_styles
+    page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const root = document.querySelector("#{future_month(Time.zone.today.next_month)}")
+        const selected = root.querySelector("button[aria-label='Task']")
+        const other = root.querySelector("button[aria-label='Event']")
+        const selectedStyle = getComputedStyle(selected)
+        const otherStyle = getComputedStyle(other)
+        const box = selected.getBoundingClientRect()
+        return { selectedBorder: selectedStyle.borderColor, otherBorder: otherStyle.borderColor,
+                 selectedColor: selectedStyle.color, otherColor: otherStyle.color,
+                 fontFamily: selectedStyle.fontFamily, width: box.width, height: box.height }
+      })()
+    JAVASCRIPT
   end
 
   def capture(line)

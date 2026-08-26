@@ -104,10 +104,23 @@ class CollectionPagesTest < ApplicationSystemTestCase
       find("#locate_collection_toggle").click
       assert_selector "#new_collection_panel[hidden]", visible: :all
       assert_selector "#locate_collection_panel:not([hidden])"
-      find("#locate_collection_toggle").click
+      fill_in "Exact Topic", with: "missing topic"
+      click_button "Open", exact: true
+      assert_text "No Collection with that exact Topic."
+      assert_selector "#new_collection_panel[hidden]", visible: :all
+      assert_selector "#locate_collection_panel:not([hidden])"
       click_link registered.name
     end
     assert_current_path collection_path(registered)
+
+    visit journal_index_path
+    assert_no_difference -> { @user.collections.count } do
+      find("#new_collection_toggle").click
+      assert_selector "#new_collection_panel:not([hidden])"
+      find("#new_collection_toggle").click
+      click_link "Future", exact: true
+    end
+    assert_current_path future_log_path
   end
 
   test "4 guarded delete returns to Index and old or foreign paths share missing chrome" do

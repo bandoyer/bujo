@@ -41,9 +41,23 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     )
     sign_in
 
-    [ 390, 320 ].each do |width|
+    [
+      [ 390, "light", "rock-salt" ],
+      [ 320, "dark", "architects-daughter" ]
+    ].each do |width, theme, hand|
       page.current_window.resize_to(width, 844)
+      set_preferences(theme:, hand:)
       visit root_path
+      assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+
+      geometry = trailing_surface_geometry("#entries", "#capture_reveal")
+      assert_in_delta geometry.fetch("contentBottom"), geometry.fetch("revealTop"), 1
+      assert_operator geometry.fetch("revealHeight"), :>=, 44
+      assert_operator geometry.fetch("revealBottom"), :<=, geometry.fetch("tabsTop")
+
+      click_trailing_space_after("#entries", "#capture_reveal")
+      assert_equal "rapid-log-line", active_element_id
+      find("#capture_reveal").click
       reveal_actions(task)
 
       geometry = trailing_surface_geometry("#entries", "#capture_reveal")
@@ -83,6 +97,30 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     click_link "Today", exact: true
     assert_current_path root_path
     assert_no_text "page-bound task"
+  end
+
+  test "a refused past-day action keeps the trailing writing boundary usable" do
+    viewed_day = Time.zone.today - 1.day
+    task = Entry.capture!(
+      "stale past task", user: @user, today: viewed_day, as_of: Time.zone.today,
+      page_kind: "daily", page_on: viewed_day
+    )
+    sign_in
+    page.current_window.resize_to(390, 844)
+    visit daily_log_path(date: viewed_day.iso8601)
+
+    reveal_actions(task)
+    task.complete!
+    within("#entry_#{task.id}") { click_button "Complete" }
+    assert_text "That entry can't do that."
+
+    geometry = trailing_surface_geometry("#entries", "#capture_reveal")
+    assert_in_delta geometry.fetch("contentBottom"), geometry.fetch("revealTop"), 1
+    assert_operator geometry.fetch("revealBottom"), :<=, geometry.fetch("tabsTop")
+    click_trailing_space_after("#entries", "#capture_reveal")
+    assert_equal "rapid-log-line", active_element_id
+  ensure
+    page.current_window.resize_to(1400, 1400)
   end
 
   test "4 a future Daily page renders an existing resident without a writing affordance" do
@@ -131,9 +169,29 @@ class PlacementCaptureTest < ApplicationSystemTestCase
     assert_equal [ nil, target_day ], [ captured.page_on, captured.occurs_on ]
     assert_equal "event", captured.kind
     assert_selector "#future_entry_#{captured.id}", text: "future dentist"
-    assert_equal %w[5 20 25], all("#{future_month(first_month)} .future-entry__day").map(&:text)
     assert_future_month_closed(first_month)
     assert_equal future_month_trailing_id(first_month), active_element_id
+
+    reveal_future_month(first_month)
+    target_task_day = first_month + 5.days
+    within future_month(first_month) do
+      find("input[aria-label='Day of the month']").fill_in(with: target_task_day.day)
+      find("button[aria-label='Event']").click
+      find("button[aria-label='Task']").click
+      assert_selector "button[aria-label='Task'][aria-pressed='true'].rapid-log__kind--selected"
+      assert_selector "button[aria-label='Event'][aria-pressed='false']"
+      assert_equal "task", find("input[name='default_kind']", visible: :all).value
+      assert_match(/line$/, active_element_id)
+      find("input[placeholder='Rapid log…']").fill_in(with: "future campsite task")
+      click_button "Log", exact: true
+    end
+
+    assert_text "future campsite task"
+    task_capture = @user.entries.find_by!(text: "future campsite task")
+    assert_equal [ "task", target_task_day ], [ task_capture.kind, task_capture.occurs_on ]
+    assert_future_month_closed(first_month)
+    assert_equal future_month_toggle_id(first_month), active_element_id
+    assert_equal %w[5 6 20 25], all("#{future_month(first_month)} .future-entry__day").map(&:text)
 
     visit monthly_log_path(month: first_month.strftime("%Y-%m"))
     within ".monthly-calendar__day[data-date='#{target_day.iso8601}']" do
@@ -189,6 +247,16 @@ class PlacementCaptureTest < ApplicationSystemTestCase
 
   def sign_in
     sign_in_through_browser(@user)
+  end
+
+  def set_preferences(theme:, hand:)
+    visit root_path
+    until page.has_selector?("html[data-theme='#{theme}']", visible: :all, wait: 0.2)
+      find("button", text: /Theme:/).click
+    end
+    until page.has_selector?("html[data-hand='#{hand}']", visible: :all, wait: 0.2)
+      find("button", text: /Hand:/).click
+    end
   end
 
   def reveal_daily_capture
