@@ -22,7 +22,6 @@ that order.
 | 2 | `collection-pages` | **done** — closed at `d6c18945b4` after one finding (see `b2-collection-pages-corrections.md`) |
 | 3 | `collection-commands` | **done** — verified and closed at `06a88b788d` |
 | 4 | `move-to-collection` | **done** — verified and closed at `a2493629af` |
-
 | 5 | `collection-topic-overflow` | **done** — verified and closed at `62cfb49195` |
 
 **Slice 1.5.2 is complete and is a terminal candidate awaiting operator

@@ -185,12 +185,15 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "eligible task event and note rows render the movement control" do
+  test "eligible task event and note rows render movement controls with per-entry labels" do
     eligible_entries.each do |entry|
       get source_path(entry)
+      topic_field_id = "move_topic_#{entry.id}"
+
       assert_select "#entry_#{entry.id} > .entry__toggle", count: 1
       assert_select "#entry_#{entry.id} form[action='#{move_to_collection_entry_path(entry)}']", count: 1
-      assert_select "#entry_#{entry.id} input[name='topic'][autocomplete='off']", count: 1
+      assert_select "#entry_#{entry.id} input##{topic_field_id}[name='topic'][autocomplete='off']", count: 1
+      assert_select "#entry_#{entry.id} label[for='#{topic_field_id}']", text: "Exact Topic", count: 1
     end
   end
 

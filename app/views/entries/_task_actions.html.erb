@@ -44,12 +44,13 @@
   <% end %>
 
   <% if offered_commands.include?("move_to_collection") %>
+    <% move_topic_id = "move_topic_#{entry.id}" %>
     <div class="entry__move-step" data-step="move" hidden>
       <%= form_with url: move_to_collection_entry_path(entry), class: "entry__move" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
         <%= form.hidden_field :return_to, value: return_to if return_to %>
-        <%= form.label :topic, "Exact Topic", class: "visually-hidden" %>
-        <%= form.text_field :topic, required: true, autocomplete: "off" %>
+        <%= form.label :topic, "Exact Topic", for: move_topic_id, class: "visually-hidden" %>
+        <%= form.text_field :topic, id: move_topic_id, required: true, autocomplete: "off" %>
         <%= form.submit "Move", class: "entry-action" %>
       <% end %>
       <button type="button"
