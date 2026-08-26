@@ -1,6 +1,5 @@
-<%# The bullet vocabulary a capture form offers. Every capture surface shows the
-    same three buttons in the same order, narrowed to the kinds its page admits
-    at root, so one page's glyph strip never drifts from another's. %>
+<%# Shared kind circles for capture and correction. The allowed list is the page
+    vocabulary, or a single locked kind for a movement live end. %>
 <% selected_kind = local_assigns.fetch(:selected_kind, "task") %>
 <div class="rapid-log__kinds" aria-label="Entry kind">
   <% { "task" => "•", "event" => hand_glyph("○"), "note" => "–" }.each do |kind, glyph| %>

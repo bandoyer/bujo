@@ -722,7 +722,6 @@ a {
 .entry__actions,
 .entry__edit-step,
 .entry__schedule-step,
-.entry__schedule,
 .entry__move-step,
 .entry__move {
   display: flex;
@@ -1038,10 +1037,7 @@ a {
 }
 
 .monthly-migration__confirmation p,
-.monthly-migration__confirmation form {
-  margin: 0;
-}
-
+.monthly-migration__confirmation form,
 .monthly-migration__checkpoint p {
   margin: 0;
 }

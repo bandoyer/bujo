@@ -127,10 +127,10 @@ class EntriesController < ApplicationController
 
   def forbidden_correction_claim?
     body_claims = request.request_parameters
-    nested_claims = body_claims["entry"].respond_to?(:keys) ? body_claims["entry"].keys : []
-    FORBIDDEN_CORRECTION_PARAMS.any? do |attribute|
-      body_claims.key?(attribute) || nested_claims.include?(attribute)
-    end
+    nested = body_claims["entry"]
+    claimed = body_claims.keys
+    claimed += nested.keys if nested.respond_to?(:keys)
+    (claimed & FORBIDDEN_CORRECTION_PARAMS).any?
   end
 
   def correction_kind

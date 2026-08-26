@@ -9,10 +9,7 @@ class MonthlyMigrationsController < ApplicationController
     future_strike future_tasks future_calendar
   ].freeze
   # Every ritual result whose one-shot offer may be revalidated by Undo.
-  UNDO_RESOLUTIONS = %w[
-    outgoing_strike outgoing_tasks outgoing_collection outgoing_future
-    future_strike future_tasks future_calendar
-  ].freeze
+  UNDO_RESOLUTIONS = ITEM_ACTIONS.map(&:to_s).freeze
   # Destination predicates for movement results, keyed by the resolution the
   # ritual actually offered rather than trusting a submitted destination.
   MOVEMENT_UNDO_CHECKS = {
@@ -187,9 +184,13 @@ class MonthlyMigrationsController < ApplicationController
   end
 
   def outgoing_candidates
-    outgoing_roots.flat_map { |root| kept_resident_tree(root) }.select do |entry|
-      entry.kind == "task" && entry.state == "open" && entry.successor.nil?
+    outgoing_tree_entries.select do |entry|
+      entry.kind == "task" && entry.unresolved? && entry.successor.nil?
     end
+  end
+
+  def outgoing_tree_entries
+    outgoing_roots.flat_map { |root| kept_resident_tree(root) }
   end
 
   # Root groups are concatenated in paper reading order; each source scope and
@@ -208,7 +209,7 @@ class MonthlyMigrationsController < ApplicationController
   end
 
   def future_candidate_state?(entry)
-    (entry.kind == "task" && entry.state == "open") || (entry.kind == "event" && entry.state.nil?)
+    Entry::ROOT_KINDS.fetch("future").include?(entry.kind) && entry.unresolved?
   end
 
   def unresolved_work?
@@ -257,12 +258,13 @@ class MonthlyMigrationsController < ApplicationController
   end
 
   def offer_undo(resolution, result)
-    result_entry = strike_resolution?(resolution.to_s) ? @entry : result
+    resolution_name = resolution.to_s
+    result_entry = strike_resolution?(resolution_name) ? @entry : result
     flash[:migration_undo] = {
-      "message" => undo_message(resolution.to_s, result_entry),
+      "message" => undo_message(resolution_name, result_entry),
       "original_id" => @entry.id,
       "result_id" => result_entry.id,
-      "resolution" => resolution.to_s
+      "resolution" => resolution_name
     }
   end
 
@@ -297,7 +299,7 @@ class MonthlyMigrationsController < ApplicationController
   end
 
   def outgoing_source_ids
-    @outgoing_source_ids ||= outgoing_roots.flat_map { |root| kept_resident_tree(root) }.map(&:id)
+    @outgoing_source_ids ||= outgoing_tree_entries.map(&:id)
   end
 
   def future_source_admitted?(original)
@@ -306,8 +308,8 @@ class MonthlyMigrationsController < ApplicationController
   end
 
   def movement_undo_admitted?(original, result, resolution)
-    return false unless current_movement_result?(original, result)
-    return false unless unresolved_result?(result)
+    return false unless result.current_successor_of?(original)
+    return false unless result.unresolved?
 
     resolution_destination_matches?(original, result, resolution)
   end
@@ -315,15 +317,6 @@ class MonthlyMigrationsController < ApplicationController
   def resolution_destination_matches?(original, result, resolution)
     check = MOVEMENT_UNDO_CHECKS[resolution]
     check ? send(check, original, result) : false
-  end
-
-  def current_movement_result?(original, result)
-    result.predecessor == original && original.successor == result && result.successor.nil?
-  end
-
-  def unresolved_result?(result)
-    (result.kind == "task" && result.state == "open") ||
-      (result.kind == "event" && result.state.nil?)
   end
 
   def target_tasks_result?(_original, result)

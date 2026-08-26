@@ -149,19 +149,18 @@ class Entry < ApplicationRecord
     private
 
     def enforce_capture_admission!(entry, as_of, admission_context, target_month)
-      if admission_context == :monthly_migration
-        return if monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
-
-        entry.errors.add(:base, :invalid)
-        raise ActiveRecord::RecordInvalid, entry
+      admitted = if admission_context == :monthly_migration
+        monthly_migration_capture_admitted?(entry, as_of, target_month)
+      else
+        capture_admitted?(
+          page_kind: entry.page_kind,
+          page_on: entry.page_on,
+          occurs_on: entry.occurs_on,
+          as_of: as_of
+        )
       end
+      return if admitted
 
-      return if capture_admitted?(
-        page_kind: entry.page_kind,
-        page_on: entry.page_on,
-        occurs_on: entry.occurs_on,
-        as_of: as_of
-      )
       entry.errors.add(:base, :invalid)
       raise ActiveRecord::RecordInvalid, entry
     end
@@ -169,8 +168,7 @@ class Entry < ApplicationRecord
     # Monthly setup deliberately opens only its URL-derived Tasks page. The
     # ordinary predicate above stays unchanged because normal Monthly screens
     # must remain closed for next month.
-    def monthly_migration_capture_admitted?(entry, as_of, admission_context, target_month)
-      return false unless admission_context == :monthly_migration
+    def monthly_migration_capture_admitted?(entry, as_of, target_month)
       return false unless entry.page_kind == "monthly_tasks" && entry.kind == "task" && target_month
 
       canonical_target = target_month.beginning_of_month
@@ -214,21 +212,13 @@ class Entry < ApplicationRecord
     ensure_future_destination!(page_kind, occurs_on, as_of)
 
     self.class.transaction do
-      moved_entry = self.class.new(
-        successor_attributes.merge(
-          page_kind: page_kind,
-          page_on: page_on,
-          collection: collection,
-          occurs_on: occurs_on,
-          time_of_day: (time_of_day if occurs_on),
-          predecessor: self
-        )
+      append_successor!(
+        page_kind: page_kind,
+        page_on: page_on,
+        collection: collection,
+        occurs_on: occurs_on,
+        time_of_day: (time_of_day if occurs_on)
       )
-      raise LifecycleError unless moved_entry.valid?
-
-      moved_entry.save!
-      update!(state: "migrated") if kind == "task"
-      moved_entry
     end
   end
 
@@ -250,15 +240,28 @@ class Entry < ApplicationRecord
     predecessor.nil? && successor.nil? && unresolved?
   end
 
+  # Answers whether this row is still open work: an open task, or an event/note
+  # whose state remains exact NULL.
+  def unresolved?
+    kind == "task" ? state == "open" : state.nil?
+  end
+
+  # Answers whether this row is the live successor of +source+ in a still-open
+  # movement chain.
+  def current_successor_of?(source)
+    predecessor == source && source.successor == self && successor.nil?
+  end
+
   # Renders correction's glyph-free rapid-log line in canonical metadata
   # order, so reparsing does not depend on the request date.
   def canonical_edit_line
-    tokens = [ text ]
-    tokens.concat(tags.map { |tag| "+#{tag}" })
-    tokens << occurs_on if occurs_on
-    tokens << time_of_day if time_of_day
-    tokens.unshift("*") if priority?
-    tokens.join(" ")
+    [
+      ("*" if priority?),
+      text,
+      *tags.map { |tag| "+#{tag}" },
+      occurs_on,
+      time_of_day
+    ].compact.join(" ")
   end
 
   # Appends a compensating successor at an earlier row's exact residency. It
@@ -270,12 +273,13 @@ class Entry < ApplicationRecord
       lock!
       ensure_compensatable!(source)
 
-      restored = self.class.new(compensating_attributes(source))
-      raise LifecycleError unless restored.valid?
-
-      restored.save!
-      update!(state: "migrated") if kind == "task"
-      restored
+      append_successor!(
+        page_kind: source.page_kind,
+        page_on: source.page_on,
+        collection: source.collection,
+        occurs_on: source.occurs_on,
+        time_of_day: source.time_of_day
+      )
     end
   rescue ActiveRecord::RecordNotUnique
     raise LifecycleError
@@ -330,10 +334,6 @@ class Entry < ApplicationRecord
     requested_kind == "task" ? "open" : nil
   end
 
-  def unresolved?
-    kind == "task" ? state == "open" : state.nil?
-  end
-
   def ensure_compensatable!(source)
     reload
     source.reload
@@ -347,23 +347,20 @@ class Entry < ApplicationRecord
     kept? && source.kept? && user == source.user
   end
 
-  def current_successor_of?(source)
-    predecessor == source && source.successor == self && successor.nil?
-  end
-
   def source_collection_kept?(source)
     source.collection.nil? || source.collection.kept?
   end
 
-  def compensating_attributes(source)
-    successor_attributes.merge(
-      page_kind: source.page_kind,
-      page_on: source.page_on,
-      collection: source.collection,
-      occurs_on: source.occurs_on,
-      time_of_day: source.time_of_day,
-      predecessor: self
+  # One successor-append for ordinary movement and compensating Undo.
+  def append_successor!(attributes)
+    moved_entry = self.class.new(
+      successor_attributes.merge(attributes).merge(predecessor: self)
     )
+    raise LifecycleError unless moved_entry.valid?
+
+    moved_entry.save!
+    update!(state: "migrated") if kind == "task"
+    moved_entry
   end
 
   def state_matches_kind
@@ -445,9 +442,7 @@ class Entry < ApplicationRecord
   end
 
   def ensure_movable!
-    movable_task = kind == "task" && state == "open"
-    movable_context = kind != "task" && state.nil?
-    raise LifecycleError unless (movable_task || movable_context) && !successor
+    raise LifecycleError unless unresolved? && successor.nil?
   end
 
   def ensure_future_destination!(destination_kind, destination_date, as_of)
