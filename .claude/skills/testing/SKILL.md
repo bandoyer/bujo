@@ -12,6 +12,12 @@ Minitest as Rails ships it. Two lanes, never mixed:
 | fast | `bin/rails test` | models, lib, controllers — no browser, runs on every handoff |
 | slow | `bin/rails test:system` | headless-Chrome acceptance flows (`test/system/`) |
 
+Herdr swarm roles run in a CLI environment without Codex Desktop's in-app
+Browser backend. They must not attempt that backend or report its absence as
+a QA limitation. The slow lane above is the project's authoritative browser
+acceptance surface. QA supplements it, when needed, with headless screenshots,
+DOM/geometry/accessibility checks, and direct request or domain probes.
+
 ## Idioms
 
 - **Fixtures over factories**; real objects against the real test

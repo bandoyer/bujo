@@ -48,13 +48,16 @@ Role-specific additions:
   statuses, decisions. Read it before starting any task; the task's
   slice defines your scope.
 - ARCHITECTURE.md at the repo root is the sync design. The schema
-  decisions in it (logs are date queries, migration is an append-only
-  chain, soft deletes, hlc/server_seq columns) bind even in slices
-  that do not implement sync.
+  decisions in it (logs are Entry residency queries, movement is an
+  append-only successor chain, soft deletes, hlc/server_seq columns) bind
+  even in slices that do not implement sync.
 - Visual spec: the mockups in github.com/bandoyer/bujo-mockups (the
-  mobile artboards are the phone PWA's look — paper background, ink
-  text, mono bullet glyphs). Match them, including the rapid-logging
-  glyphs: • task, x done, > migrated, < scheduled, ○ event, – note,
-  * priority signifier.
-- Single-user app. No registration, no multi-tenancy; the seeded
-  user is the only account.
+  mobile artboards are the phone PWA's look in paper-light and Tokyo
+  Night-dark). Match them, including the rapid-logging glyphs: • task,
+  x done, > migrated, < scheduled, ○ event, – note, * priority signifier.
+  Every visible text role uses the reader's selected hand face; any mono
+  stack puts that hand first and keeps its mono face only as glyph fallback.
+  A page's title is always its first visible text, with context beneath it.
+- There is no public registration, but tenant isolation is binding. Every
+  read and mutation begins from `Current.user`'s relation; foreign, missing,
+  and soft-deleted records must not disclose or affect another journal.

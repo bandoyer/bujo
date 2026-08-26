@@ -177,11 +177,16 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             system runs green, RuboCop clean, CRAP ≤ 6 over 126
             methods, jscpd 0 clones, parser mutation 1105/1105. Spec at
             `docs/slices/1.5.1-the-page-model.md`.
-      - [ ] **1.5.2 Custom Collections + deliberate Index** — APPROVED
-            (2026-08-25); implementation next. A minimal writable
-            Collection page and explicit manual registration in the Index.
-            Core logs remain fixed navigation; Daily Logs are never indexed.
-            Broad text search is deferred until dogfooding asks for it. Spec
+      - [x] **1.5.2 Custom Collections + deliberate Index** ✅
+            (2026-08-26) — a minimal writable Collection page, explicit
+            server-ordered registration in the Index, exact-Topic access to
+            known unindexed pages, and append-only inbound movement from
+            eligible Daily/Monthly residents. Core logs remain fixed
+            navigation; Daily Logs are never indexed, and broad search stays
+            deferred. Operator review caught and closed unbounded Topic
+            wrapping and duplicate move-field ids. Final candidate `1ae8136`;
+            at merge: 188 fast + 50 system runs green, RuboCop clean, CRAP ≤ 6
+            over 159 methods, jscpd 0 clones, parser mutation 1105/1105. Spec
             at `docs/slices/1.5.2-custom-collections-and-index.md`.
       - [ ] **1.5.3 Monthly migration ritual** — set up the new
             Monthly Log and fresh mental inventory; review every
