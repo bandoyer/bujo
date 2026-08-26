@@ -115,6 +115,23 @@ class MonthlyMigrationUndoControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "in-transaction revalidation refuses an unavailable Future strike" do
+    task = create_entry(
+      page_kind: "future", page_on: nil, occurs_on: TARGET + 2.days
+    )
+    task.strike!
+    task.update_column(:deleted_at, Time.current)
+
+    controller = MonthlyMigrationsController.new
+    controller.instance_variable_set(:@target_month, TARGET)
+
+    assert_equal @user, Current.user
+    assert_not controller.send(:undo_admitted?, task, task, "future_strike")
+
+    task.update_columns(deleted_at: nil, user_id: users(:two).id)
+    assert_not controller.send(:undo_admitted?, task, task, "future_strike")
+  end
+
   private
 
   def undo_path

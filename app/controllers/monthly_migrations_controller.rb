@@ -281,13 +281,23 @@ class MonthlyMigrationsController < ApplicationController
   def undo_admitted?(original, result, resolution)
     original.reload
     result.reload
+    return false unless current_user_owns_kept?(original, result)
     return false unless resolution_source_admitted?(original, resolution)
 
+    undo_result_admitted?(original, result, resolution)
+  end
+
+  def undo_result_admitted?(original, result, resolution)
     if strike_resolution?(resolution)
       original == result && original.kind == "task" && original.state == "struck" && original.successor.nil?
     else
       movement_undo_admitted?(original, result, resolution)
     end
+  end
+
+  def current_user_owns_kept?(*entries)
+    current_user_id = Current.user&.id
+    current_user_id && entries.all? { |entry| entry.kept? && entry.user_id == current_user_id }
   end
 
   def resolution_source_admitted?(original, resolution)

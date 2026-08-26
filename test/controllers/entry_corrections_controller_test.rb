@@ -53,6 +53,19 @@ class EntryCorrectionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "crafted immutable fields in the query string refuse the whole correction" do
+    entry = create_entry(text: "unchanged")
+    original = entry.attributes
+
+    patch "#{entry_path(entry)}?page_kind=future", params: {
+      line: "must not change", default_kind: "task"
+    }
+
+    assert_redirected_to daily_log_path(date: entry.page_on.iso8601)
+    assert_equal "That entry can't do that.", flash[:alert]
+    assert_equal original, entry.reload.attributes
+  end
+
   test "invalid correction keeps the submitted line for the canonical page" do
     month = Time.zone.today.beginning_of_month
     entry = create_entry(
