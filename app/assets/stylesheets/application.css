@@ -640,6 +640,11 @@ a {
   display: grid;
   width: 100%;
   min-height: 44px;
+  /* The wrapping rule below is what keeps an unbounded Topic or entry text
+     inside the viewport; capping the meta track does a second job the overflow
+     tests cannot see. Left to grow on its own, a long destination Topic would
+     wrap but still claim most of the row and starve the text column down to a
+     character a line. Neither column may be squeezed out by the other. */
   grid-template-columns: 1rem 1.25rem minmax(0, 1fr) fit-content(45%);
   gap: 0.25rem;
   align-items: baseline;
@@ -675,7 +680,10 @@ a {
 }
 
 /* Entry text and Collection destination Topics are reader-written and
-   unbounded, so both columns may shrink and wrap instead of widening the row. */
+   unbounded, so both columns may shrink and wrap instead of widening the row.
+   This is the Collection screens' rule carried to one more surface, and
+   "anywhere" rather than "break-word" because only it shrinks the column's own
+   minimum size - which is what a grid track measures when deciding to grow. */
 .entry__text,
 .entry__meta {
   min-width: 0;
