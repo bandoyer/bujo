@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.3b approved; implementation starting (2026-08-26)
+# Handoff — slice 1.5.3b landed; operator review next (2026-08-26)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -25,7 +25,8 @@ it remains a recovery artifact only.
 Slice 1.5.3's approved terminal candidate is `329b8f6` and is integrated on
 `main`. Slice 1.5.3a's terminal candidate is `92c43e2`; it is also integrated
 on `main`, and its completed six-role swarm is retired. Phone dogfooding then
-produced approved correction slice 1.5.3b. Its contract is
+produced correction slice 1.5.3b. Its terminal candidate `dc2153c` is now
+integrated on `main`; its contract is
 `docs/slices/1.5.3b-dogfood-entry-corrections.md`, with the approved review
 board at `mockups/PhoneDogfoodCorrections.dc.html`. Nothing from 1.5.3a or
 1.5.3b has been deployed by this handoff.
@@ -48,6 +49,22 @@ board at `mockups/PhoneDogfoodCorrections.dc.html`. Nothing from 1.5.3a or
 - Empty outgoing and Future migration stages are truthful checkpoints. The
   operator explicitly chooses Scan the Future Log and Finish Monthly Migration;
   completion remains derived from live entry state rather than a new flag.
+- Daily's empty message and trailing canvas open the same capture form.
+  Ordinary Monthly Calendar and Tasks capture offers Task, Event, and Note.
+- Existing live entries can be corrected in place only where the approved page
+  and kind matrix allows it. Correction never changes residency, ancestry,
+  history, task state, dates, tags, ownership, or sync-sensitive fields.
+- Schedule uses a full-width native date field. A date later in the current
+  month appends a Calendar successor; a later-month date appends a Future
+  successor. Refused requests return to the canonical resident page unchanged.
+- Entry rows retain their shared grid as text wraps. Completing a task changes
+  only its glyph to `X`; struck text keeps full ink with a thicker current-color
+  line.
+- Each Monthly Migration resolution offers one immediate Undo. Undo is a
+  tenant-scoped compensating append for movement, never history mutation, and
+  refuses stale or crafted requests without disturbing the live chain.
+- A newly created Collection remains deliberately unindexed and shows the next
+  deliberate registration step. Entry deletion remains deferred.
 - Monthly Migration is an explicitly opened target-month ritual. It never
   starts on page view or month rollover and never silently carries work.
 - Setup gives the ritual alone a task-only admission context for target Monthly
@@ -71,19 +88,21 @@ board at `mockups/PhoneDogfoodCorrections.dc.html`. Nothing from 1.5.3a or
   fast and system lanes plus RuboCop after integration. The first parallel
   system run had two transient sign-in setup failures; both exact cases passed
   together in isolation and the complete rerun passed.
+- Slice 1.5.3b candidate receipts: 230 fast tests / 3822 assertions; 81 system
+  tests / 1640 assertions; RuboCop clean; all 234 measured methods at CRAP ≤ 6;
+  jscpd zero clones; `Bujo::RapidLog*` mutation 1105/1105. Root repeated the
+  fast and system lanes plus RuboCop after integration.
 - Architect review recorded one non-blocking dogfood seam: a populated
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
 
-## Next work — implement and review approved slice 1.5.3b
+## Next work — phone review, then the next approved track
 
-Run the approved 1.5.3b contract through the unchanged
-`six-mix-fable-review` roster. The slice is deliberately bounded to the
-dogfood corrections in its specification: do not add Entry deletion, broaden
-search, change parser grammar, begin active sync, or absorb Daily Reflection.
-The approved mock is review authority for the new visible states. Terminal QA
-still requires Dan's hands-on review and explicit integration approval before
-root merges or pushes implementation.
+Run the merged app locally and repeat the reported phone flows in both themes:
+Daily empty capture; Monthly Task/Event/Note capture and correction; native-date
+scheduling to Calendar and Future; wrapped-row alignment and lifecycle ink;
+every Monthly Migration Undo outcome; and Collection creation guidance. Record
+any dogfood corrections before starting another implementation slice.
 
 After 1.5.3b is landed and dogfooded, the next method-spine slice is **1.5.4
 Daily Reflection**. Its current plan boundary remains a small AM/PM reference
@@ -103,9 +122,8 @@ digital decisions to Dan rather than guessing.
 
 The separate authentication track is also unblocked: Step 1 is Resend delivery
 plus short-lived, single-use magic links, governed by
-`docs/resend-transactional-email.md`. Slice 1.5.3b is the immediate approved
-track; do not start Daily Reflection or authentication in parallel without
-Dan's choice.
+`docs/resend-transactional-email.md`. Phone review is the immediate gate; do
+not start Daily Reflection or authentication in parallel without Dan's choice.
 
 ## Build and review
 
@@ -113,7 +131,7 @@ Keep the proven loop: source-aligned spec and smallest review mock → Dan's
 explicit approval → `six-mix-fable-review` swarm → operator review → Dan's
 explicit integration approval → merge and push. Do not deploy for Dan.
 
-For 1.5.3b the compatibility-named pack continues this experimental roster:
+For 1.5.3b the compatibility-named pack used this experimental roster:
 Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok
 High hardener, and Sol XHigh QA. Passing QA is terminal only for implementation;
 it does not authorize root integration or push.
@@ -123,11 +141,10 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-The 1.5.3a terminal candidate `92c43e2` is integrated and its prior swarm,
-role worktrees, and both daemons were retired before 1.5.3b planning. Slice
-1.5.3b's source-aligned specification and required review mock are approved;
-its new isolated swarm is now authorized to start from the pushed planning
-baseline.
+The 1.5.3b terminal candidate `dc2153c` is integrated. Its completed six-role
+swarm, role worktrees, and daemons are retired. Do not start another swarm
+before its source-aligned specification and any necessary review mock are
+approved.
 
 After Daily Reflection, the remaining method-spine slice is `!` inspiration
 and master-task completion gating (1.5.5). Settings polish, broad search,
