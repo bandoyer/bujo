@@ -107,6 +107,28 @@ class EntryCorrectionTest < ActiveSupport::TestCase
     end
   end
 
+  test "a Future Note child may still change to Task or Event on the same parent" do
+    root = create_entry(page_kind: "future", page_on: nil, occurs_on: TODAY.next_month)
+    child = create_entry(
+      kind: "note", state: nil, text: "old child words",
+      page_kind: "future", page_on: nil, occurs_on: nil, parent: root
+    )
+
+    assert_equal %w[task event], root.correctable_kinds
+    assert_equal %w[task event note], child.correctable_kinds
+
+    child.correct!(parse("now a task", kind: :task), kind: "task")
+    assert_equal [ "task", "open", "now a task", root.id ],
+      child.reload.values_at(:kind, :state, :text, :parent_id)
+
+    child.correct!(parse("now an event", kind: :event), kind: "event")
+    assert_equal [ "event", nil, "now an event", root.id ],
+      child.reload.values_at(:kind, :state, :text, :parent_id)
+    assert_equal %w[task], root.move_to!(
+      page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month, as_of: TODAY
+    ).correctable_kinds
+  end
+
   test "moved predecessors refuse correction while live ends keep their inherited kind" do
     predecessor = create_entry(text: "original")
     live_end = predecessor.move_to!(
