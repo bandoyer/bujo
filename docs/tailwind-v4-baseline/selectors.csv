@@ -1,0 +1,223 @@
+source_line,category,selector,contract
+1,token-base,:root,""
+37,token-base,":root[data-hand=""rock-salt""]",""
+43,token-base,":root[data-hand=""architects-daughter""]",""
+49,token-base,":root[data-hand=""patrick-hand""]",""
+55,token-base,":root[data-hand=""gochi-hand""]",""
+61,token-base,":root[data-hand=""sans""]",""
+74,token-base,":root:not([data-theme=""light""])",""
+88,token-base,":root[data-theme=""dark""]",""
+102,token-base,*,""
+108,token-base,body,""
+117,token-base,button,""
+117,token-base,input,""
+122,token-base,button,""
+122,token-base,a,""
+127,token-base,.visually-hidden,""
+139,reusable-component,.flash,test selector
+148,reusable-component,.flash--alert,test selector
+152,reusable-component,.daily-log,test selector
+162,reusable-component,.daily-log__header,""
+171,page-specific-layout,.daily-log__open-count,""
+171,reusable-component,.day-navigation,test selector
+171,reusable-component,.entry__glyph,test selector
+171,reusable-component,.entry__meta,test selector
+171,reusable-component,.tab-bar,test selector
+179,reusable-component,.daily-log h1,test selector
+190,page-specific-layout,.collection-page__header,""
+194,page-specific-layout,.collection-page__heading,test selector
+198,page-specific-layout,.collection-page__heading h1,test selector
+202,page-specific-layout,.collection-page__context,test selector
+209,page-specific-layout,.collection-page__button,""
+209,page-specific-layout,.collection-page__back,test selector
+224,page-specific-layout,.collection-page__button:focus-visible,keyboard focus
+224,page-specific-layout,.collection-page__back:focus-visible,keyboard focus; test selector
+224,page-specific-layout,.collection-index__topic-link:focus-visible,keyboard focus; test selector
+224,page-specific-layout,.collection-form input:focus-visible,keyboard focus
+232,page-specific-layout,.collection-page__button--warn,""
+232,reusable-component,.form-errors,test selector
+237,page-specific-layout,.collection-panel,""
+242,behavior-test-hook,.collection-panel[hidden],HTML hidden state
+246,page-specific-layout,.collection-form,""
+253,page-specific-layout,.collection-form label,""
+258,page-specific-layout,".collection-form input[type=""text""]",""
+268,reusable-component,.form-errors,test selector
+272,page-specific-layout,.collection-index__empty,test selector
+278,page-specific-layout,.collection-index__topics,test selector
+283,page-specific-layout,.collection-index__topic-link,test selector
+294,page-specific-layout,.collection-index__locate-toggle,""
+298,page-specific-layout,.collection-page__registration,""
+304,page-specific-layout,.collection-page__registration form,""
+304,page-specific-layout,.collection-panel form,""
+309,page-specific-layout,.collection-page__back,test selector
+314,page-specific-layout,.daily-log__utilities,""
+321,page-specific-layout,.daily-log__preferences,""
+327,page-specific-layout,.daily-log__open-count,""
+332,reusable-component,.preference-toggle__button,""
+343,reusable-component,.day-navigation,test selector
+350,reusable-component,.day-navigation a,test selector
+359,reusable-component,.day-navigation__viewed-day,test selector
+364,page-specific-layout,.monthly-log__views,test selector
+373,page-specific-layout,.monthly-log__view-link,test selector
+385,behavior-test-hook,".monthly-log__view-link[aria-current=""page""]",ARIA state; test selector
+391,page-specific-layout,.monthly-calendar,test selector
+395,page-specific-layout,.monthly-calendar__day,test selector
+408,page-specific-layout,.monthly-calendar__capture-reveal,test selector
+408,page-specific-layout,.monthly-calendar__date,""
+425,page-specific-layout,.monthly-calendar__capture-reveal,test selector
+429,page-specific-layout,.monthly-calendar__residents,""
+437,page-specific-layout,.monthly-calendar__residents .entry,test selector
+442,page-specific-layout,.monthly-calendar__daily-link,test selector
+455,page-specific-layout,.monthly-calendar__capture-panel,test selector
+462,behavior-test-hook,.monthly-calendar__day--today,test selector
+466,behavior-test-hook,.monthly-calendar__day--today .monthly-calendar__number,test selector
+466,behavior-test-hook,.monthly-calendar__day--today .monthly-calendar__weekday,test selector
+466,dead-or-superseded,.monthly-calendar__glyph--event,no live owner found
+472,page-specific-layout,.monthly-calendar__number,test selector
+472,page-specific-layout,.monthly-calendar__weekday,test selector
+472,page-specific-layout,.monthly-task-count,test selector
+472,page-specific-layout,.future-log__month h2,test selector
+472,page-specific-layout,.future-entry__day,test selector
+480,page-specific-layout,.monthly-calendar__number,test selector
+484,page-specific-layout,.monthly-calendar__weekday,test selector
+488,page-specific-layout,.monthly-task,test selector
+494,page-specific-layout,.monthly-task-count,test selector
+501,page-specific-layout,.monthly-tasks,""
+508,page-specific-layout,.future-log__runway,""
+512,page-specific-layout,.future-log__month,test selector
+516,page-specific-layout,.future-log__month h2,test selector
+523,page-specific-layout,.future-log__month h2 button,test selector
+523,page-specific-layout,.future-log__month h2 span,test selector
+530,page-specific-layout,.future-log__month h2 button,test selector
+539,behavior-test-hook,.future-log__month--empty h2 button,Stimulus runtime; test selector
+543,page-specific-layout,.future-log__trailing-reveal,""
+548,page-specific-layout,.future-log__add-row .rapid-log,test selector
+553,page-specific-layout,.future-log__add-row .rapid-log__capture-row,test selector
+558,page-specific-layout,".future-log__add-row input[type=""number""]",test selector
+571,page-specific-layout,.future-entry,test selector
+581,page-specific-layout,.future-entry__resident,""
+581,page-specific-layout,.future-entry__resident .entry,test selector
+586,page-specific-layout,.future-entry__resident .entry,test selector
+590,page-specific-layout,.future-entry__day,test selector
+595,reusable-component,.entry-list,test selector
+599,page-specific-layout,.entry-list__empty,test selector
+607,page-specific-layout,.daily-log__capture,test selector
+614,page-specific-layout,.collection-index__create-reveal,test selector
+614,page-specific-layout,.future-log__trailing-reveal,""
+614,page-specific-layout,.daily-log__capture-reveal,""
+624,page-specific-layout,.collection-index__create-reveal,test selector
+624,page-specific-layout,.daily-log__capture-reveal,""
+629,page-specific-layout,.collection-index__create-reveal:focus-visible,keyboard focus; test selector
+629,page-specific-layout,.future-log__trailing-reveal:focus-visible,keyboard focus
+629,page-specific-layout,.daily-log__capture-reveal:focus-visible,keyboard focus
+636,page-specific-layout,.daily-log__capture-cue,test selector
+643,behavior-test-hook,.daily-log__capture-panel[hidden],HTML hidden state
+643,behavior-test-hook,.monthly-calendar__capture-panel[hidden],HTML hidden state; test selector
+643,behavior-test-hook,.future-log__add-row[hidden],HTML hidden state; test selector
+649,behavior-test-hook,.entry,Stimulus runtime; test selector
+653,behavior-test-hook,.entry--selected,Stimulus runtime; test selector
+658,reusable-component,.entry__line,test selector
+672,behavior-test-hook,.entry__toggle,Stimulus runtime; test selector
+681,reusable-component,.entry__toggle:focus-visible,keyboard focus; test selector
+687,reusable-component,.entry__signifier,test selector
+692,reusable-component,.entry__glyph,test selector
+696,reusable-component,.entry__text--struck,test selector
+707,reusable-component,.entry__text,test selector
+707,reusable-component,.entry__meta,test selector
+713,reusable-component,.entry__meta,test selector
+722,reusable-component,.entry__actions,""
+722,reusable-component,.entry__edit-step,""
+722,reusable-component,.entry__schedule-step,test selector
+722,reusable-component,.entry__schedule-actions,""
+722,reusable-component,.entry__move-step,test selector
+722,reusable-component,.entry__move,test selector
+734,behavior-test-hook,.entry__action-strip,Stimulus runtime; test selector
+738,behavior-test-hook,.entry__action-strip form,Stimulus runtime; test selector
+742,behavior-test-hook,.entry__action-strip[hidden],HTML hidden state; test selector
+742,behavior-test-hook,.entry__actions[hidden],HTML hidden state
+742,behavior-test-hook,.entry__edit-step[hidden],HTML hidden state
+742,behavior-test-hook,.entry__schedule-step[hidden],HTML hidden state; test selector
+742,behavior-test-hook,.entry__move-step[hidden],HTML hidden state; test selector
+750,reusable-component,.entry-action,""
+750,reusable-component,".entry__schedule input[type=""date""]",test selector
+750,reusable-component,".entry__move input[type=""text""]",test selector
+762,reusable-component,.entry-action,""
+768,reusable-component,.entry-action--warn,""
+772,reusable-component,.entry-action--cancel,""
+776,reusable-component,".entry__schedule input[type=""date""]",test selector
+782,reusable-component,.entry__schedule-step,test selector
+782,reusable-component,.entry__edit-step,""
+787,reusable-component,.entry__schedule,test selector
+787,reusable-component,.entry__edit,""
+793,reusable-component,.entry__schedule,test selector
+799,reusable-component,.entry__schedule label,test selector
+805,reusable-component,.entry__edit,""
+809,reusable-component,.entry__edit .rapid-log__kinds,""
+813,reusable-component,.entry__edit label,""
+821,reusable-component,.entry__edit-row,""
+828,reusable-component,".entry__edit-row input[type=""text""]",""
+838,reusable-component,".entry__move input[type=""text""]",test selector
+844,reusable-component,.entry__children,""
+848,reusable-component,.rapid-log,test selector
+860,reusable-component,.rapid-log__kinds,""
+866,reusable-component,.rapid-log__kind,test selector
+879,behavior-test-hook,.rapid-log__kind--selected,Stimulus runtime; test selector
+884,reusable-component,.rapid-log__input-wrap,""
+892,reusable-component,.rapid-log__capture-row,""
+898,reusable-component,.rapid-log__capture-row .rapid-log__input-wrap,""
+903,reusable-component,".rapid-log__input-wrap input[type=""text""]",""
+913,reusable-component,.rapid-log__submit,""
+924,page-specific-layout,.daily-log__capture-reveal .entry-list__empty,test selector
+929,reusable-component,.tab-bar,test selector
+942,reusable-component,.tab-bar__item,test selector
+956,reusable-component,.tab-bar__icon,test selector
+966,behavior-test-hook,.tab-bar__item--active,test selector
+972,page-specific-layout,.monthly-log__migration-link,""
+972,page-specific-layout,.monthly-migration__primary-link,""
+972,page-specific-layout,.monthly-migration__completion-links a,""
+986,page-specific-layout,.monthly-log__migration-link,""
+991,page-specific-layout,.monthly-migration,test selector
+995,page-specific-layout,.monthly-migration__context,test selector
+995,page-specific-layout,.monthly-migration__stage,test selector
+995,page-specific-layout,.monthly-migration__source,test selector
+1004,page-specific-layout,.monthly-migration__context,test selector
+1008,page-specific-layout,.monthly-migration__stage,test selector
+1013,page-specific-layout,.monthly-migration__source,test selector
+1018,page-specific-layout,.monthly-migration__preferences,""
+1025,page-specific-layout,.monthly-migration__inventory,""
+1025,page-specific-layout,.monthly-migration__tree,""
+1025,page-specific-layout,.monthly-migration__complete,test selector
+1025,page-specific-layout,.monthly-migration__checkpoint,test selector
+1025,page-specific-layout,.monthly-migration__confirmation,test selector
+1034,page-specific-layout,.monthly-migration__confirmation,test selector
+1040,page-specific-layout,.monthly-migration__confirmation p,test selector
+1040,page-specific-layout,.monthly-migration__confirmation form,test selector
+1040,page-specific-layout,.monthly-migration__checkpoint p,test selector
+1046,page-specific-layout,.monthly-migration__capture,""
+1055,page-specific-layout,.monthly-migration__capture > label,""
+1055,page-specific-layout,.monthly-migration__second-step label,""
+1062,page-specific-layout,.monthly-migration__capture-row,""
+1062,page-specific-layout,.monthly-migration__choices,""
+1062,page-specific-layout,.monthly-migration__second-step,""
+1062,page-specific-layout,.monthly-migration__second-step form,""
+1062,page-specific-layout,.monthly-migration__completion-links,""
+1074,page-specific-layout,.monthly-migration__capture-row input,""
+1074,page-specific-layout,.monthly-migration__second-step input,""
+1086,page-specific-layout,.monthly-migration__primary-link,""
+1091,page-specific-layout,.monthly-migration__candidate,test selector
+1095,page-specific-layout,.monthly-migration__actions,test selector
+1100,page-specific-layout,.monthly-migration__actions form,test selector
+1104,page-specific-layout,.monthly-migration__button,""
+1115,page-specific-layout,.monthly-migration__button--warn,""
+1119,page-specific-layout,.monthly-migration__button:focus-visible,keyboard focus
+1119,page-specific-layout,.monthly-migration__primary-link:focus-visible,keyboard focus
+1119,page-specific-layout,.monthly-log__migration-link:focus-visible,keyboard focus
+1119,page-specific-layout,.monthly-migration__completion-links a:focus-visible,keyboard focus
+1119,page-specific-layout,.monthly-migration input:focus-visible,keyboard focus; test selector
+1128,behavior-test-hook,.monthly-migration__choices[hidden],HTML hidden state
+1128,behavior-test-hook,.monthly-migration__second-step[hidden],HTML hidden state
+1133,page-specific-layout,.monthly-migration__second-step form,""
+1137,page-specific-layout,.monthly-migration__complete h2,test selector
+1144,page-specific-layout,.monthly-migration__actions,test selector
+1148,page-specific-layout,.monthly-migration__button,""
+1148,page-specific-layout,.monthly-migration__completion-links a,""

@@ -7,11 +7,13 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: slice 1.5.3b LANDED (2026-08-26).** Terminal candidate `dc2153c`
-> is merged into `main`. The merged tree is green at 230 fast tests / 3822
-> assertions and 81 headless-Chrome system tests / 1640 assertions, with
-> RuboCop clean. Hands-on phone review is next; production still runs 1.4.1.
-> See `HANDOFF.md` for the exact landed and process boundaries.
+> **Status: Tailwind v4 presentation migration APPROVED (2026-08-27).** The T0
+> parity receipt and source-aligned contract are approved, including the
+> repository-resident screenshots. Implementation is authorized only on the
+> bounded squad's `codex/tailwind-v4` branch; root integration and deployment
+> remain behind later explicit approval. The baseline is green at 230 fast
+> tests / 3822 assertions and 81 headless-Chrome system tests / 1640 assertions,
+> with RuboCop clean; production still runs 1.4.1. See `HANDOFF.md`.
 
 ## What this is
 
@@ -41,12 +43,13 @@ The working loop, proven on [crap4rb](https://github.com/bandoyer/crap4rb):
 1. **Plan** — the planning session writes a source-aligned `SLICE.md`-style
    brief with scope, decisions pre-made, tests required, and review criteria.
    Specs live in `docs/slices/` as they are written.
-2. **Build** — the swarm implements it:
+2. **Build** — the approved swarm or bounded squad implements it:
    [swarm-forge-herdr](https://github.com/bandoyer/swarm-forge-herdr),
    compatibility-named pack `six-mix-fable-review` for 1.5.3b. Its experimental
    roster is Sol Max specifier; Sol High coder; Grok High cleaner; Sol High
-   architect; Grok High hardener; Sol XHigh QA. `swarm up` from a herdr
-   session, then feed the approved slice as tasks.
+   architect; Grok High hardener; Sol XHigh QA. The proposed Tailwind
+   infrastructure track instead uses the repository's bounded dynamic squad
+   profile and may start only after its specification is explicitly approved.
 3. **Review** — the architect, hardener, QA, and operator verify parity with
    the spec, quality bars, and mutation spot-checks before human-approved
    integration.
@@ -87,8 +90,10 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-26 | **`blackcat.dev` acquired and will replace `questlog.dev` as the umbrella domain.** Bujo's planned origin is `bujo.blackcat.dev`; Press Start is tentatively `lift.blackcat.dev`, pending its own deployment ruling. Resend's Cloudflare setup installed DKIM, SPF, and return-path MX, monitoring-mode DMARC is saved, and the aggregate domain is verified. Bujo's domain-restricted production key is stored in 1Password; application implementation and production cutover remain, while Press Start gets its own key only during its later slice |
 | 2026-08-26 | **Transactional email provider selected: Resend over HTTPS.** Bujo and Press Start will share the one verified `blackcat.dev` sending domain and free-plan quota, using `bujo@blackcat.dev` and `lift@blackcat.dev`, but keep separate domain-restricted Sending access keys, code, secrets, and deployments. See `docs/resend-transactional-email.md` |
 | 2026-08-26 | **Rails authentication rollout fixed at five ordered steps.** (1) Resend delivery plus short-lived, single-use magic links; (2) canonical cutover to `bujo.blackcat.dev`; (3) discoverable passkey registration/sign-in with exact RP ID `bujo.blackcat.dev`; (4) prove two passkeys plus email recovery; (5) retire the password UI. Provider/DNS/key setup is complete and Step 1 is unblocked in the separate authentication track. The approved direction is `mockups/SignIn.dc.html`; full gates live in `docs/resend-transactional-email.md` |
-| 2026-08-26 | **Tailwind migration orchestration selected; migration not yet authorized.** If approved, the proposed Tailwind v4 conversion runs as a dynamic squad with at most two transient workers, a `codex/tailwind-v4` integration branch, and explicit operator approval before `main`. The roster uses Sol Max for leadership and specification workers, Sol High for implementation and architecture, Grok 4.6 High for cleanup and hardening, and Sol XHigh for terminal QA. The current squad launcher pins only agent kind, so no squad starts until deterministic per-leader/per-template model-and-effort support exists and the migration has an approved source-aligned specification. See `docs/tailwind-v4-migration-plan.md` |
-| 2026-08-27 | **Tailwind squad profile policy prepared; launch still withheld.** The deterministic leader/default/template/assignment profile prerequisite is implemented on the current canonical SwarmForge feature branch and passes its complete 375-check smoke suite. Bujo's repository-owned `swarmforge/squad.conf` now records the approved two-worker roster and `codex/tailwind-v4` integration branch. The squad does not start until the tool change is integrated and the Tailwind migration specification/T0 receipt is explicitly approved |
+| 2026-08-26 | **Tailwind migration orchestration selected; migration not yet authorized.** If approved, the proposed Tailwind v4 conversion runs as a dynamic squad with at most two transient workers, a `codex/tailwind-v4` integration branch, and explicit operator approval before `main`. The roster uses Sol Max for leadership and specification workers, Sol High for implementation and architecture, Grok 4.6 High for cleanup and hardening, and Sol XHigh for terminal QA. At selection time the squad launcher still needed deterministic per-leader/per-template model-and-effort support. See `docs/tailwind-v4-migration-plan.md` |
+| 2026-08-27 | **Tailwind squad tooling prerequisite landed; launch still withheld.** Deterministic leader/default/template/assignment profiles are now on canonical SwarmForge `main` at `b5b17bd` and pass its complete 375-check smoke suite. Bujo's repository-owned `swarmforge/squad.conf` records the approved two-worker roster and `codex/tailwind-v4` integration branch |
+| 2026-08-27 | **Tailwind T0 and source-aligned specification prepared; implementation not authorized.** Baseline `434a9a9` is frozen in `docs/tailwind-v4-baseline/` with 135 screenshots, computed geometry, selector ownership, assets, and green quality receipts. The proposed contract at `docs/slices/tailwind-v4-presentation-migration.md` fixes exact Ruby-hosted v4 gems, no Node/Preflight/default theme, staged legacy parity, stable product behavior, and the bounded squad graph. No mock change is needed for parity; no squad starts until explicit approval |
+| 2026-08-27 | **Tailwind v4 presentation migration approved.** Dan approved the complete source-aligned contract and keeping all 135 T0 screenshots in the repository. Commit/push of the planning baseline and `swarm squad up` are authorized. Work remains isolated on `codex/tailwind-v4`; passing terminal QA does not authorize root integration or deployment |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -239,6 +244,15 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             board at `mockups/PhoneDogfoodCorrections.dc.html`. Terminal
             candidate `dc2153c`; merged-tree receipts: 230 fast tests / 3822
             assertions, 81 system tests / 1640 assertions, RuboCop clean.
+      - [ ] **Tailwind CSS v4 presentation migration** — APPROVED
+            infrastructure interlude before more UI work. Preserve the exact
+            1.5.3b product/phone behavior while replacing the standalone CSS
+            with exact-pinned `tailwindcss-rails`, no Node, no Preflight, no
+            default theme, one compiled bundle, and staged component/page
+            parity. T0 receipt at `docs/tailwind-v4-baseline/README.md`; approved
+            contract at `docs/slices/tailwind-v4-presentation-migration.md`.
+            Implement only through the bounded `codex/tailwind-v4` squad;
+            integration and deployment remain separately gated.
       - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
             review: AM sees the current month's open tasks; PM walks
             today's entries to complete, strike, or schedule and makes

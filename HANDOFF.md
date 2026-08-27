@@ -1,4 +1,4 @@
-# Handoff — slice 1.5.3b landed; operator review next (2026-08-26)
+# Handoff — Tailwind v4 approved; bounded squad implementation next (2026-08-27)
 
 For the next operator session — any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next approved
@@ -30,6 +30,14 @@ integrated on `main`; its contract is
 `docs/slices/1.5.3b-dogfood-entry-corrections.md`, with the approved review
 board at `mockups/PhoneDogfoodCorrections.dc.html`. Nothing from 1.5.3a or
 1.5.3b has been deployed by this handoff.
+
+The current planning baseline is
+`434a9a9478a5581494773c5660583e4d8f3cfa4e` on both `main` and
+`origin/main`. The approved Tailwind v4 infrastructure track now has a complete
+T0 receipt at `docs/tailwind-v4-baseline/README.md` and a source-aligned
+contract at `docs/slices/tailwind-v4-presentation-migration.md`. This planning
+baseline contains no Tailwind dependency/application change. Dan's 2026-08-27
+approval authorizes the bounded squad launch, not root integration or deploy.
 
 ## Exact landed state
 
@@ -96,7 +104,28 @@ board at `mockups/PhoneDogfoodCorrections.dc.html`. Nothing from 1.5.3a or
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
 
-## Next work — phone review, then the next approved track
+## Next work — bounded Tailwind implementation
+
+Dan approved `docs/slices/tailwind-v4-presentation-migration.md` together with
+the T0 receipt on 2026-08-27. It is a presentation-only migration with exact-pinned
+`tailwindcss-rails` 4.6.0 and `tailwindcss-ruby` 4.3.3, no Node, no Preflight,
+no Tailwind default theme, one compiled asset, a byte-for-behavior legacy
+checkpoint, and component/page checkpoints. Current Index, Collection,
+Monthly Migration, date-control, preference, notice, and Calendar behavior is
+frozen; the open phone corrections remain a separate product amendment.
+
+No mock change is needed for migration review. The current rendered app is the
+visual authority, represented by 135 prepared reference screenshots, 102
+targeted geometry samples, and the selector manifest. Commit/push this planning
+baseline, then run the configured bounded squad on `codex/tailwind-v4`.
+Terminal QA does not authorize root integration, push from that branch to
+`main`, or deployment; return the accumulated candidate to Dan first.
+
+The current checkout was verified with one relocated main worktree, a clean
+tracked baseline before the planning artifacts, and no Bujo SwarmForge daemon.
+Do not touch the unrelated Press Start `handoffd` process.
+
+## Product work after the infrastructure decision
 
 Run the merged app locally and repeat the reported phone flows in both themes:
 Daily empty capture; Monthly Task/Event/Note capture and correction; native-date
@@ -145,6 +174,14 @@ The 1.5.3b terminal candidate `dc2153c` is integrated. Its completed six-role
 swarm, role worktrees, and daemons are retired. Do not start another swarm
 before its source-aligned specification and any necessary review mock are
 approved.
+
+The Tailwind track uses a dynamic squad, not the old six persistent worktrees:
+at most two transient workers; Sol Max leader/specifier; Sol High coder and
+architect; Grok 4.6 High cleaner/hardener; Sol XHigh terminal QA. The exact
+policy is in `swarmforge/squad.conf`. Deterministic profile support is now on
+canonical SwarmForge `main` at `b5b17bd` and passed its complete 375-check
+smoke suite. Dan's 2026-08-27 approval resolves the specification gate and
+authorizes `swarm squad up`; it does not broaden the contract or later gates.
 
 After Daily Reflection, the remaining method-spine slice is `!` inspiration
 and master-task completion gating (1.5.5). Settings polish, broad search,

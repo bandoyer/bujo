@@ -1,15 +1,17 @@
 # Tailwind CSS v4 migration plan
 
-Status: **PROPOSED — planning artifact only; no implementation authorized.**
+Status: **APPROVED — implementation authorized only through the source-aligned
+specification and bounded squad; deployment not authorized.**
 
-Date: 2026-08-26
+Date: 2026-08-27
 
 This document describes what it would take to move Bujo's phone application
 from its current standalone stylesheet to Tailwind CSS v4 without changing
 journal behavior, page residency, the visual identity, or the Rails/Hotwire
-architecture. It is deliberately a migration plan, not a slice specification.
-Every implementation slice still needs an approved scope and acceptance
-contract before a swarm starts.
+architecture. It remains the rationale and decomposition plan. The testable
+implementation contract is now
+`docs/slices/tailwind-v4-presentation-migration.md`; Dan approved that complete
+contract on 2026-08-27.
 
 Product authority remains `docs/METHOD.md`, then `PLAN.md`,
 `ARCHITECTURE.md`, and the approved slice contracts. Tailwind is an
@@ -24,8 +26,8 @@ Adopt Tailwind v4, but do it incrementally and keep Bujo's design custom:
 - keep Propshaft, import maps, Hotwire, plain ERB, and the existing Stimulus
   controllers;
 - add no Node, PostCSS, Sass, component kit, or JavaScript date-picker package;
-- initially omit Tailwind Preflight so its global reset cannot silently change
-  every handwritten heading, button, input, list, and dialog at once;
+- omit Tailwind Preflight throughout this migration so its global reset cannot
+  silently change every handwritten heading, button, input, list, and dialog;
 - preserve the current CSS variables as the source of truth for the paper-light
   and Tokyo Night-dark palettes, then map them into Tailwind v4 theme utilities;
 - preserve semantic classes and `data-*` attributes as stable JavaScript,
@@ -88,9 +90,9 @@ write boundary.
 When this plan was approved on 2026-08-26, the installed SwarmForge squad
 launcher recorded only an agent **kind** (`claude`, `codex`, or `grok`). It
 could not pin model or reasoning effort for the leader or transient templates.
-The prerequisite implementation is now prepared on the canonical tool's
-feature branch and passes its complete 375-check smoke suite; it still must be
-integrated before this squad is launched.
+The prerequisite is now integrated on canonical SwarmForge `main` at
+`b5b17bd65b1bf086173d2bc0bc9ddc76022f3fee` and passes its complete
+375-check smoke suite.
 
 Before `swarm squad up` is allowed for this migration, SwarmForge must provide
 and test all of the following:
@@ -113,8 +115,7 @@ make a long-lived squad nondeterministic and could affect unrelated sessions.
 The SwarmForge capability belongs in its own repository and review; Bujo should
 consume a released or locally installed version only after that change lands.
 
-After the prerequisite exists, add a repository-owned `swarmforge/squad.conf`
-with this policy:
+Bujo's repository-owned `swarmforge/squad.conf` now has this policy:
 
 ```text
 main_branch codex/tailwind-v4
@@ -134,10 +135,9 @@ The squad may merge accepted assignments into its integration branch
 automatically. Nothing in squad configuration authorizes merging or pushing
 that branch to `main`.
 
-That configuration is now present and validation resolves every approved
-template to the roster above. It is inert policy until the tool prerequisite
-and migration specification gates are both satisfied; no squad was started by
-preparing it.
+Validation resolves every approved template to the roster above. The tooling
+gate is satisfied; the policy remains inert until the proposed migration
+specification is explicitly approved. No squad was started by preparing it.
 
 ## Why switch
 
@@ -203,7 +203,7 @@ reusable through existing Rails partials and stable component contracts.
 
 ### Green reference receipt
 
-The pre-migration reference tree at `14f45bc` passes:
+The T0 reference tree at `434a9a9` passes:
 
 - `bin/rails test`: 230 runs, 3,822 assertions;
 - `bin/rails test:system`: 81 runs, 1,640 assertions through headless Chrome;
@@ -214,6 +214,9 @@ The pre-migration reference tree at `14f45bc` passes:
 
 Counts may legitimately rise as acceptance coverage is added. No count may fall
 without explaining which behavior was removed or consolidated.
+
+The complete reproducible receipt, selector ledger, computed geometry, and 135
+reference screenshots live at `docs/tailwind-v4-baseline/README.md`.
 
 ## Target technical architecture
 
@@ -229,9 +232,9 @@ the standalone path matches this repository's import-map/Propshaft setup.
 
 At implementation time:
 
-1. Pin `tailwindcss-rails` to the approved v4 compatibility range.
-2. Record the resolved `tailwindcss-ruby` version in `Gemfile.lock`; do not
-   float across a Tailwind upgrade during the migration.
+1. Pin `tailwindcss-rails` exactly to `4.6.0`.
+2. Pin `tailwindcss-ruby` exactly to `4.3.3`, including an explicit Gemfile
+   entry so the standalone compiler cannot float between checkpoints.
 3. Run `bin/rails tailwindcss:install` only on the migration branch and review
    every generated change. The installer may replace `bin/dev`, create a
    `Procfile.dev`, touch the layout, and create asset directories; generated
@@ -298,13 +301,13 @@ test prose merely because they contain strings resembling utilities.
 The exact directives must match the pinned v4 release. The intended shape is:
 
 ```css
-@layer theme, base, components, utilities;
+@layer theme, base, legacy, components, utilities;
 
 /* Tailwind theme and utilities; omit preflight.css during migration. */
 @import "tailwindcss/theme.css" layer(theme);
 @import "./tokens.css" layer(theme);
 @import "./base.css" layer(base);
-@import "./legacy.css" layer(components);
+@import "./legacy.css" layer(legacy);
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 
 @source "../../views";
@@ -319,8 +322,9 @@ supports omitting the reset for an existing application.
 
 ### Token bridge
 
-Keep the existing semantic CSS variables and map them to Tailwind utilities
-rather than replacing them with generic palette names:
+Disable Tailwind's default theme with `@theme { --*: initial; }`, then keep the
+existing semantic CSS variables and map only the vocabulary Bujo uses to
+Tailwind utilities rather than adopting generic palette and scale names:
 
 | Existing authority | Tailwind-facing concept |
 |---|---|
@@ -370,14 +374,10 @@ Preflight is **off for the migration**. Bujo already owns a purposeful base
 layer, and an all-at-once reset would remove margins, normalize borders, and
 change native controls before page components are ready.
 
-After legacy removal, make one explicit decision:
-
-- recommended: continue without Preflight and retain Bujo's audited base;
-- alternative: enable Preflight in a dedicated visual-change commit, rebuild
-  every base rule, and rerun the complete screenshot matrix.
-
-Merely importing `tailwindcss` and accepting its reset implicitly is not
-allowed.
+Preflight remains off after legacy removal; Bujo retains its audited base.
+Enabling Preflight later would be a separate all-page visual slice with its own
+specification and screenshot matrix. Merely importing `tailwindcss` and
+accepting its reset implicitly is not allowed.
 
 ## Scope boundaries
 
@@ -625,7 +625,7 @@ leave conflict resolution to a merger.
 | Root theme and hands | `application.css`, layout `data-*` | token bridge plus base source | system/explicit theme precedence or glyph fallback drifts |
 | Page shell/header | repeated `daily-log*` classes | shared shell/header partial contract | title-first order or fixed-tab clearance changes |
 | Preferences | preference partials plus page-specific placement | one shared utility/component | moving controls becomes an unauthorized Settings decision |
-| Notices/errors | shared flash partial plus auth one-offs | notice variants | success still resembles an input or appears before the title |
+| Notices/errors | shared flash partial plus auth one-offs | notice variants | role, wording, geometry, or title order drifts; the known field-like success style is frozen |
 | Buttons/fields | several page-specific classes | action and field primitives | native date appearance, 44px targets, disabled/focus state |
 | Tab bar | shared partial | tab component | safe-area overlap and active-state contrast |
 | Rapid Log | shared partial | kind selector and form component | selected kind no longer matches hidden input |
@@ -699,7 +699,8 @@ For each applicable state assert:
 - full text and control visibility at both phone widths;
 - Entry and Calendar baseline/column tolerances;
 - empty and selected native date control legibility;
-- notice/error geometry is distinguishable from an editable field;
+- notice/error role, text, and geometry match T0; the known field-like success
+  style is recorded rather than corrected here;
 - light/dark contrast and selected-state readability;
 - trailing blank writing surfaces begin immediately after content and extend to
   the tab boundary.
@@ -789,20 +790,20 @@ parser. A changed mutation receipt is a blocking scope finding.
 The latest dogfood notes contain both styling defects and product decisions.
 They must not be silently conflated with Tailwind adoption.
 
-Recommended ordering:
+Ruled ordering:
 
-1. Approve the Monthly Migration and Index behavior corrections in their own
-   source-aligned amendment.
-2. Land T1 Tailwind plumbing with visual parity.
-3. Land T2 shared primitives, including fields, notices, headers, and page
-   shell, still without changing workflow semantics.
-4. Implement the approved phone correction using those primitives: date-field
-   presentation, Calendar columns, preference destination, Migration entry
-   point/copy, Index creation/navigation, and notice treatment.
-5. Continue T3–T5 until legacy CSS is gone.
+1. Keep the phone findings recorded, but do not reinterpret them as Tailwind
+   acceptance criteria.
+2. Complete T1–T5 as a presentation-parity migration, including shared fields,
+   notices, headers, page shell, and every existing page state.
+3. Pass the real-phone parity gate and integrate only with explicit approval.
+4. Return to the date-field presentation, Calendar columns, preference
+   destination, Migration entry point/copy, Index creation/navigation, and
+   notice treatment in their own source-aligned amendment and review mock.
 
-This ordering avoids polishing a component twice while keeping the semantic
-change reviewable apart from framework churn.
+This keeps product decisions reviewable apart from framework churn. It may
+touch a primitive twice, but it prevents a desired correction from masking a
+migration regression or silently changing method behavior.
 
 ## Rollback strategy
 
@@ -843,24 +844,23 @@ Success is **not** “zero custom CSS.” Success is one coherent Tailwind-backe
 design system whose remaining custom CSS is deliberate, small, testable, and
 faithful to Bujo.
 
-## Decisions required before specification
+## Decisions carried into the proposed specification
 
-One orchestration decision is resolved: use the approved bounded squad and
-model roster described above after its tooling prerequisite lands. The
-technical decisions below remain proposed; the recommended answers are
-included so approval can be concise:
+The operator accepted the recommended direction for the specification:
 
-1. **Standalone Rails gem or Node toolchain?** Use `tailwindcss-rails` v4,
-   without Node. **Recommended.**
-2. **Enable Preflight?** Omit it throughout migration and likely retain Bujo's
-   audited base permanently. **Recommended.**
-3. **Utility-only markup or hybrid components?** Keep semantic hooks and use a
-   hybrid of static utilities plus small component CSS. **Recommended.**
-4. **One rewrite or staged landing?** Use T0–T6 checkpoints, each green and
-   revertible. **Recommended.**
-5. **Combine phone behavior corrections with migration?** Approve them
-   separately, then implement them after plumbing/shared primitives and before
-   the final page conversion. **Recommended.**
-6. **Add a component framework too?** No; keep Rails partials for this
-   migration and revisit only if they become an evidenced constraint.
-   **Recommended.**
+1. use exact-pinned `tailwindcss-rails` v4 and its Ruby-hosted standalone
+   compiler, without Node;
+2. omit Preflight for the complete migration and retain Bujo's audited base;
+3. disable the default Tailwind theme and expose only explicit Bujo tokens;
+4. use static utilities plus small semantic component CSS and stable behavior
+   hooks;
+5. land T0–T6 as green, revertible checkpoints through the bounded two-worker
+   squad;
+6. keep the phone behavior corrections separately reviewable from framework
+   churn;
+7. add no component framework; existing Rails partials remain sufficient.
+
+These rulings are made testable in
+`docs/slices/tailwind-v4-presentation-migration.md`. The only remaining gate is
+explicit specification approval; it has not been treated as implementation
+authorization.
