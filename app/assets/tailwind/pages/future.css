@@ -1,1 +1,88 @@
-/* Future Log presentation moves here at T3. */
+.future-log__runway {
+  padding: 0.5rem 0;
+}
+
+.future-log__month {
+  padding: 0.75rem 0;
+}
+
+.future-log__month h2 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+.future-log__month h2 button,
+.future-log__month h2 span {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+}
+
+.future-log__month h2 button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  letter-spacing: inherit;
+}
+
+.future-log__month--empty h2 button {
+  color: var(--faint);
+}
+
+.future-log__trailing-reveal {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+}
+
+.future-log__add-row .rapid-log {
+  position: static;
+  margin-bottom: 0.35rem;
+}
+
+.future-log__add-row .rapid-log__capture-row {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+}
+
+.future-log__add-row input[type="number"] {
+  width: 100%;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+.future-entry {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.3rem;
+  align-items: baseline;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.future-entry__resident,
+.future-entry__resident .entry {
+  min-width: 0;
+}
+
+.future-entry__resident .entry {
+  padding: 0;
+}
+
+.future-entry__day {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  text-align: right;
+}

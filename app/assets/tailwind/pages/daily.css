@@ -1,1 +1,78 @@
-/* Daily Log presentation moves here at T3. */
+/* Daily owns the shared Daily/Monthly date navigation because both logs use
+   the same previous/current/next reading rhythm. */
+.daily-log__open-count,
+.day-navigation {
+  font-family: var(--font-mono);
+}
+
+.daily-log__utilities {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.daily-log__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.daily-log__open-count {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.day-navigation {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-navigation a {
+  display: inline-grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.day-navigation__viewed-day {
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+/* Collection deliberately keeps the established entry-list and writing
+   classes until 7A, so Daily narrows its composition to the Daily page. */
+.daily-log:not(.monthly-log):not(.collection-page) > .entry-list {
+  padding: 0.5rem 0;
+}
+
+.daily-log:not(.monthly-log):not(.collection-page) > .daily-log__capture {
+  display: flex;
+  min-height: 44px;
+  flex: 1;
+  flex-direction: column;
+}
+
+.daily-log:not(.monthly-log):not(.collection-page) > .daily-log__capture .daily-log__capture-reveal {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+  flex: 1;
+}
+
+.daily-log__capture-cue {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.daily-log:not(.monthly-log):not(.collection-page) .daily-log__capture-reveal .entry-list__empty {
+  display: grid;
+}

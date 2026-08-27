@@ -125,14 +125,15 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy retains only explicitly deferred T3 and T4 composition" do
+  test "legacy retains only explicitly deferred page composition" do
     legacy = ROOT.join("legacy.css").read
 
     %w[:root body .visually-hidden .flash .preference-toggle__button .rapid-log .tab-bar].each do |selector|
       assert_no_match(/^#{Regexp.escape(selector)}(?:\s|,|\{|:)/, legacy, "#{selector} still owns a legacy rule")
     end
-    assert_match(/TODO\(T3\):/, legacy)
-    assert_match(/TODO\(T4\):/, legacy)
+    assert_match(/TODO\(6B\):/, legacy)
+    assert_match(/TODO\(7A\):/, legacy)
+    assert_match(/TODO\(7B\):/, legacy)
   end
 
   test "Entry declarations do not retain a competing legacy owner" do
@@ -141,9 +142,10 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
 
     assert_empty entry_contracts & legacy_rules.keys,
       "Entry declarations must move completely out of legacy.css"
-    assert_includes legacy_rules.keys, ".entry-list"
+    assert_includes legacy_rules.keys, ".collection-page > .entry-list"
+    assert_includes legacy_rules.keys, ".monthly-migration .entry-list"
     assert_includes legacy_rules.keys, ".monthly-calendar__residents .entry"
-    assert_includes legacy_rules.keys, ".future-entry__resident .entry"
+    assert_not_includes legacy_rules.keys, ".future-entry__resident .entry"
   end
 
   test "Entry runtime hooks remain stable for Stimulus and rendered rows" do

@@ -45,8 +45,9 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     assert_path_exists LEGACY_STYLESHEET
     assert_operator LEGACY_STYLESHEET.size, :<, 23_218
     assert_no_match(/^:root\s*\{|^body\s*\{|^\.rapid-log\s*\{|^\.tab-bar\s*\{/m, LEGACY_STYLESHEET.read)
-    assert_match(/TODO\(T3\)/, LEGACY_STYLESHEET.read)
-    assert_match(/TODO\(T4\)/, LEGACY_STYLESHEET.read)
+    assert_match(/TODO\(6B\)/, LEGACY_STYLESHEET.read)
+    assert_match(/TODO\(7A\)/, LEGACY_STYLESHEET.read)
+    assert_match(/TODO\(7B\)/, LEGACY_STYLESHEET.read)
     assert_not Rails.root.join("app/assets/stylesheets/application.css").exist?
   end
 

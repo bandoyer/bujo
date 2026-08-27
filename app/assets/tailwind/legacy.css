@@ -1,10 +1,4 @@
-/* TODO(T3/6A): Daily composition remains here until its page-family checkpoint. */
-.daily-log__open-count,
-.day-navigation {
-  font-family: var(--font-mono);
-}
-
-/* TODO(T4): Collection and Index composition stays page-owned until T4.
+/* TODO(7A): Collection and Index composition stays page-owned until 7A.
    A Topic is reader-written and unbounded, so its column may shrink below its
    content instead of widening the grid past the viewport. */
 .collection-page__header {
@@ -93,74 +87,8 @@
   margin-top: 1rem;
 }
 
-.daily-log__utilities {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.25rem;
-}
-
-.daily-log__preferences {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.daily-log__open-count {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.day-navigation {
-  display: flex;
-  grid-column: 1 / -1;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.day-navigation a {
-  display: inline-grid;
-  min-width: 44px;
-  min-height: 44px;
-  place-items: center;
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.day-navigation__viewed-day {
-  color: var(--accent);
-  font-size: 0.75rem;
-}
-
-/* TODO(T3): Monthly view/navigation composition remains with the core logs. */
-.monthly-log__views {
-  display: flex;
-  align-self: center;
-  padding: 0.2rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 88%, var(--bg));
-}
-
-.monthly-log__view-link {
-  display: inline-grid;
-  min-height: 44px;
-  padding: 0 0.8rem;
-  place-items: center;
-  border-radius: 999px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  text-decoration: none;
-}
-
-.monthly-log__view-link[aria-current="page"] {
-  background: var(--surface);
-  box-shadow: 0 0.2rem 0.7rem color-mix(in srgb, var(--ink) 10%, transparent);
-  color: var(--accent);
-}
-
-/* TODO(T4): Calendar rows, resident columns, and capture geometry remain page-owned. */
+/* TODO(6B): Calendar rows, resident columns, mono date labels, capture
+   geometry, and the dead-selector decision remain owned by Calendar. */
 .monthly-calendar {
   padding: 0.75rem 0;
 }
@@ -243,10 +171,7 @@
 }
 
 .monthly-calendar__number,
-.monthly-calendar__weekday,
-.monthly-task-count,
-.future-log__month h2,
-.future-entry__day {
+.monthly-calendar__weekday {
   font-family: var(--font-mono);
 }
 
@@ -258,115 +183,13 @@
   color: var(--muted);
 }
 
-.monthly-task {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-}
-
-.monthly-task-count {
-  margin: 0.75rem 0 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-  text-align: right;
-}
-
-.monthly-tasks {
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-}
-
-/* TODO(T3): Future runway, month layout, and embedded capture composition remain page-owned. */
-.future-log__runway {
+/* TODO(7A): Collection keeps its entry-list and trailing writing-surface
+   composition until the Index/Collection checkpoint. */
+.collection-page > .entry-list {
   padding: 0.5rem 0;
 }
 
-.future-log__month {
-  padding: 0.75rem 0;
-}
-
-.future-log__month h2 {
-  margin: 0 0 0.25rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-}
-
-.future-log__month h2 button,
-.future-log__month h2 span {
-  display: flex;
-  min-height: 44px;
-  align-items: center;
-}
-
-.future-log__month h2 button {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  cursor: pointer;
-  letter-spacing: inherit;
-}
-
-.future-log__month--empty h2 button {
-  color: var(--faint);
-}
-
-.future-log__trailing-reveal {
-  display: block;
-  width: 100%;
-}
-
-.future-log__add-row .rapid-log {
-  position: static;
-  margin-bottom: 0.35rem;
-}
-
-.future-log__add-row .rapid-log__capture-row {
-  display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr);
-}
-
-.future-log__add-row input[type="number"] {
-  width: 100%;
-  padding: 0 0.6rem;
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  text-align: center;
-}
-
-.future-entry {
-  display: grid;
-  min-height: 44px;
-  grid-template-columns: 2rem minmax(0, 1fr);
-  gap: 0.3rem;
-  align-items: baseline;
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.future-entry__resident,
-.future-entry__resident .entry {
-  min-width: 0;
-}
-
-.future-entry__resident .entry {
-  padding: 0;
-}
-
-.future-entry__day {
-  color: var(--muted);
-  text-align: right;
-}
-
-/* TODO(T3/6A): Entry lists and trailing writing surfaces remain page-owned. */
-.entry-list {
-  padding: 0.5rem 0;
-}
-
-.daily-log__capture {
+.collection-page > .daily-log__capture {
   display: flex;
   min-height: 44px;
   flex: 1;
@@ -374,8 +197,7 @@
 }
 
 .collection-index__create-reveal,
-.future-log__trailing-reveal,
-.daily-log__capture-reveal {
+.collection-page > .daily-log__capture .daily-log__capture-reveal {
   min-height: 44px;
   padding: 0;
   border: 0;
@@ -384,24 +206,21 @@
 }
 
 .collection-index__create-reveal,
-.daily-log__capture-reveal {
+.collection-page > .daily-log__capture .daily-log__capture-reveal {
   flex: 1;
 }
 
-.daily-log__capture-cue {
-  margin: 0 0 0.35rem;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-}
-
-.daily-log__capture-reveal .entry-list__empty {
+.collection-page > .daily-log__capture .daily-log__capture-reveal .entry-list__empty {
   display: grid;
 }
 
-/* TODO(T4): Monthly Migration composition remains page-owned until T4.
+/* TODO(7B): Monthly Migration's entry list and composition remain page-owned.
    Monthly Migration is a temporary reading lens, so it uses the established
    journal shell and tokens while keeping its one current decision prominent. */
+.monthly-migration .entry-list {
+  padding: 0.5rem 0;
+}
+
 .monthly-log__migration-link,
 .monthly-migration__primary-link,
 .monthly-migration__completion-links a {

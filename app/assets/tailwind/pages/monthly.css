@@ -1,1 +1,68 @@
-/* Monthly Log presentation moves here at T3 and T4. */
+/* This header contract is shared by Tasks and Calendar and freezes at 6A. */
+.monthly-log__views {
+  display: flex;
+  align-self: center;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+}
+
+.monthly-log__view-link {
+  display: inline-grid;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-decoration: none;
+}
+
+.monthly-log__view-link[aria-current="page"] {
+  background: var(--surface);
+  box-shadow: 0 0.2rem 0.7rem color-mix(in srgb, var(--ink) 10%, transparent);
+  color: var(--accent);
+}
+
+.monthly-task {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.monthly-task-count {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.monthly-tasks {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.monthly-tasks > .entry-list {
+  padding: 0.5rem 0;
+}
+
+.monthly-tasks > .daily-log__capture {
+  display: flex;
+  min-height: 44px;
+  flex: 1;
+  flex-direction: column;
+}
+
+.monthly-tasks > .daily-log__capture .daily-log__capture-reveal {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+  flex: 1;
+}
