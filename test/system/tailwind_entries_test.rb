@@ -31,8 +31,8 @@ class TailwindEntriesTest < ApplicationSystemTestCase
     sign_in
 
     PROFILES.each do |profile|
-      apply_profile(**profile)
       visit daily_log_path(date: @today.iso8601)
+      apply_profile(**profile)
 
       within entry_selector(predecessor) do
         assert_selector ":scope > .entry__line > .entry__signifier", text: "*", exact_text: true
@@ -47,7 +47,7 @@ class TailwindEntriesTest < ApplicationSystemTestCase
       assert_equal 4, geometry.fetch("columns").split.size
       assert_operator geometry.dig("text", "width"), :>, 0
       assert_operator geometry.dig("meta", "width"), :>, 0
-      assert_operator geometry.dig("text", "right"), :<=, geometry.dig("meta", "right")
+      assert_operator geometry.dig("text", "right"), :<=, geometry.dig("meta", "x")
       assert_operator geometry.dig("meta", "width"), :<=, geometry.dig("line", "width") * 0.46
       assert_wrapped_complete("#{entry_selector(predecessor)} > .entry__line > .entry__text", long_text)
       assert_wrapped_complete("#{entry_selector(predecessor)} > .entry__line > .entry__meta", "→ #{long_topic}")
@@ -78,8 +78,8 @@ class TailwindEntriesTest < ApplicationSystemTestCase
     sign_in
 
     PROFILES.each do |profile|
-      apply_profile(**profile)
       visit daily_log_path(date: @today.iso8601)
+      apply_profile(**profile)
       assert_row(task, glyph: "•",
         commands: [ "Edit", "Complete", "Strike", "Migrate", "Schedule…", "Move to Collection…" ])
       assert_row(event, glyph: "O", commands: [ "Edit", "Schedule…", "Move to Collection…" ])
@@ -92,6 +92,7 @@ class TailwindEntriesTest < ApplicationSystemTestCase
       assert_static_row(scheduled, glyph: "<")
 
       visit collection_path(destination)
+      apply_profile(**profile)
       assert_row(collection_task, glyph: "•", commands: %w[Edit Complete Strike])
       assert_row(collection_note, glyph: "–", commands: %w[Edit])
       assert_no_horizontal_overflow
@@ -108,8 +109,8 @@ class TailwindEntriesTest < ApplicationSystemTestCase
     sign_in
 
     PROFILES.each do |profile|
-      apply_profile(**profile)
       visit daily_log_path(date: @today.iso8601)
+      apply_profile(**profile)
       origins = entry_origins(first_entry)
       strip_id = "entry_#{first_entry.id}_actions"
 
@@ -173,9 +174,20 @@ class TailwindEntriesTest < ApplicationSystemTestCase
 
   def apply_profile(width:, theme:, hand:)
     page.current_window.resize_to(width, 844)
+    chrome = page.evaluate_script(<<~JAVASCRIPT)
+      ({ height: window.outerHeight - window.innerHeight })
+    JAVASCRIPT
+    page.current_window.resize_to(width, 844 + chrome.fetch("height"))
     page.execute_script(<<~JAVASCRIPT, theme, hand)
+      const browserProfile = document.createElement("style")
+      browserProfile.textContent = "html { scrollbar-width: none } ::-webkit-scrollbar { width: 0 }"
+      document.head.appendChild(browserProfile)
       document.documentElement.dataset.theme = arguments[0]
       document.documentElement.dataset.hand = arguments[1]
+    JAVASCRIPT
+    page.driver.browser.execute_async_script(<<~JAVASCRIPT)
+      const done = arguments[arguments.length - 1]
+      document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(done)))
     JAVASCRIPT
   end
 
