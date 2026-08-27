@@ -1,6 +1,7 @@
 require "test_helper"
 
-# Freezes the T3/6A declaration boundary for Daily, Monthly Tasks, and Future.
+# Freezes the T3/6A declaration boundary for Daily, Monthly Tasks, and Future,
+# plus the 6B Calendar body owner.
 # Browser tests own rendered parity; this source contract prevents later page
 # checkpoints from inheriting these layouts or losing their retained rules.
 class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
@@ -57,22 +58,27 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
       ".future-entry__day" => %w[font-family color text-align]
     }
   }.freeze
-  CALENDAR_SELECTORS = %w[
-    .monthly-calendar
-    .monthly-calendar__day
-    .monthly-calendar__capture-reveal
-    .monthly-calendar__date
-    .monthly-calendar__residents
-    .monthly-calendar__residents\ .entry
-    .monthly-calendar__daily-link
-    .monthly-calendar__capture-panel
-    .monthly-calendar__day--today
-    .monthly-calendar__day--today\ .monthly-calendar__number
-    .monthly-calendar__day--today\ .monthly-calendar__weekday
-    .monthly-calendar__glyph--event
-    .monthly-calendar__number
-    .monthly-calendar__weekday
-  ].freeze
+  CALENDAR_CONTRACTS = {
+    ".monthly-calendar" => %w[padding],
+    ".monthly-calendar__day" =>
+      %w[display min-height grid-template-columns gap align-items padding border-radius color],
+    ".monthly-calendar__capture-reveal" =>
+      %w[display min-height grid-row grid-column grid-template-columns gap align-items padding border background color font text-align cursor],
+    ".monthly-calendar__date" =>
+      %w[display min-height grid-row grid-column grid-template-columns gap align-items padding border background color font text-align],
+    ".monthly-calendar__residents" =>
+      %w[z-index min-width grid-row grid-column pointer-events],
+    ".monthly-calendar__residents .entry" => %w[padding pointer-events],
+    ".monthly-calendar__daily-link" =>
+      %w[z-index display min-width min-height grid-row grid-column place-items color font-size text-decoration],
+    ".monthly-calendar__capture-panel" => %w[z-index grid-row grid-column padding],
+    ".monthly-calendar__day--today" => %w[background],
+    ".monthly-calendar__day--today .monthly-calendar__number" => %w[color],
+    ".monthly-calendar__day--today .monthly-calendar__weekday" => %w[color],
+    ".monthly-calendar__glyph--event" => %w[color],
+    ".monthly-calendar__number" => %w[font-family text-align],
+    ".monthly-calendar__weekday" => %w[font-family color]
+  }.freeze
 
   test "Daily Monthly Tasks and Future declarations have one page owner" do
     rules = authored_rules
@@ -91,10 +97,25 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy retains exact Calendar Collection and Migration checkpoint owners" do
+  test "Calendar declarations have one Monthly page owner" do
+    rules = authored_rules
+
+    CALENDAR_CONTRACTS.each do |selector, required_properties|
+      matches = rules.fetch(selector, [])
+      assert_equal [ "pages/monthly.css" ], matches.map(&:first).uniq,
+        "#{selector} declarations must live only in pages/monthly.css"
+
+      properties = matches.flat_map(&:last).uniq
+      required_properties.each do |property|
+        assert_includes properties, property, "#{selector} must own #{property}"
+      end
+    end
+  end
+
+  test "legacy retains exact Collection and Migration checkpoint owners" do
     legacy = authored_rules_for(ROOT.join("legacy.css"))
 
-    CALENDAR_SELECTORS.each { |selector| assert_includes legacy, selector }
+    assert_empty legacy.keys.grep(/\A\.monthly-calendar/)
     assert_includes legacy, ".collection-index__create-reveal"
     assert_includes legacy, ".collection-page > .entry-list"
     assert_includes legacy, ".collection-page > .daily-log__capture"
@@ -103,18 +124,18 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     assert_includes legacy, ".monthly-log__migration-link"
 
     source = ROOT.join("legacy.css").read
-    assert_includes source, "TODO(6B)"
+    assert_not_includes source, "TODO(6B)"
     assert_includes source, "TODO(7A)"
     assert_includes source, "TODO(7B)"
   end
 
   test "Calendar body declarations remain byte-for-value equivalent to T0" do
-    legacy = authored_declarations_for(ROOT.join("legacy.css"))
+    monthly = authored_declarations_for(ROOT.join("pages/monthly.css"))
     baseline = authored_declarations_for(T0_STYLESHEET)
 
-    CALENDAR_SELECTORS.each do |selector|
-      assert_equal baseline.fetch(selector), legacy.fetch(selector),
-        "#{selector} must remain unchanged for 6B"
+    CALENDAR_CONTRACTS.each_key do |selector|
+      assert_equal baseline.fetch(selector), monthly.fetch(selector),
+        "#{selector} must retain its T0 declarations under the Monthly page owner"
     end
   end
 
@@ -127,10 +148,10 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     assert_empty legacy.keys.grep(/\A\.monthly-(?:task|tasks)/)
   end
 
-  test "Monthly page owner does not absorb Calendar body or Migration declarations" do
+  test "Monthly page owner retains 6A declarations and does not absorb Migration declarations" do
     monthly = authored_rules_for(ROOT.join("pages/monthly.css"))
 
-    assert_empty monthly.keys.grep(/\A\.monthly-calendar/)
+    assert_equal CALENDAR_CONTRACTS.keys.sort, monthly.keys.grep(/\A\.monthly-calendar/).sort
     assert_empty monthly.keys.grep(/\A\.monthly-migration/)
     assert_not_includes monthly, ".monthly-log__migration-link"
   end

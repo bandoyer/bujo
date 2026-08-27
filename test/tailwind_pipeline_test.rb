@@ -45,9 +45,12 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     assert_path_exists LEGACY_STYLESHEET
     assert_operator LEGACY_STYLESHEET.size, :<, 23_218
     assert_no_match(/^:root\s*\{|^body\s*\{|^\.rapid-log\s*\{|^\.tab-bar\s*\{/m, LEGACY_STYLESHEET.read)
-    assert_match(/TODO\(6B\)/, LEGACY_STYLESHEET.read)
+    assert_no_match(/TODO\(6B\)/, LEGACY_STYLESHEET.read)
     assert_match(/TODO\(7A\)/, LEGACY_STYLESHEET.read)
     assert_match(/TODO\(7B\)/, LEGACY_STYLESHEET.read)
+    monthly = Rails.root.join("app/assets/tailwind/pages/monthly.css").read
+    assert_match(/TODO\(8\).*T0-dead event glyph selector/, monthly)
+    assert_match(/\.monthly-calendar__glyph--event/, monthly)
     assert_not Rails.root.join("app/assets/stylesheets/application.css").exist?
   end
 
