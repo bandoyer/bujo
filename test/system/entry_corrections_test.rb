@@ -302,6 +302,41 @@ class EntryCorrectionsTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1400)
   end
 
+  test "native Schedule refusal stays title-first and Cancel restores row focus" do
+    entry = create_entry(text: "schedule refusal")
+    original = entry.attributes
+    sign_in
+    page.current_window.resize_to(320, 844)
+    set_preferences(theme: "dark", hand: "architects-daughter")
+    visit daily_log_path(date: Time.zone.today.iso8601)
+
+    reveal_actions(entry)
+    within entry_selector(entry) do
+      click_button "Schedule…", exact: true
+      assert_field "Schedule for", with: ""
+      click_button "Cancel", exact: true
+      assert_no_field "Schedule for"
+      assert_button "Schedule…", exact: true
+    end
+    assert_equal "entry_#{entry.id}_actions",
+      page.evaluate_script("document.activeElement.getAttribute('aria-controls')")
+
+    within entry_selector(entry) do
+      click_button "Schedule…", exact: true
+      set_native_date(find_field("Schedule for"), Time.zone.today)
+      click_button "Schedule", exact: true
+    end
+
+    assert_current_path daily_log_path(date: Time.zone.today.iso8601)
+    assert_selector "[role='alert']", text: "That entry can't do that."
+    assert_title_before_alert
+    assert_equal original, entry.reload.attributes
+    assert_nil entry.successor
+    assert_no_horizontal_overflow
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   test "ordinary Calendar and Monthly Tasks capture all three kinds" do
     sign_in
     month = Time.zone.today.beginning_of_month
