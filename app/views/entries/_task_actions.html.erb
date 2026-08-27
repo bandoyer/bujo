@@ -29,7 +29,11 @@
   </div>
 
   <% if offered_commands.include?("update") %>
-    <% editable_kinds = entry.kind_change_allowed? ? Entry::ROOT_KINDS.fetch(entry.page_kind) : [ entry.kind ] %>
+    <% editable_kinds = if entry.kind_change_allowed?
+         (Entry::ROOT_KINDS.fetch(entry.page_kind) + [ entry.kind ]).uniq
+       else
+         [ entry.kind ]
+       end %>
     <div class="entry__edit-step" data-step="edit" <%= "hidden" unless edit_open %>>
       <%= form_with url: entry_path(entry), method: :patch,
                     class: "entry__edit", data: { controller: "rapid-log" } do |form| %>
@@ -41,6 +45,7 @@
                               id: "edit_line_#{entry.id}",
                               value: (edit_open ? flash[:edit_line] : entry.canonical_edit_line),
                               required: true,
+                              autofocus: edit_open,
                               autocomplete: "off",
                               data: { rapid_log_target: "line" } %>
           <%= form.submit "Save", class: "entry-action" %>
@@ -61,11 +66,13 @@
         <%= form.hidden_field :return_to, value: return_to if return_to %>
         <%= form.label :date, "Schedule for" %>
         <%= form.date_field :date, required: true %>
-        <%= form.submit "Schedule", class: "entry-action" %>
+        <div class="entry__schedule-actions">
+          <%= form.submit "Schedule", class: "entry-action" %>
+          <button type="button"
+                  class="entry-action entry-action--cancel"
+                  data-action="task-actions#cancelStep">Cancel</button>
+        </div>
       <% end %>
-      <button type="button"
-              class="entry-action entry-action--cancel"
-              data-action="task-actions#cancelStep">Cancel</button>
     </div>
   <% end %>
 

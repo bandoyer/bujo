@@ -161,6 +161,53 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{future.id} button", text: "Edit"
   end
 
+  test "Future Note child editor selects Note without broadening Future capture" do
+    root = create_resident(
+      "future root", kind: "task", page_kind: "future", page_on: nil,
+      occurs_on: Time.zone.today.next_month.beginning_of_month
+    )
+    child = create_resident(
+      "future context", kind: "note", page_kind: "future", page_on: nil,
+      occurs_on: nil, parent: root
+    )
+
+    get future_log_path
+
+    assert_select "#entry_#{child.id} form[action='#{entry_path(child)}']" do
+      assert_select "button[aria-label='Task'][aria-pressed='false']", count: 1
+      assert_select "button[aria-label='Event'][aria-pressed='false']", count: 1
+      assert_select "button[aria-label='Note'][aria-pressed='true']", count: 1
+      assert_select "input[name='default_kind'][value='note']", count: 1
+    end
+    assert_select ".future-log__add-row button[aria-label='Note']", count: 0
+  end
+
+  test "entry refusal alerts follow titles on every resident page" do
+    month = Time.zone.today.beginning_of_month
+    collection = @user.collections.create!(name: "Refusal Topic")
+    cases = [
+      [ create_open_task("daily refusal", page_on: Time.zone.today), daily_log_path(date: Time.zone.today.iso8601) ],
+      [ create_resident("calendar refusal", kind: "event", page_kind: "monthly_calendar",
+          page_on: month, occurs_on: Time.zone.today), monthly_log_path(month: month.strftime("%Y-%m")) ],
+      [ create_open_task("tasks refusal", page_on: month, page_kind: "monthly_tasks"),
+        monthly_log_path(month: month.strftime("%Y-%m"), view: "tasks") ],
+      [ create_resident("future refusal", kind: "event", page_kind: "future", page_on: nil,
+          occurs_on: month.next_month), future_log_path ],
+      [ create_resident("collection refusal", kind: "note", page_kind: "collection", page_on: nil,
+          collection: collection), collection_path(collection) ]
+    ]
+
+    cases.each do |entry, expected_path|
+      patch entry_path(entry), params: { line: "", default_kind: entry.kind }
+      assert_redirected_to expected_path
+      follow_redirect!
+      assert_response :success
+      assert_operator response.body.index("<h1"), :<, response.body.index("role=\"alert\"")
+      assert_select "[role='alert']", text: "That entry can't do that."
+      assert_select "#entry_#{entry.id} input[name='line'][value='']", count: 1
+    end
+  end
+
   private
 
   def create_resident(text, kind:, **placement)

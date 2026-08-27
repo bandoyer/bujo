@@ -791,14 +791,20 @@ a {
 
 .entry__schedule {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
 }
 
 .entry__schedule label {
-  grid-column: 1 / -1;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.68rem;
+}
+
+.entry__schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
 .entry__edit {

@@ -1,4 +1,5 @@
 <% content_for :title, "Future Log · Bujo" %>
+<% content_for :deferred_flash, true %>
 
 <main class="daily-log future-log" data-controller="placement task-actions">
   <header class="daily-log__header future-log__header">
@@ -6,6 +7,7 @@
       <h1>Future Log</h1>
     </div>
   </header>
+  <div id="flash_messages"><%= render "shared/flash_messages" %></div>
 
   <section class="future-log__runway" aria-label="Upcoming entries">
     <% @months.each do |month| %>

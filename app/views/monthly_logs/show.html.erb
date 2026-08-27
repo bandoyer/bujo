@@ -1,4 +1,5 @@
 <% content_for :title, "Monthly Log · Bujo" %>
+<% content_for :deferred_flash, true %>
 <% month_value = @month.strftime("%Y-%m") %>
 <% tasks_view = @view == :tasks %>
 <% navigation_view = tasks_view ? "tasks" : nil %>
@@ -36,6 +37,7 @@
                   class: "monthly-log__migration-link" %>
     <% end %>
   </header>
+  <div id="flash_messages"><%= render "shared/flash_messages" %></div>
 
   <% if tasks_view %>
     <%= render "tasks" %>

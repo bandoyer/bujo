@@ -75,6 +75,167 @@ class EntryCorrectionsTest < ApplicationSystemTestCase
       page.evaluate_script("document.activeElement.getAttribute('aria-controls')")
   end
 
+  test "existing Event and Note edits preserve identity placement and exact NULL state" do
+    day = Time.zone.today
+    event = create_entry(
+      kind: "event", state: nil, text: "old event", occurs_on: day,
+      time_of_day: "08:05", tags: %w[old]
+    )
+    note = create_entry(kind: "note", state: nil, text: "old note", tags: %w[old])
+    event_structure = structural_attributes(event)
+    note_structure = structural_attributes(note)
+    sign_in
+
+    reveal_actions(event)
+    within entry_selector(event) do
+      click_button "Edit", exact: true
+      assert_selector "button[aria-label='Event'][aria-pressed='true']"
+      fill_in "Edit entry", with: "changed event +camp #{day.next_day.iso8601} 14:30"
+      click_button "Save", exact: true
+    end
+    assert_current_path daily_log_path(date: day.iso8601)
+    assert_equal [ "event", nil, "changed event", %w[camp], day.next_day, "14:30" ],
+      event.reload.values_at(:kind, :state, :text, :tags, :occurs_on, :time_of_day)
+    assert_equal event_structure, structural_attributes(event)
+
+    reveal_actions(note)
+    within entry_selector(note) do
+      click_button "Edit", exact: true
+      assert_selector "button[aria-label='Note'][aria-pressed='true']"
+      fill_in "Edit entry", with: "changed note +camp"
+      click_button "Save", exact: true
+    end
+    assert_selector "#{entry_selector(note)} .entry__text", text: "changed note"
+    assert_equal [ "note", nil, "changed note", %w[camp] ],
+      note.reload.values_at(:kind, :state, :text, :tags)
+    assert_equal note_structure, structural_attributes(note)
+  end
+
+  test "moved live end edits words with one inherited kind and no new successor" do
+    day = Time.zone.today
+    predecessor = create_entry(text: "movement source")
+    live_end = predecessor.move_to!(
+      page_kind: "monthly_tasks", page_on: day.next_month.beginning_of_month, as_of: day
+    )
+    original_count = @user.entries.count
+    sign_in
+    visit monthly_log_path(month: day.next_month.strftime("%Y-%m"), view: "tasks")
+
+    reveal_actions(live_end)
+    within entry_selector(live_end) do
+      click_button "Edit", exact: true
+      assert_selector ".rapid-log__kind", count: 1
+      assert_selector "button[aria-label='Task'][aria-pressed='true']"
+      assert_no_selector "button[aria-label='Event'], button[aria-label='Note']"
+      fill_in "Edit entry", with: "changed live words +kept"
+      click_button "Save", exact: true
+    end
+
+    assert_current_path monthly_log_path(month: day.next_month.strftime("%Y-%m"), view: "tasks")
+    assert_selector "#{entry_selector(live_end)} .entry__text", text: "changed live words"
+    assert_equal original_count, @user.entries.count
+    assert_equal predecessor, live_end.reload.predecessor
+    assert_nil live_end.successor
+    assert_equal [ "task", "open", "changed live words", %w[kept] ],
+      live_end.values_at(:kind, :state, :text, :tags)
+  end
+
+  test "wrapped row keeps glyph text and metadata origins through selection and Edit" do
+    entry = create_entry(
+      text: "ThisUnbrokenCorrectionNameMustWrapWithoutMovingTheJournalColumnsAcrossInteractiveStates",
+      tags: %w[long-metadata]
+    )
+    sign_in
+    page.current_window.resize_to(320, 844)
+
+    at_rest = row_geometry(entry)
+    reveal_actions(entry)
+    selected = row_geometry(entry)
+    within(entry_selector(entry)) { click_button "Edit", exact: true }
+    edit_open = row_geometry(entry)
+
+    assert_equal at_rest, selected
+    assert_equal at_rest, edit_open
+    assert_no_horizontal_overflow
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
+  test "Future Note child edits in place with Note truthfully selected" do
+    occurs_on = Time.zone.today.next_month.beginning_of_month + 3.days
+    root = create_entry(page_kind: "future", page_on: nil, occurs_on: occurs_on)
+    child = create_entry(
+      kind: "note", state: nil, text: "old child words", tags: %w[old],
+      page_kind: "future", page_on: nil, occurs_on: nil, parent: root
+    )
+    structure = structural_attributes(child)
+    sign_in
+    visit future_log_path
+
+    reveal_actions(child)
+    within entry_selector(child) do
+      click_button "Edit", exact: true
+      assert_selector "button[aria-label='Task'][aria-pressed='false']"
+      assert_selector "button[aria-label='Event'][aria-pressed='false']"
+      assert_selector "button[aria-label='Note'][aria-pressed='true']"
+      assert_selector "input[name='default_kind'][value='note']", visible: :hidden
+      fill_in "Edit entry", with: "new child words +camp"
+      click_button "Save", exact: true
+    end
+
+    assert_current_path future_log_path
+    assert_selector "#{entry_selector(child)} .entry__text", text: "new child words"
+    assert_equal [ "note", nil, "new child words", %w[camp], nil, nil ],
+      child.reload.values_at(:kind, :state, :text, :tags, :occurs_on, :time_of_day)
+    assert_equal structure, structural_attributes(child)
+    assert_nil child.successor
+  end
+
+  test "refused Edit stays title-first open truthful focused and contained at both phone treatments" do
+    cases = [
+      [ 390, "light", "rock-salt", create_entry(text: "daily unchanged"),
+        daily_log_path(date: Time.zone.today.iso8601), "Task" ],
+      begin
+        occurs_on = Time.zone.today.next_month.beginning_of_month + 4.days
+        root = create_entry(page_kind: "future", page_on: nil, occurs_on: occurs_on)
+        child = create_entry(
+          kind: "note", state: nil, text: "future unchanged",
+          page_kind: "future", page_on: nil, occurs_on: nil, parent: root
+        )
+        [ 320, "dark", "architects-daughter", child, future_log_path, "Note" ]
+      end
+    ]
+    sign_in
+
+    cases.each do |width, theme, hand, entry, path, selected_kind|
+      page.current_window.resize_to(width, 844)
+      visit daily_log_path(date: Time.zone.today.iso8601)
+      set_preferences(theme:, hand:)
+      visit path
+      original = entry.reload.attributes
+      reveal_actions(entry)
+      within entry_selector(entry) do
+        click_button "Edit", exact: true
+        field = find_field("Edit entry")
+        field.fill_in(with: "")
+        page.execute_script("arguments[0].removeAttribute('required')", field)
+        click_button "Save", exact: true
+      end
+
+      assert_current_path path
+      assert_selector "[role='alert']", text: "That entry can't do that."
+      assert_title_before_alert
+      within entry_selector(entry) do
+        assert_field "Edit entry", with: "", focused: true
+        assert_selector "button[aria-label='#{selected_kind}'][aria-pressed='true']"
+      end
+      assert_equal original, entry.reload.attributes
+      assert_no_horizontal_overflow
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   test "native Schedule routes the last later current-month day to Calendar" do
     event = create_entry(kind: "event", state: nil, text: "same month event", time_of_day: "14:00")
     scheduled_on = Time.zone.today.end_of_month
@@ -99,6 +260,46 @@ class EntryCorrectionsTest < ApplicationSystemTestCase
     assert_equal [ "monthly_calendar", Time.zone.today.beginning_of_month, scheduled_on ],
       successor.values_at(:page_kind, :page_on, :occurs_on)
     assert_selector "#{entry_selector(event)} .entry__glyph", text: ">"
+  end
+
+  test "native Schedule is full width above its actions and routes both destinations on phones" do
+    same_month = create_entry(kind: "event", state: nil, text: "same month", time_of_day: "14:00")
+    later_month = create_entry(text: "later month")
+    cases = [
+      [ 390, "light", "rock-salt", same_month, Time.zone.today.end_of_month, "monthly_calendar" ],
+      [ 320, "dark", "architects-daughter", later_month,
+        Time.zone.today.next_month.beginning_of_month, "future" ]
+    ]
+    sign_in
+
+    cases.each do |width, theme, hand, entry, scheduled_on, destination|
+      page.current_window.resize_to(width, 844)
+      visit daily_log_path(date: Time.zone.today.iso8601)
+      set_preferences(theme:, hand:)
+      visit daily_log_path(date: Time.zone.today.iso8601)
+      original_origins = row_geometry(entry)
+      reveal_actions(entry)
+      within entry_selector(entry) do
+        click_button "Schedule…", exact: true
+        field = find_field("Schedule for")
+        set_native_date(field, scheduled_on)
+        assert_field "Schedule for", with: scheduled_on.iso8601
+        assert_schedule_geometry
+        assert_equal original_origins, row_geometry(entry)
+        click_button "Schedule", exact: true
+      end
+
+      assert_current_path daily_log_path(date: Time.zone.today.iso8601)
+      expected_glyph = destination == "future" ? "<" : ">"
+      assert_selector "#{entry_selector(entry)} .entry__glyph", text: expected_glyph
+      successor = entry.reload.successor
+      assert_equal [ destination, scheduled_on ], successor.values_at(:page_kind, :occurs_on)
+      assert_nil successor.page_on if destination == "future"
+      assert_equal Time.zone.today.beginning_of_month, successor.page_on if destination == "monthly_calendar"
+      assert_no_horizontal_overflow
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
   end
 
   test "ordinary Calendar and Monthly Tasks capture all three kinds" do
@@ -166,5 +367,74 @@ class EntryCorrectionsTest < ApplicationSystemTestCase
         return [Math.round(glyph.left), Math.round(text.left), Math.round(meta.right)]
       })()
     JAVASCRIPT
+  end
+
+  def structural_attributes(entry)
+    entry.reload.attributes.slice(
+      "id", "user_id", "page_kind", "page_on", "collection_id", "parent_id",
+      "migrated_from_id", "created_at", "deleted_at", "hlc", "server_seq"
+    )
+  end
+
+  def set_native_date(field, date)
+    page.execute_script(<<~JAVASCRIPT, field, date.iso8601)
+      arguments[0].value = arguments[1]
+      arguments[0].dispatchEvent(new Event("input", { bubbles: true }))
+      arguments[0].dispatchEvent(new Event("change", { bubbles: true }))
+    JAVASCRIPT
+  end
+
+  def assert_schedule_geometry
+    geometry = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const form = document.querySelector(".entry__schedule")
+        const field = form.querySelector("input[type='date']")
+        const submit = form.querySelector("input[type='submit']")
+        const cancel = form.closest(".entry__schedule-step").querySelector("button")
+        const boxes = [form, field, submit, cancel].map((element) => element.getBoundingClientRect())
+        return boxes.map((box) => ({
+          left: box.left, right: box.right, top: box.top, bottom: box.bottom,
+          width: box.width, height: box.height
+        }))
+      })()
+    JAVASCRIPT
+    form, field, submit, cancel = geometry
+    assert_in_delta form["left"], field["left"], 1
+    assert_in_delta form["right"], field["right"], 1
+    assert_operator submit["top"], :>=, field["bottom"]
+    assert_operator cancel["top"], :>=, field["bottom"]
+    [ field, submit, cancel ].each { |box| assert_operator box["height"], :>=, 44 }
+  end
+
+  def assert_title_before_alert
+    positions = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const title = document.querySelector("main h1")
+        const alert = document.querySelector("[role='alert']")
+        return {
+          source: title.compareDocumentPosition(alert),
+          titleTop: title.getBoundingClientRect().top,
+          alertTop: alert.getBoundingClientRect().top
+        }
+      })()
+    JAVASCRIPT
+    assert_operator positions["source"] & 4, :>, 0
+    assert_operator positions["titleTop"], :<, positions["alertTop"]
+  end
+
+  def set_preferences(theme:, hand:)
+    until page.has_selector?("html[data-theme='#{theme}']", visible: :all, wait: 0.2)
+      find("button", text: /Theme:/).click
+    end
+    until page.has_selector?("html[data-hand='#{hand}']", visible: :all, wait: 0.2)
+      find("button", text: /Hand:/).click
+    end
+  end
+
+  def assert_no_horizontal_overflow
+    geometry = page.evaluate_script(<<~JAVASCRIPT)
+      ({ scroll: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth })
+    JAVASCRIPT
+    assert_operator geometry["scroll"], :<=, geometry["viewport"]
   end
 end

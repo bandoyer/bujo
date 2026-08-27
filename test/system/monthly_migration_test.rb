@@ -229,44 +229,163 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1400)
   end
 
-  test "every immediate Undo preserves history and restores the ritual candidate" do
-    outgoing = create_entry(text: "undo outgoing", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
-    due_event = create_entry(
-      text: "undo event", kind: "event", state: nil, page_kind: "future", page_on: nil,
-      occurs_on: TARGET_MONTH + 4.days, time_of_day: "10:15"
-    )
+  test "outgoing Strike Undo reopens the same task" do
+    outgoing = create_entry(text: "undo outgoing strike", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
+    original_count = @user.entries.count
     sign_in
     visit migration_outgoing_path
 
     click_button "Strike"
     assert_selector ".monthly-migration__confirmation", text: "Struck."
     click_button "Undo"
-    assert_no_selector ".monthly-migration__confirmation"
+
+    assert_undo_offer_consumed
+    assert_equal original_count, @user.entries.count
     assert_equal "open", outgoing.reload.state
+    assert_nil outgoing.successor
     assert_selector "#entry_#{outgoing.id}[aria-label='Review this task']"
+  end
+
+  test "outgoing target Tasks Undo appends an exact source restoration" do
+    outgoing = create_entry(
+      text: "undo outgoing tasks", priority: true, tags: %w[kept],
+      page_kind: "daily", page_on: SOURCE_MONTH + 7.days
+    )
+    sign_in
+    visit migration_outgoing_path
 
     click_button target_tasks_label
     assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_tasks_label}."
-    first_successor = outgoing.reload.successor
-    click_button "Undo"
-    assert_no_selector ".monthly-migration__confirmation"
-    restored_outgoing = first_successor.reload.successor
-    assert_equal [ outgoing.id, first_successor.id ],
-      [ first_successor.migrated_from_id, restored_outgoing.migrated_from_id ]
-    assert_equal [ "monthly_tasks", SOURCE_MONTH, "open" ],
-      restored_outgoing.values_at(:page_kind, :page_on, :state)
-    within("#entry_#{restored_outgoing.id}") { click_button "Strike" }
+    assert_movement_undo(outgoing, expected_source: [ "daily", SOURCE_MONTH + 7.days, nil, nil, nil ])
+  end
 
+  test "outgoing exact-Topic Collection Undo appends an exact source restoration" do
+    collection = @user.collections.create!(name: "Undo Topic")
+    outgoing = create_entry(
+      text: "undo outgoing collection", page_kind: "monthly_tasks", page_on: SOURCE_MONTH
+    )
+    sign_in
+    visit migration_outgoing_path
+
+    click_button "Collection…", exact: true
+    fill_in "Exact Topic", with: collection.name
+    click_button "Move", exact: true
+    assert_selector ".monthly-migration__confirmation", text: "Moved to #{collection.name}."
+    assert_equal collection, outgoing.reload.successor.collection
+    assert_movement_undo(outgoing, expected_source: [ "monthly_tasks", SOURCE_MONTH, nil, nil, nil ])
+  end
+
+  test "outgoing Future-date Undo appends an exact source restoration" do
+    outgoing = create_entry(
+      text: "undo outgoing future", occurs_on: SOURCE_MONTH + 8.days, time_of_day: "07:40",
+      page_kind: "monthly_calendar", page_on: SOURCE_MONTH
+    )
+    scheduled_on = TARGET_MONTH.next_month + 2.days
+    sign_in
+    visit migration_outgoing_path
+
+    click_button "Future…", exact: true
+    set_date_field "Schedule date", scheduled_on
+    click_button "Schedule", exact: true
+    assert_selector ".monthly-migration__confirmation", text: "Moved to Future · #{scheduled_on.strftime('%b %-d')}."
+    assert_movement_undo(
+      outgoing,
+      expected_source: [ "monthly_calendar", SOURCE_MONTH, nil, SOURCE_MONTH + 8.days, "07:40" ]
+    )
+  end
+
+  test "due Future task Strike Undo reopens the same task" do
+    task = create_entry(
+      text: "undo future strike", page_kind: "future", page_on: nil,
+      occurs_on: TARGET_MONTH + 3.days
+    )
+    original_count = @user.entries.count
+    sign_in
     visit migration_future_path
-    within("#entry_#{due_event.id}") { click_button target_calendar_label }
-    assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_calendar_label}."
-    first_event_successor = due_event.reload.successor
+
+    click_button "Strike"
+    assert_selector ".monthly-migration__confirmation", text: "Struck."
     click_button "Undo"
-    assert_no_selector ".monthly-migration__confirmation"
-    restored_event = first_event_successor.reload.successor
-    assert_equal [ "future", nil, due_event.occurs_on, "10:15", nil ],
-      restored_event.values_at(:page_kind, :page_on, :occurs_on, :time_of_day, :state)
-    assert_selector "#entry_#{restored_event.id}[aria-label='Review this task']"
+
+    assert_undo_offer_consumed
+    assert_equal original_count, @user.entries.count
+    assert_equal "open", task.reload.state
+    assert_nil task.successor
+    assert_selector "#entry_#{task.id}[aria-label='Review this task']"
+  end
+
+  test "due Future task target Tasks Undo restores its date and time" do
+    task = create_entry(
+      text: "undo future tasks", priority: true, tags: %w[trip],
+      page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH + 5.days,
+      time_of_day: "08:25"
+    )
+    sign_in
+    visit migration_future_path
+
+    click_button target_tasks_label
+    assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_tasks_label}."
+    assert_movement_undo(
+      task,
+      expected_source: [ "future", nil, nil, TARGET_MONTH + 5.days, "08:25" ]
+    )
+  end
+
+  test "due Future event target Calendar Undo restores exact NULL-state Future placement" do
+    event = create_entry(
+      text: "undo future event", kind: "event", state: nil, priority: true, tags: %w[opening],
+      page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH + 4.days,
+      time_of_day: "10:15"
+    )
+    sign_in
+    visit migration_future_path
+
+    click_button target_calendar_label
+    assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_calendar_label}."
+    assert_movement_undo(
+      event,
+      expected_source: [ "future", nil, nil, TARGET_MONTH + 4.days, "10:15" ],
+      expected_kind_state: [ "event", nil ]
+    )
+  end
+
+  test "stale second-tab Undo refuses below the title and preserves the resolved successor" do
+    outgoing = create_entry(
+      text: "stale cross-tab undo", page_kind: "monthly_tasks", page_on: SOURCE_MONTH
+    )
+    sign_in
+    visit migration_outgoing_path
+    click_button target_tasks_label
+    assert_selector ".monthly-migration__confirmation", text: "Moved to #{target_tasks_label}."
+    moved = outgoing.reload.successor
+    assert moved
+
+    first_tab = page.current_window
+    second_tab = open_new_window
+    within_window(second_tab) do
+      visit monthly_log_path(month: month_param(TARGET_MONTH), view: "tasks")
+      within("#entry_#{moved.id}") do
+        find(".entry__toggle").click
+        click_button "Complete", exact: true
+      end
+      assert_selector "#entry_#{moved.id} .entry__glyph", text: "x"
+      assert_equal "done", moved.reload.state
+    end
+
+    within_window(first_tab) do
+      click_button "Undo"
+      assert_current_path migration_future_path
+      assert_title_first
+      assert_selector "[role='alert']", text: "That entry can't do that."
+      assert_operator find("h1").rect.y, :<, find("[role='alert']").rect.y
+      assert_no_selector ".monthly-migration__confirmation"
+    end
+
+    assert_equal "done", moved.reload.state
+    assert_nil moved.successor
+    assert_equal 2, @user.entries.where(text: outgoing.text).count
+  ensure
+    second_tab&.close
   end
 
 
@@ -379,6 +498,31 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     assert_empty undersized
   end
 
+  def assert_undo_offer_consumed
+    assert_no_selector ".monthly-migration__confirmation"
+  end
+
+  def assert_movement_undo(original, expected_source:, expected_kind_state: [ "task", "open" ])
+    moved = original.reload.successor
+    assert moved
+    count_after_move = @user.entries.count
+
+    click_button "Undo"
+
+    assert_undo_offer_consumed
+    restored = moved.reload.successor
+    assert restored
+    assert_equal count_after_move + 1, @user.entries.count
+    assert_equal [ original.id, moved.id ], [ moved.migrated_from_id, restored.migrated_from_id ]
+    assert_equal expected_kind_state, restored.values_at(:kind, :state)
+    assert_equal expected_source,
+      restored.values_at(:page_kind, :page_on, :collection_id, :occurs_on, :time_of_day)
+    assert_equal [ original.text, original.priority, original.tags ],
+      restored.values_at(:text, :priority, :tags)
+    assert_uuid_v7 restored.id
+    assert_selector "#entry_#{restored.id}[aria-label='Review this task']"
+  end
+
   def set_date_field(label, date)
     field = find_field(label)
     page.execute_script(<<~JAVASCRIPT, field, date.iso8601)
@@ -407,13 +551,14 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   def create_entry(user: @user, text:, kind: "task", state: :default, page_kind:, page_on:,
-    parent: nil, occurs_on: nil, time_of_day: nil)
+    parent: nil, occurs_on: nil, time_of_day: nil, priority: false, tags: [])
     user.entries.create!(
       user: user,
       text: text,
       kind: kind,
       state: state == :default ? ("open" if kind == "task") : state,
-      tags: [],
+      tags: tags,
+      priority: priority,
       page_kind: page_kind,
       page_on: page_on,
       parent: parent,

@@ -312,8 +312,16 @@ class Entry < ApplicationRecord
 
   def ensure_correctable!(requested_kind)
     raise LifecycleError unless kept? && successor.nil?
-    raise LifecycleError unless ROOT_KINDS.fetch(page_kind, []).include?(requested_kind)
-    raise LifecycleError if requested_kind != kind && !kind_change_allowed?
+    raise LifecycleError unless correction_kind_admitted?(requested_kind)
+    raise LifecycleError if kind_change_refused?(requested_kind)
+  end
+
+  def correction_kind_admitted?(requested_kind)
+    requested_kind == kind || ROOT_KINDS.fetch(page_kind, []).include?(requested_kind)
+  end
+
+  def kind_change_refused?(requested_kind)
+    requested_kind != kind && !kind_change_allowed?
   end
 
   def correction_attributes(parsed, requested_kind)

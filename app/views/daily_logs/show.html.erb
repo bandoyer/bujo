@@ -1,4 +1,5 @@
 <% content_for :title, "Daily Log · Bujo" %>
+<% content_for :deferred_flash, true %>
 <%# The controller owns the clock; the screen only asks which day it holds. %>
 <% viewing_today = @date == @today %>
 <% viewed_day_label = @date.strftime("%a · %b %-d").upcase %>
@@ -23,6 +24,7 @@
       <%= link_to "›", daily_log_path(date: (@date + 1.day).iso8601), aria: { label: "Next day" } %>
     </nav>
   </header>
+  <div id="flash_messages"><%= render "shared/flash_messages" %></div>
 
   <section class="entry-list" id="entries" aria-label="Entries" data-controller="task-actions">
     <% if @entries.empty? && !@capture_open %>

@@ -75,6 +75,38 @@ class EntryCorrectionTest < ActiveSupport::TestCase
     assert_equal [ "task", "open" ], future.reload.values_at(:kind, :state)
   end
 
+  test "a Future Note child keeps its valid current kind without opening the root vocabulary" do
+    root = create_entry(page_kind: "future", page_on: nil, occurs_on: TODAY.next_month)
+    child = create_entry(
+      kind: "note", state: nil, text: "old child words", tags: %w[old],
+      page_kind: "future", page_on: nil, occurs_on: nil, parent: root
+    )
+    immutable = child.attributes.slice(
+      "id", "user_id", "page_kind", "page_on", "collection_id", "parent_id",
+      "migrated_from_id", "created_at", "deleted_at", "hlc", "server_seq"
+    )
+
+    child.correct!(parse("new child words +camp", kind: :note), kind: "note")
+
+    assert_equal [ "note", nil, "new child words", %w[camp], nil, nil ],
+      child.reload.values_at(:kind, :state, :text, :tags, :occurs_on, :time_of_day)
+    assert_equal immutable, child.attributes.slice(*immutable.keys)
+    assert_equal %w[task event], Entry::ROOT_KINDS.fetch("future")
+
+    %w[task event].each do |kind|
+      context = create_entry(
+        kind: kind, state: ("open" if kind == "task"),
+        page_kind: "future", page_on: nil, occurs_on: nil, parent: root
+      )
+      original = context.attributes
+
+      assert_raises(Entry::LifecycleError) do
+        context.correct!(parse("not a Note", kind: :note), kind: "note")
+      end
+      assert_equal original, context.reload.attributes
+    end
+  end
+
   test "moved predecessors refuse correction while live ends keep their inherited kind" do
     predecessor = create_entry(text: "original")
     live_end = predecessor.move_to!(
