@@ -4,7 +4,7 @@ require "test_helper"
 # visible on every metadata row. The token is the one source of that rule, so
 # this reads the stylesheet rather than waiting on a computed-style probe.
 class LetteringTokensTest < ActiveSupport::TestCase
-  STYLESHEET = Rails.root.join("app/assets/stylesheets/application.css")
+  STYLESHEET = Rails.root.join("app/assets/tailwind/legacy.css")
 
   test "every named hand puts its face first on the mono stack" do
     stylesheet = STYLESHEET.read

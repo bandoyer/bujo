@@ -8,6 +8,14 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
     sign_in_as @user
   end
 
+  test "application renders one Turbo-tracked Tailwind stylesheet" do
+    get daily_log_path(date: Time.zone.today.iso8601)
+
+    assert_response :success
+    assert_select "link[rel='stylesheet'][href*='tailwind'][data-turbo-track='reload']", count: 1
+    assert_select "link[rel='stylesheet'][href*='application.css']", count: 0
+  end
+
   test "future Daily pages render residents and actions but no capture affordance" do
     travel_to Time.zone.local(2026, 8, 25, 12) do
       resident = create_open_task("already carried", page_on: Date.new(2026, 8, 26))

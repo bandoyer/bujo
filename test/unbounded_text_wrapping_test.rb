@@ -3,7 +3,7 @@ require "test_helper"
 # Topics and entry text are unbounded. Overflow-wrap is the one rule that keeps
 # them inside the viewport; reading the stylesheet pins it without a browser.
 class UnboundedTextWrappingTest < ActiveSupport::TestCase
-  STYLESHEET = Rails.root.join("app/assets/stylesheets/application.css")
+  STYLESHEET = Rails.root.join("app/assets/tailwind/legacy.css")
 
   test "entry text and destination meta wrap anywhere instead of truncating" do
     stylesheet = STYLESHEET.read
