@@ -3,8 +3,8 @@ require "digest"
 require "fileutils"
 require "open3"
 
-# Pins the generated stylesheet boundary while named modules progressively take
-# presentation ownership from the shrinking legacy checkpoint.
+# Pins the generated stylesheet boundary after legacy removal: one compiled
+# asset, explicit application sources, and no second CSS bundle.
 class TailwindPipelineTest < ActiveSupport::TestCase
   LEGACY_STYLESHEET = Rails.root.join("app/assets/tailwind/legacy.css")
   TAILWIND_ENTRY = Rails.root.join("app/assets/tailwind/application.css")
@@ -41,25 +41,24 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     pages/monthly-migration.css
   ].freeze
 
-  test "legacy remains as the declaration-empty assignment 8 checkpoint" do
-    assert_path_exists LEGACY_STYLESHEET
-    assert_operator LEGACY_STYLESHEET.size, :<, 23_218
-    legacy = LEGACY_STYLESHEET.read
-    assert_no_match(/\{[^{}]*[-\w]+\s*:/m, legacy.gsub(%r{/\*.*?\*/}m, ""))
-    assert_no_match(/TODO\((?:6B|7A|7B)\)/, legacy)
+  test "legacy source is gone and the T0-dead Calendar glyph is not delivered" do
     monthly = Rails.root.join("app/assets/tailwind/pages/monthly.css").read
-    assert_match(/TODO\(8\).*T0-dead event glyph selector/, monthly)
-    assert_match(/\.monthly-calendar__glyph--event/, monthly)
+
+    assert_not LEGACY_STYLESHEET.exist?
     assert_not Rails.root.join("app/assets/stylesheets/application.css").exist?
+    assert_not Rails.root.join("app/assets/stylesheets/legacy.css").exist?
+    assert_no_match(/TODO\(8\)/, monthly)
+    assert_no_match(/\.monthly-calendar__glyph--event/, monthly)
+    assert_match(/\.monthly-calendar__day--today \.monthly-calendar__number,\s*\.monthly-calendar__day--today \.monthly-calendar__weekday\s*\{\s*color:\s*var\(--accent\);/m, monthly)
   end
 
   test "entry disables framework defaults and scans only application sources" do
     entry = TAILWIND_ENTRY.read
 
-    assert_match(/\A@layer theme, base, legacy, components, utilities;/, entry)
+    assert_match(/\A@layer theme, base, components, utilities;/, entry)
     assert_includes entry, '@import "tailwindcss/theme.css" layer(theme);'
     assert_includes entry, '@import "tailwindcss/utilities.css" layer(utilities) source(none);'
-    assert_includes entry, '@import "./legacy.css" layer(legacy);'
+    assert_no_match(/\blegacy\b/, entry)
     assert_no_match(/preflight\.css|@import\s+["']tailwindcss["']/, entry)
     assert_equal %w[../../views ../../helpers ../../javascript], entry.scan(/@source\s+"([^"]+)"/).flatten
 
@@ -116,6 +115,23 @@ class TailwindPipelineTest < ActiveSupport::TestCase
       assert output.success?, output.error
       assert_not_equal "stale output", output_path.read
       assert_includes output_path.read, ".page-shell"
+    end
+  end
+
+  test "conditional class literals survive a production-shaped extraction" do
+    with_isolated_application do |root|
+      output_path = root.join("app/assets/builds/tailwind.css")
+      FileUtils.rm_f(output_path)
+      output = prepare_tests(root: root)
+      assert output.success?, output.error
+
+      generated = output_path.read
+      conditional_class_literals.each do |class_name|
+        assert_match(/#{Regexp.escape(class_name)}/, generated,
+          "#{class_name} missing from the isolated production-shaped bundle")
+      end
+      assert_no_match(/w-\\\[123px\\\]/, generated)
+      assert_no_match(/monthly-calendar__glyph--event/, generated)
     end
   end
 
@@ -176,6 +192,22 @@ class TailwindPipelineTest < ActiveSupport::TestCase
       chdir: root.to_s
     )
     BuildResult.new(status.success?, error)
+  end
+
+  def conditional_class_literals
+    literals = []
+    %w[app/views app/helpers app/javascript].each do |relative|
+      root = Rails.root.join(relative)
+      next unless root.exist?
+
+      root.glob("**/*.{erb,rb,js}").each do |path|
+        source = path.read
+        literals.concat source.scan(/class_names\("[^"]+",\s*"([^"]+)":/).flatten
+        literals.concat source.scan(/classList\.(?:toggle|add|remove)\("([^"]+)"/).flatten
+        literals.concat source.scan(/<%=\s*"([^"]+)"\s+if/).flatten
+      end
+    end
+    literals.flat_map(&:split).grep(/\A[a-z][a-z0-9_-]*\z/).uniq.sort
   end
 
   def with_build_lock

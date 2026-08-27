@@ -2,7 +2,7 @@ require "test_helper"
 
 # Freezes the T4 Index and Custom Collection declaration boundary. Rendered
 # system tests own browser parity; this contract keeps the residual T0 values
-# under one readable page owner and preserves the final cleanup checkpoint.
+# under one readable page owner after legacy removal.
 class CollectionsPresentationSourceTest < ActiveSupport::TestCase
   ROOT = Rails.root.join("app/assets/tailwind")
   OWNER = "pages/collections.css"
@@ -71,12 +71,10 @@ class CollectionsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy remains present and declaration-empty for final cleanup" do
-    assert_path_exists ROOT.join("legacy.css")
-    legacy_rules = authored_declarations_for(ROOT.join("legacy.css"))
-    assert_empty legacy_rules
-    assert_empty DECLARATION_CONTRACTS.keys & legacy_rules.keys
-    assert_not_includes ROOT.join("legacy.css").read, "TODO(7B)"
+  test "legacy stylesheet is gone and Collection keeps its page owner" do
+    assert_not ROOT.join("legacy.css").exist?
+    assert_empty DECLARATION_CONTRACTS.keys - authored_declarations_for(ROOT.join(OWNER)).keys
+    assert_no_match(/\blegacy\b/, ROOT.join("application.css").read)
   end
 
   test "Collection owner does not absorb Monthly Migration" do

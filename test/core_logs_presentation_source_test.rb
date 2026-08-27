@@ -75,7 +75,6 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     ".monthly-calendar__day--today" => %w[background],
     ".monthly-calendar__day--today .monthly-calendar__number" => %w[color],
     ".monthly-calendar__day--today .monthly-calendar__weekday" => %w[color],
-    ".monthly-calendar__glyph--event" => %w[color],
     ".monthly-calendar__number" => %w[font-family text-align],
     ".monthly-calendar__weekday" => %w[font-family color]
   }.freeze
@@ -112,15 +111,13 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy remains as the declaration-empty final cleanup checkpoint" do
-    legacy = authored_rules_for(ROOT.join("legacy.css"))
+  test "legacy stylesheet is gone and the T0-dead Calendar glyph has no owner" do
+    monthly = ROOT.join("pages/monthly.css").read
 
-    assert_empty legacy
-
-    source = ROOT.join("legacy.css").read
-    assert_not_includes source, "TODO(6B)"
-    assert_not_includes source, "TODO(7A)"
-    assert_not_includes source, "TODO(7B)"
+    assert_not ROOT.join("legacy.css").exist?
+    assert_no_match(/monthly-calendar__glyph--event/, monthly)
+    assert_no_match(/TODO\(8\)/, monthly)
+    assert_match(/\.monthly-calendar__day--today \.monthly-calendar__number,\s*\.monthly-calendar__day--today \.monthly-calendar__weekday\s*\{\s*color:\s*var\(--accent\);/m, monthly)
   end
 
   test "Calendar body declarations remain byte-for-value equivalent to T0" do
@@ -133,13 +130,17 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy has no competing core-log page declarations" do
-    legacy = authored_rules_for(ROOT.join("legacy.css"))
-    moved_selectors = PAGE_CONTRACTS.values.flat_map(&:keys)
+  test "core-log families do not leak selectors into one another" do
+    daily = authored_rules_for(ROOT.join("pages/daily.css"))
+    monthly = authored_rules_for(ROOT.join("pages/monthly.css"))
+    future = authored_rules_for(ROOT.join("pages/future.css"))
 
-    assert_empty moved_selectors & legacy.keys
-    assert_empty legacy.keys.grep(/\A\.future(?:-log|\-entry)/)
-    assert_empty legacy.keys.grep(/\A\.monthly-(?:task|tasks)/)
+    assert_empty daily.keys.grep(/\A\.future(?:-log|\-entry)/)
+    assert_empty daily.keys.grep(/\A\.monthly-(?:task|tasks|calendar)/)
+    assert_empty future.keys.grep(/\A\.daily-log/)
+    assert_empty future.keys.grep(/\A\.monthly-(?:task|tasks|calendar)/)
+    assert_empty monthly.keys.grep(/\A\.future(?:-log|\-entry)/)
+    assert_empty monthly.keys.grep(/\A\.daily-log/)
   end
 
   test "Monthly page owner retains 6A declarations and does not absorb Migration declarations" do

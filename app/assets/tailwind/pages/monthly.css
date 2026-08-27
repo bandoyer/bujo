@@ -143,10 +143,8 @@
   background: var(--today-row);
 }
 
-/* TODO(8): Confirm this T0-dead event glyph selector remains ownerless, then remove it. */
 .monthly-calendar__day--today .monthly-calendar__number,
-.monthly-calendar__day--today .monthly-calendar__weekday,
-.monthly-calendar__glyph--event {
+.monthly-calendar__day--today .monthly-calendar__weekday {
   color: var(--accent);
 }
 

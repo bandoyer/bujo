@@ -85,12 +85,10 @@ class MonthlyMigrationAuthPresentationSourceTest < ActiveSupport::TestCase
       phone_rule)
   end
 
-  test "legacy remains present with no declarations or 7B TODO" do
-    legacy_path = ROOT.join("legacy.css")
-
-    assert_path_exists legacy_path
-    assert_empty authored_declarations_for(legacy_path)
-    assert_not_includes legacy_path.read, "TODO(7B)"
+  test "legacy stylesheet is gone and Migration keeps its page owner" do
+    assert_not ROOT.join("legacy.css").exist?
+    assert_empty MIGRATION_DECLARATIONS.keys - authored_declarations_for(ROOT.join(MIGRATION_OWNER)).keys
+    assert_no_match(/\blegacy\b/, ROOT.join("application.css").read)
   end
 
   test "Migration owner does not absorb an accepted page or shared family" do

@@ -2,7 +2,7 @@ require "test_helper"
 
 # Guards readable T2 ownership boundaries. Rendered system tests carry the
 # geometry and behavior contract; this test prevents declarations drifting
-# back into the declaration-empty cleanup checkpoint.
+# across named owners after legacy removal.
 class SharedPresentationSourceTest < ActiveSupport::TestCase
   ROOT = Rails.root.join("app/assets/tailwind")
   DECLARATION_CONTRACTS = {
@@ -125,30 +125,17 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy retains no presentation declarations" do
-    legacy = ROOT.join("legacy.css").read
-
-    %w[:root body .visually-hidden .flash .preference-toggle__button .rapid-log .tab-bar].each do |selector|
-      assert_no_match(/^#{Regexp.escape(selector)}(?:\s|,|\{|:)/, legacy, "#{selector} still owns a legacy rule")
-    end
-    assert_no_match(/TODO\(6B\):/, legacy)
-    assert_no_match(/TODO\(7A\):/, legacy)
-    assert_no_match(/TODO\(7B\):/, legacy)
-    assert_empty authored_rules_for(ROOT.join("legacy.css"))
-  end
-
-  test "Entry declarations do not retain a competing legacy owner" do
-    legacy_rules = authored_rules_for(ROOT.join("legacy.css"))
-    entry_contracts = DECLARATION_CONTRACTS.keys.grep(/\A\.entry/)
-
-    assert_empty entry_contracts & legacy_rules.keys,
-      "Entry declarations must move completely out of legacy.css"
-    assert_not_includes legacy_rules.keys, ".collection-page > .entry-list"
-    assert_not_includes legacy_rules.keys, ".monthly-migration .entry-list"
-    assert_not_includes legacy_rules.keys, ".monthly-calendar__residents .entry"
+  test "legacy stylesheet is gone and page-specific Entry overrides stay on their owners" do
+    assert_not ROOT.join("legacy.css").exist?
+    assert_no_match(/\blegacy\b/, ROOT.join("application.css").read)
     assert_includes authored_rules_for(ROOT.join("pages/monthly.css")).keys,
       ".monthly-calendar__residents .entry"
-    assert_not_includes legacy_rules.keys, ".future-entry__resident .entry"
+    assert_includes authored_rules_for(ROOT.join("pages/future.css")).keys,
+      ".future-entry__resident .entry"
+    assert_includes authored_rules_for(ROOT.join("pages/collections.css")).keys,
+      ".collection-page > .entry-list"
+    assert_includes authored_rules_for(ROOT.join("pages/monthly-migration.css")).keys,
+      ".monthly-migration .entry-list"
   end
 
   test "Entry runtime hooks remain stable for Stimulus and rendered rows" do

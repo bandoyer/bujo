@@ -1,8 +1,8 @@
 /* One journal row keeps four stable columns while reader-authored text and
    destination metadata negotiate the remaining width. */
-/* Calendar and Future own zero-padding resident overrides in legacy until
-   their page checkpoints. Excluding those contexts prevents this later layer
-   from outranking the frozen page rules merely because it is imported later. */
+/* Calendar and Future own zero-padding resident overrides. Excluding those
+   contexts prevents this later layer from outranking the page rules merely
+   because it is imported later. */
 .entry:not(.monthly-calendar__residents .entry):not(.future-entry__resident .entry) {
   padding: 0.65rem 0;
 }

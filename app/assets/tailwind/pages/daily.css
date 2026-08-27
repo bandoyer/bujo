@@ -44,8 +44,8 @@
   font-size: 0.75rem;
 }
 
-/* Collection deliberately keeps the established entry-list and writing
-   classes until 7A, so Daily narrows its composition to the Daily page. */
+/* Daily narrows shared capture/list composition to the Daily page so Monthly
+   Tasks and Collection keep their own page-owned variants. */
 .daily-log:not(.monthly-log):not(.collection-page) > .entry-list {
   padding: 0.5rem 0;
 }
