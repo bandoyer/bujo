@@ -398,6 +398,23 @@ class CollectionPagesTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1400)
   end
 
+  test "12 an unbroken reader Topic wraps in the Index link and Collection heading" do
+    collection = create_filled_collection("UnbrokenReaderWrittenTopic" * 3)
+    collection.register!
+    sign_in
+    click_button "Theme: system", exact: true
+    click_button "Hand: marker", exact: true
+
+    assert_unbounded_topic_wraps(collection, width: 390, theme: "light", hand: "rock-salt")
+
+    visit root_path
+    click_button "Theme: light", exact: true
+    click_button "Hand: rock salt", exact: true
+    assert_unbounded_topic_wraps(collection, width: 320, theme: "dark", hand: "architects-daughter")
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   private
 
   def sign_in
@@ -406,6 +423,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
 
   def reveal(toggle_id, panel_id)
     find("##{toggle_id}").click
+    assert_title_first
     assert_selector "##{toggle_id}[aria-expanded='true']"
     assert_selector "##{panel_id}:not([hidden])"
   end
@@ -492,18 +510,22 @@ class CollectionPagesTest < ApplicationSystemTestCase
   def assert_empty_reader_states(collection, theme)
     visit journal_index_path
     assert_selector "html[data-theme='#{theme}']", visible: :all
+    assert_title_first
     assert_text "Nothing indexed yet."
     assert_button "New Collection"
     assert_no_text collection.name
     assert_reader_layout_safe
+    assert_trailing_surface "#index_create_reveal", after: "#locate_collection_toggle"
 
     visit collection_path(collection)
     assert_selector "html[data-theme='#{theme}']", visible: :all
+    assert_title_first
     assert_text "Nothing logged yet."
     assert_text "Add a first entry, then add it to the Index."
     assert_no_button "Add to Index"
     assert_target_size "button[aria-label='Write on this page']"
     assert_reader_layout_safe
+    assert_trailing_surface "button[aria-label='Write on this page']", after: ".collection-page__registration"
 
     visit journal_index_path
     reveal "locate_collection_toggle", "locate_collection_panel"
@@ -518,9 +540,104 @@ class CollectionPagesTest < ApplicationSystemTestCase
 
     visit collection_path("missing-collection")
     assert_equal "Collection not found", all("h1").first.text
+    assert_title_first
     assert_active_tab "Index"
     assert_target_size ".collection-page__back"
     assert_reader_layout_safe
+  end
+
+  def assert_unbounded_topic_wraps(collection, width:, theme:, hand:)
+    page.current_window.resize_to(width, 844)
+
+    visit journal_index_path
+    assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+    wait_for_fonts
+    assert_wrapped_inside_viewport ".collection-index__topic-link"
+    assert_visible_focus "#new_collection_toggle"
+    assert_title_first
+    assert_reader_layout_safe
+
+    visit collection_path(collection)
+    assert_selector "html[data-theme='#{theme}'][data-hand='#{hand}']", visible: :all
+    wait_for_fonts
+    assert_wrapped_inside_viewport ".collection-page__heading h1"
+    assert_visible_focus "#manage_collection_toggle"
+    assert_title_first
+    assert_reader_layout_safe
+  end
+
+  def assert_visible_focus(selector)
+    target = find(selector)
+    page.execute_script("arguments[0].focus()", target)
+    assert target.matches_css?(":focus-visible")
+    assert_operator page.evaluate_script("parseFloat(getComputedStyle(arguments[0]).outlineWidth)", target), :>=, 2
+  end
+
+  def wait_for_fonts
+    page.driver.browser.execute_async_script(<<~JAVASCRIPT)
+      const done = arguments[arguments.length - 1]
+      document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(done)))
+    JAVASCRIPT
+  end
+
+  def assert_wrapped_inside_viewport(selector)
+    geometry = page.evaluate_script(<<~JAVASCRIPT, selector)
+      (() => {
+        const element = document.querySelector(arguments[0])
+        const rectangle = element.getBoundingClientRect()
+        const style = getComputedStyle(element)
+        return {
+          left: rectangle.left,
+          right: rectangle.right,
+          height: rectangle.height,
+          fontSize: parseFloat(style.fontSize),
+          viewport: window.innerWidth,
+          documentWidth: document.documentElement.scrollWidth
+        }
+      })()
+    JAVASCRIPT
+
+    assert_operator geometry.fetch("left"), :>=, 0
+    assert_operator geometry.fetch("right"), :<=, geometry.fetch("viewport")
+    assert_operator geometry.fetch("height"), :>, geometry.fetch("fontSize") * 1.5
+    assert_operator geometry.fetch("documentWidth"), :<=, geometry.fetch("viewport")
+  end
+
+  def assert_title_first
+    first_visible_text = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const main = document.querySelector("main")
+        const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT)
+        while (walker.nextNode()) {
+          const text = walker.currentNode.textContent.trim()
+          if (!text) continue
+          const parent = walker.currentNode.parentElement
+          const style = getComputedStyle(parent)
+          if (style.display !== "none" && style.visibility !== "hidden" && parent.getClientRects().length) return text
+        }
+        return null
+      })()
+    JAVASCRIPT
+
+    assert_equal find("h1").text, first_visible_text
+  end
+
+  def assert_trailing_surface(selector, after:)
+    geometry = page.evaluate_script(<<~JAVASCRIPT, selector, after)
+      (() => {
+        const surface = document.querySelector(arguments[0]).getBoundingClientRect()
+        const preceding = document.querySelector(arguments[1]).getBoundingClientRect()
+        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        return { top: surface.top, bottom: surface.bottom, height: surface.height,
+                 precedingBottom: preceding.bottom, tabsTop: tabs.top }
+      })()
+    JAVASCRIPT
+
+    assert_operator geometry.fetch("height"), :>=, 44
+    assert_operator geometry.fetch("top"), :>=, geometry.fetch("precedingBottom")
+    assert_operator geometry.fetch("top") - geometry.fetch("precedingBottom"), :<=, 1
+    assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("tabsTop")
+    assert_operator geometry.fetch("tabsTop") - geometry.fetch("bottom"), :<=, 4
   end
 
   def assert_reader_layout_safe

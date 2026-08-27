@@ -112,20 +112,17 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy retains exact Collection and Migration checkpoint owners" do
+  test "legacy retains only the exact Migration checkpoint owner" do
     legacy = authored_rules_for(ROOT.join("legacy.css"))
 
     assert_empty legacy.keys.grep(/\A\.monthly-calendar/)
-    assert_includes legacy, ".collection-index__create-reveal"
-    assert_includes legacy, ".collection-page > .entry-list"
-    assert_includes legacy, ".collection-page > .daily-log__capture"
-    assert_includes legacy, ".collection-page > .daily-log__capture .daily-log__capture-reveal"
+    assert_empty legacy.keys.grep(/\A\.collection/)
     assert_includes legacy, ".monthly-migration .entry-list"
     assert_includes legacy, ".monthly-log__migration-link"
 
     source = ROOT.join("legacy.css").read
     assert_not_includes source, "TODO(6B)"
-    assert_includes source, "TODO(7A)"
+    assert_not_includes source, "TODO(7A)"
     assert_includes source, "TODO(7B)"
   end
 

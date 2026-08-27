@@ -132,7 +132,7 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
       assert_no_match(/^#{Regexp.escape(selector)}(?:\s|,|\{|:)/, legacy, "#{selector} still owns a legacy rule")
     end
     assert_no_match(/TODO\(6B\):/, legacy)
-    assert_match(/TODO\(7A\):/, legacy)
+    assert_no_match(/TODO\(7A\):/, legacy)
     assert_match(/TODO\(7B\):/, legacy)
   end
 
@@ -142,7 +142,7 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
 
     assert_empty entry_contracts & legacy_rules.keys,
       "Entry declarations must move completely out of legacy.css"
-    assert_includes legacy_rules.keys, ".collection-page > .entry-list"
+    assert_not_includes legacy_rules.keys, ".collection-page > .entry-list"
     assert_includes legacy_rules.keys, ".monthly-migration .entry-list"
     assert_not_includes legacy_rules.keys, ".monthly-calendar__residents .entry"
     assert_includes authored_rules_for(ROOT.join("pages/monthly.css")).keys,
