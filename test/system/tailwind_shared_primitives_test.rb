@@ -148,6 +148,12 @@ class TailwindSharedPrimitivesTest < ApplicationSystemTestCase
     @user.entries.update_all(deleted_at: Time.current)
     visit root_path
     assert_selector ".state-text", text: "Nothing logged yet."
+
+    visit journal_index_path
+    find("#new_collection_toggle").click
+    click_button "Create", exact: true
+    assert_selector ".state-text.form-errors", text: "Name can't be blank"
+    assert_equal resolved_color("--warn"), computed_style(".form-errors", "color")
   ensure
     page.current_window.resize_to(1400, 1400)
   end
@@ -196,6 +202,19 @@ class TailwindSharedPrimitivesTest < ApplicationSystemTestCase
 
   def root_background
     page.evaluate_script("getComputedStyle(document.documentElement).backgroundColor")
+  end
+
+  def resolved_color(variable)
+    page.evaluate_script(<<~JAVASCRIPT, variable)
+      (() => {
+        const probe = document.createElement("span")
+        probe.style.color = `var(${arguments[0]})`
+        document.body.appendChild(probe)
+        const color = getComputedStyle(probe).color
+        probe.remove()
+        return color
+      })()
+    JAVASCRIPT
   end
 
   def computed_style(selector, property)

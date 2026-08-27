@@ -7,6 +7,10 @@
   background: var(--surface);
 }
 
+.state-text {
+  color: var(--muted);
+}
+
 .notice--alert,
 .form-errors {
   color: var(--warn);
@@ -14,10 +18,6 @@
 
 .form-errors {
   margin: 0 0 0.5rem;
-}
-
-.state-text {
-  color: var(--muted);
 }
 
 .state-text--empty {

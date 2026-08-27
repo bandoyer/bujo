@@ -10,6 +10,18 @@ class TailwindPipelineTest < ActiveSupport::TestCase
   TAILWIND_ENTRY = Rails.root.join("app/assets/tailwind/application.css")
   TAILWIND_OUTPUT = Rails.root.join("app/assets/builds/tailwind.css")
   TEST_ONLY_UTILITY = "w-[123px]"
+  ISOLATED_APPLICATION_PATHS = %w[
+    .ruby-version
+    Gemfile
+    Gemfile.lock
+    Rakefile
+    app
+    bin
+    config
+    db
+    lib
+    vendor
+  ].freeze
   SOURCE_MODULES = %w[
     tokens.css
     base.css
@@ -71,15 +83,19 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     assert_empty Rails.root.glob("{package.json,package-lock.json,pnpm-lock.yaml,yarn.lock,bun.lock,bun.lockb,.nvmrc}")
   end
 
-  test "clean and repeated one-shot builds are byte stable" do
-    with_build_lock do
-      first_output = build_tailwind
+  test "clean test preparation creates a byte-stable generated artifact" do
+    with_isolated_application do |root|
+      output_path = root.join("app/assets/builds/tailwind.css")
+      FileUtils.rm_f(output_path)
+
+      first_output = prepare_tests(root: root)
       assert first_output.success?, first_output.error
-      first_hash = Digest::SHA256.file(TAILWIND_OUTPUT).hexdigest
-      second_output = build_tailwind
+      assert_path_exists output_path
+      first_hash = Digest::SHA256.file(output_path).hexdigest
+      second_output = prepare_tests(root: root)
       assert second_output.success?, second_output.error
-      second_hash = Digest::SHA256.file(TAILWIND_OUTPUT).hexdigest
-      generated_css = TAILWIND_OUTPUT.read
+      second_hash = Digest::SHA256.file(output_path).hexdigest
+      generated_css = output_path.read
 
       assert_equal first_hash, second_hash
       assert_no_match(/--color-red-500|--font-sans|--spacing:/, generated_css)
@@ -87,12 +103,12 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     end
   end
 
-  test "the compiler used by test preparation replaces an isolated stale artifact" do
-    Dir.mktmpdir("tailwind-test-output") do |directory|
-      output_path = Pathname(directory).join("tailwind.css")
+  test "test preparation replaces a stale generated artifact" do
+    with_isolated_application do |root|
+      output_path = root.join("app/assets/builds/tailwind.css")
       output_path.write("stale output")
 
-      output = compile_tailwind(output_path)
+      output = prepare_tests(root: root)
 
       assert output.success?, output.error
       assert_not_equal "stale output", output_path.read
@@ -137,20 +153,25 @@ class TailwindPipelineTest < ActiveSupport::TestCase
 
   BuildResult = Data.define(:success?, :error)
 
-  def build_tailwind
-    _output, error, status = Open3.capture3(
-      { "RAILS_ENV" => "test" },
-      Rails.root.join("bin/rails").to_s,
-      "tailwindcss:build",
-      chdir: Rails.root.to_s
-    )
-    BuildResult.new(status.success?, error)
+  def with_isolated_application
+    Dir.mktmpdir("bujo-tailwind-test-prepare") do |directory|
+      root = Pathname(directory)
+      ISOLATED_APPLICATION_PATHS.each do |relative_path|
+        FileUtils.cp_r(Rails.root.join(relative_path), root.join(relative_path), preserve: true)
+      end
+      root.join("tmp").mkpath
+      root.join("storage").mkpath
+      yield root
+    end
   end
 
-  def compile_tailwind(output_path)
-    command = Tailwindcss::Commands.compile_command(silent: true)
-    command[command.index("-o") + 1] = output_path.to_s
-    _output, error, status = Open3.capture3(*command, chdir: Rails.root.to_s)
+  def prepare_tests(root: Rails.root)
+    _output, error, status = Open3.capture3(
+      { "RAILS_ENV" => "test" },
+      root.join("bin/rails").to_s,
+      "test:prepare",
+      chdir: root.to_s
+    )
     BuildResult.new(status.success?, error)
   end
 
