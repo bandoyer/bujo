@@ -32,7 +32,7 @@
     <div class="entry__edit-step" data-step="edit" <%= "hidden" unless edit_open %>>
       <%= form_with url: entry_path(entry), method: :patch,
                     class: "entry__edit", data: { controller: "rapid-log" } do |form| %>
-        <%= render "entries/kind_buttons", allowed_kinds: entry.editable_kinds, selected_kind: entry.kind %>
+        <%= render "entries/kind_buttons", allowed_kinds: entry.correctable_kinds, selected_kind: entry.kind %>
         <%= form.hidden_field :default_kind, value: entry.kind, data: { rapid_log_target: "kind" } %>
         <%= form.label :line, "Edit entry", for: "edit_line_#{entry.id}" %>
         <div class="entry__edit-row">

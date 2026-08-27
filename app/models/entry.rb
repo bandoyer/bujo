@@ -240,10 +240,10 @@ class Entry < ApplicationRecord
     predecessor.nil? && successor.nil? && unresolved?
   end
 
-  # Kind circles the editor offers. A locked live end shows only its inherited
-  # kind; a standalone row adds the current kind to the page vocabulary so a
-  # valid child is never rendered with no selected choice.
-  def editable_kinds
+  # Returns the kinds this current row may accept through correction. A locked
+  # live end keeps only its inherited kind; a standalone row also keeps a valid
+  # child kind that is narrower than its page's root vocabulary.
+  def correctable_kinds
     return [ kind ] unless kind_change_allowed?
 
     (ROOT_KINDS.fetch(page_kind, []) + [ kind ]).uniq
@@ -321,16 +321,7 @@ class Entry < ApplicationRecord
 
   def ensure_correctable!(requested_kind)
     raise LifecycleError unless kept? && successor.nil?
-    raise LifecycleError unless correction_kind_admitted?(requested_kind)
-    raise LifecycleError if kind_change_refused?(requested_kind)
-  end
-
-  def correction_kind_admitted?(requested_kind)
-    requested_kind == kind || ROOT_KINDS.fetch(page_kind, []).include?(requested_kind)
-  end
-
-  def kind_change_refused?(requested_kind)
-    requested_kind != kind && !kind_change_allowed?
+    raise LifecycleError unless correctable_kinds.include?(requested_kind)
   end
 
   def correction_attributes(parsed, requested_kind)
