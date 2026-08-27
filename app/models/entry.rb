@@ -240,6 +240,15 @@ class Entry < ApplicationRecord
     predecessor.nil? && successor.nil? && unresolved?
   end
 
+  # Kind circles the editor offers. A locked live end shows only its inherited
+  # kind; a standalone row adds the current kind to the page vocabulary so a
+  # valid child is never rendered with no selected choice.
+  def editable_kinds
+    return [ kind ] unless kind_change_allowed?
+
+    (ROOT_KINDS.fetch(page_kind, []) + [ kind ]).uniq
+  end
+
   # Answers whether this row is still open work: an open task, or an event/note
   # whose state remains exact NULL.
   def unresolved?

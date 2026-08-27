@@ -722,6 +722,7 @@ a {
 .entry__actions,
 .entry__edit-step,
 .entry__schedule-step,
+.entry__schedule-actions,
 .entry__move-step,
 .entry__move {
   display: flex;
@@ -799,12 +800,6 @@ a {
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.68rem;
-}
-
-.entry__schedule-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
 }
 
 .entry__edit {
