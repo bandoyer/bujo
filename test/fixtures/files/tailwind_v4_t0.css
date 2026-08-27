@@ -1,0 +1,1152 @@
+:root {
+  --bg: #f6f1e6;
+  --surface: #fdfaf2;
+  --ink: #201d18;
+  --muted: #8d8574;
+  --faint: #a39a89;
+  --line: #e0d8c4;
+  --accent: #a8722a;
+  --warn: #a0524a;
+  --dot: rgba(32, 29, 24, 0.09);
+  --selected-row: color-mix(in srgb, var(--surface) 94%, var(--accent));
+  --today-row: color-mix(in srgb, var(--surface) 82%, var(--accent));
+  --dark-bg: #16161e;
+  --dark-surface: #1a1b26;
+  --dark-ink: #c0caf5;
+  --dark-muted: #565f89;
+  --dark-line: #2f3549;
+  --dark-accent: #7aa2f7;
+  --dark-warn: #f7768e;
+  /* Every hand keeps these behind its face. JetBrains Mono sits directly
+     behind the face in --font-mono so the glyphs a handwriting font lacks
+     (the event and note bullets) render from it rather than as tofu. */
+  --font-body-fallback: system-ui, sans-serif;
+  --font-serif-fallback: Georgia, serif;
+  --font-mono-fallback: "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Permanent Marker", var(--font-body-fallback);
+  --font-serif: "Permanent Marker", var(--font-serif-fallback);
+  --font-mono: "Permanent Marker", var(--font-mono-fallback);
+  color-scheme: light;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.1px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+:root[data-hand="rock-salt"] {
+  --font-body: "Rock Salt", var(--font-body-fallback);
+  --font-serif: "Rock Salt", var(--font-serif-fallback);
+  --font-mono: "Rock Salt", var(--font-mono-fallback);
+}
+
+:root[data-hand="architects-daughter"] {
+  --font-body: "Architects Daughter", var(--font-body-fallback);
+  --font-serif: "Architects Daughter", var(--font-serif-fallback);
+  --font-mono: "Architects Daughter", var(--font-mono-fallback);
+}
+
+:root[data-hand="patrick-hand"] {
+  --font-body: "Patrick Hand", var(--font-body-fallback);
+  --font-serif: "Patrick Hand", var(--font-serif-fallback);
+  --font-mono: "Patrick Hand", var(--font-mono-fallback);
+}
+
+:root[data-hand="gochi-hand"] {
+  --font-body: "Gochi Hand", var(--font-body-fallback);
+  --font-serif: "Gochi Hand", var(--font-serif-fallback);
+  --font-mono: "Gochi Hand", var(--font-mono-fallback);
+}
+
+:root[data-hand="sans"] {
+  --font-body: "Public Sans", var(--font-body-fallback);
+  --font-serif: "Public Sans", var(--font-body-fallback);
+  --font-mono: "Public Sans", var(--font-mono-fallback);
+}
+
+/* The dark palette has to be applied from two places: once for the system
+   preference and once for the explicit choice, so neither can win by accident.
+   CSS cannot share a declaration block across a media-query boundary, so the
+   two lists below are necessarily identical — but every dark value they apply
+   is defined exactly once, as --dark-* on :root, so they cannot drift apart.
+   jscpd:ignore-start */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--dark-bg);
+    --surface: var(--dark-surface);
+    --ink: var(--dark-ink);
+    --muted: var(--dark-muted);
+    --faint: var(--dark-muted);
+    --line: var(--dark-line);
+    --accent: var(--dark-accent);
+    --warn: var(--dark-warn);
+    color-scheme: dark;
+    --dot: rgba(192, 202, 245, 0.07);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: var(--dark-bg);
+  --surface: var(--dark-surface);
+  --ink: var(--dark-ink);
+  --muted: var(--dark-muted);
+  --faint: var(--dark-muted);
+  --line: var(--dark-line);
+  --accent: var(--dark-accent);
+  --warn: var(--dark-warn);
+  color-scheme: dark;
+  --dot: rgba(192, 202, 245, 0.07);
+}
+/* jscpd:ignore-end */
+
+* {
+  box-sizing: border-box;
+}
+
+/* Column flex lets each page fill the viewport so trailing blank writing
+   surfaces can grow down to the tab bar instead of sitting under inert padding. */
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  margin: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.flash {
+  width: min(28rem, calc(100% - 2rem));
+  margin: 1rem auto 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.flash--alert {
+  color: var(--warn);
+}
+
+.daily-log {
+  display: flex;
+  width: min(28rem, 100%);
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4.25rem;
+}
+
+.daily-log__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.daily-log__open-count,
+.day-navigation,
+.entry__glyph,
+.entry__meta,
+.tab-bar {
+  font-family: var(--font-mono);
+}
+
+.daily-log h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+/* A Topic is reader-written and unbounded, so its column may shrink below its
+   content instead of widening the grid past the viewport. */
+.collection-page__header {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.collection-page__heading {
+  min-width: 0;
+}
+
+.collection-page__heading h1 {
+  overflow-wrap: anywhere;
+}
+
+.collection-page__context {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.collection-page__button,
+.collection-page__back {
+  display: inline-grid;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.collection-page__button:focus-visible,
+.collection-page__back:focus-visible,
+.collection-index__topic-link:focus-visible,
+.collection-form input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.collection-page__button--warn,
+.form-errors {
+  color: var(--warn);
+}
+
+.collection-panel {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.collection-panel[hidden] {
+  display: none;
+}
+
+.collection-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: end;
+}
+
+.collection-form label {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.collection-form input[type="text"] {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.form-errors {
+  margin: 0 0 0.5rem;
+}
+
+.collection-index__empty {
+  margin: 4rem 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.collection-index__topics {
+  display: grid;
+  padding: 0.75rem 0;
+}
+
+.collection-index__topic-link {
+  display: flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.collection-index__locate-toggle {
+  margin-top: 0.75rem;
+}
+
+.collection-page__registration {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+}
+
+.collection-page__registration form,
+.collection-panel form {
+  margin: 0;
+}
+
+.collection-page__back {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.daily-log__utilities {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.daily-log__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.daily-log__open-count {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.preference-toggle__button {
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+}
+
+.day-navigation {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-navigation a {
+  display: inline-grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.day-navigation__viewed-day {
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+.monthly-log__views {
+  display: flex;
+  align-self: center;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+}
+
+.monthly-log__view-link {
+  display: inline-grid;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-decoration: none;
+}
+
+.monthly-log__view-link[aria-current="page"] {
+  background: var(--surface);
+  box-shadow: 0 0.2rem 0.7rem color-mix(in srgb, var(--ink) 10%, transparent);
+  color: var(--accent);
+}
+
+.monthly-calendar {
+  padding: 0.75rem 0;
+}
+
+.monthly-calendar__day {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 3.75rem minmax(0, 1fr) 44px;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0 0.45rem;
+  border-radius: 0.6rem;
+  color: var(--ink);
+}
+
+/* The date control spans under the residents so blank row space writes on
+   that day; entries and the Daily chevron sit above and keep their own clicks. */
+.monthly-calendar__capture-reveal,
+.monthly-calendar__date {
+  display: grid;
+  min-height: 44px;
+  grid-row: 1;
+  grid-column: 1 / 3;
+  grid-template-columns: 2rem 1.25rem minmax(0, 1fr);
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.monthly-calendar__capture-reveal {
+  cursor: text;
+}
+
+.monthly-calendar__residents {
+  z-index: 1;
+  min-width: 0;
+  grid-row: 1;
+  grid-column: 2;
+  pointer-events: none;
+}
+
+.monthly-calendar__residents .entry {
+  padding: 0;
+  pointer-events: auto;
+}
+
+.monthly-calendar__daily-link {
+  z-index: 2;
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  grid-row: 1;
+  grid-column: 3;
+  place-items: center;
+  color: var(--muted);
+  font-size: 1.4rem;
+  text-decoration: none;
+}
+
+.monthly-calendar__capture-panel {
+  z-index: 3;
+  grid-row: 2;
+  grid-column: 1 / -1;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.monthly-calendar__day--today {
+  background: var(--today-row);
+}
+
+.monthly-calendar__day--today .monthly-calendar__number,
+.monthly-calendar__day--today .monthly-calendar__weekday,
+.monthly-calendar__glyph--event {
+  color: var(--accent);
+}
+
+.monthly-calendar__number,
+.monthly-calendar__weekday,
+.monthly-task-count,
+.future-log__month h2,
+.future-entry__day {
+  font-family: var(--font-mono);
+}
+
+.monthly-calendar__number {
+  text-align: right;
+}
+
+.monthly-calendar__weekday {
+  color: var(--muted);
+}
+
+.monthly-task {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.monthly-task-count {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.monthly-tasks {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.future-log__runway {
+  padding: 0.5rem 0;
+}
+
+.future-log__month {
+  padding: 0.75rem 0;
+}
+
+.future-log__month h2 {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+.future-log__month h2 button,
+.future-log__month h2 span {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+}
+
+.future-log__month h2 button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  letter-spacing: inherit;
+}
+
+.future-log__month--empty h2 button {
+  color: var(--faint);
+}
+
+.future-log__trailing-reveal {
+  display: block;
+  width: 100%;
+}
+
+.future-log__add-row .rapid-log {
+  position: static;
+  margin-bottom: 0.35rem;
+}
+
+.future-log__add-row .rapid-log__capture-row {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+}
+
+.future-log__add-row input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+.future-entry {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.3rem;
+  align-items: baseline;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.future-entry__resident,
+.future-entry__resident .entry {
+  min-width: 0;
+}
+
+.future-entry__resident .entry {
+  padding: 0;
+}
+
+.future-entry__day {
+  color: var(--muted);
+  text-align: right;
+}
+
+.entry-list {
+  padding: 0.5rem 0;
+}
+
+.entry-list__empty {
+  margin: 4rem 0;
+  color: var(--muted);
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.daily-log__capture {
+  display: flex;
+  min-height: 44px;
+  flex: 1;
+  flex-direction: column;
+}
+
+.collection-index__create-reveal,
+.future-log__trailing-reveal,
+.daily-log__capture-reveal {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+}
+
+.collection-index__create-reveal,
+.daily-log__capture-reveal {
+  flex: 1;
+}
+
+.collection-index__create-reveal:focus-visible,
+.future-log__trailing-reveal:focus-visible,
+.daily-log__capture-reveal:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.daily-log__capture-cue {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.daily-log__capture-panel[hidden],
+.monthly-calendar__capture-panel[hidden],
+.future-log__add-row[hidden] {
+  display: none;
+}
+
+.entry {
+  padding: 0.65rem 0;
+}
+
+.entry--selected {
+  border-radius: 0.5rem;
+  background: var(--selected-row);
+}
+
+.entry__line {
+  display: grid;
+  width: 100%;
+  min-height: 44px;
+  /* The wrapping rule below is what keeps an unbounded Topic or entry text
+     inside the viewport; capping the meta track does a second job the overflow
+     tests cannot see. Left to grow on its own, a long destination Topic would
+     wrap but still claim most of the row and starve the text column down to a
+     character a line. Neither column may be squeezed out by the other. */
+  grid-template-columns: 1rem 1.25rem minmax(0, 1fr) fit-content(45%);
+  gap: 0.25rem;
+  align-items: baseline;
+}
+
+.entry__toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.entry__toggle:focus-visible {
+  border-radius: 0.25rem;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.entry__signifier {
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.entry__glyph {
+  color: var(--ink);
+}
+
+.entry__text--struck {
+  text-decoration: line-through;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 2px;
+}
+
+/* Entry text and Collection destination Topics are reader-written and
+   unbounded, so both columns may shrink and wrap instead of widening the row.
+   This is the Collection screens' rule carried to one more surface, and
+   "anywhere" rather than "break-word" because only it shrinks the column's own
+   minimum size - which is what a grid track measures when deciding to grow. */
+.entry__text,
+.entry__meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entry__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.entry__actions,
+.entry__edit-step,
+.entry__schedule-step,
+.entry__schedule-actions,
+.entry__move-step,
+.entry__move {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.entry__action-strip {
+  margin: 0.35rem 0 0 2.5rem;
+}
+
+.entry__action-strip form {
+  margin: 0;
+}
+
+.entry__action-strip[hidden],
+.entry__actions[hidden],
+.entry__edit-step[hidden],
+.entry__schedule-step[hidden],
+.entry__move-step[hidden] {
+  display: none;
+}
+
+.entry-action,
+.entry__schedule input[type="date"],
+.entry__move input[type="text"] {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.entry-action {
+  min-width: 44px;
+  padding: 0 0.65rem;
+  cursor: pointer;
+}
+
+.entry-action--warn {
+  color: var(--warn);
+}
+
+.entry-action--cancel {
+  padding: 0 0.65rem;
+}
+
+.entry__schedule input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0.4rem;
+}
+
+.entry__schedule-step,
+.entry__edit-step {
+  align-items: end;
+}
+
+.entry__schedule,
+.entry__edit {
+  min-width: 0;
+  flex: 1 1 15rem;
+}
+
+.entry__schedule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+}
+
+.entry__schedule label {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__edit {
+  display: block;
+}
+
+.entry__edit .rapid-log__kinds {
+  margin-bottom: 0.35rem;
+}
+
+.entry__edit label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__edit-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem;
+}
+
+.entry__edit-row input[type="text"] {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.entry__move input[type="text"] {
+  min-width: 0;
+  max-width: 11rem;
+  padding: 0 0.6rem;
+}
+
+.entry__children {
+  margin-left: 1.5rem;
+}
+
+.rapid-log {
+  position: sticky;
+  bottom: 4.75rem;
+  z-index: 2;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 0.75rem 2rem color-mix(in srgb, var(--ink) 10%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.rapid-log__kinds {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.rapid-log__kind {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+
+.rapid-log__kind--selected {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.rapid-log__input-wrap {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.rapid-log__capture-row {
+  display: flex;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.rapid-log__capture-row .rapid-log__input-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.rapid-log__input-wrap input[type="text"] {
+  min-width: 0;
+  flex: 1;
+  padding: 0 1rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.rapid-log__submit {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  border: 0;
+  background: var(--accent);
+  color: var(--surface);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.daily-log__capture-reveal .entry-list__empty {
+  display: grid;
+  color: var(--muted);
+}
+
+.tab-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 7rem));
+  justify-content: center;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.tab-bar__item {
+  display: flex;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 0.65rem;
+  text-decoration: none;
+}
+
+.tab-bar__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.tab-bar__item--active {
+  color: var(--accent);
+}
+
+/* Monthly Migration is a temporary reading lens, so it uses the established
+   journal shell and tokens while keeping its one current decision prominent. */
+.monthly-log__migration-link,
+.monthly-migration__primary-link,
+.monthly-migration__completion-links a {
+  display: inline-grid;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.monthly-log__migration-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.monthly-migration {
+  gap: 0;
+}
+
+.monthly-migration__context,
+.monthly-migration__stage,
+.monthly-migration__source {
+  margin: 0.45rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.monthly-migration__context {
+  color: var(--accent);
+}
+
+.monthly-migration__stage {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.monthly-migration__source {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+}
+
+.monthly-migration__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.monthly-migration__inventory,
+.monthly-migration__tree,
+.monthly-migration__complete,
+.monthly-migration__checkpoint,
+.monthly-migration__confirmation {
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.monthly-migration__confirmation {
+  min-height: 44px;
+  padding: 0.35rem 0 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.monthly-migration__confirmation p,
+.monthly-migration__confirmation form,
+.monthly-migration__checkpoint p {
+  margin: 0;
+}
+
+.monthly-migration__capture {
+  min-width: 0;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.monthly-migration__capture > label,
+.monthly-migration__second-step label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--muted);
+}
+
+.monthly-migration__capture-row,
+.monthly-migration__choices,
+.monthly-migration__second-step,
+.monthly-migration__second-step form,
+.monthly-migration__completion-links {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.monthly-migration__capture-row input,
+.monthly-migration__second-step input {
+  min-width: 0;
+  min-height: 44px;
+  flex: 1 1 10rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.monthly-migration__primary-link {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.monthly-migration__candidate {
+  min-width: 0;
+}
+
+.monthly-migration__actions {
+  min-width: 0;
+  margin: 0.5rem 0 0 2.5rem;
+}
+
+.monthly-migration__actions form {
+  margin: 0;
+}
+
+.monthly-migration__button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.monthly-migration__button--warn {
+  color: var(--warn);
+}
+
+.monthly-migration__button:focus-visible,
+.monthly-migration__primary-link:focus-visible,
+.monthly-log__migration-link:focus-visible,
+.monthly-migration__completion-links a:focus-visible,
+.monthly-migration input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.monthly-migration__choices[hidden],
+.monthly-migration__second-step[hidden] {
+  display: none;
+}
+
+.monthly-migration__second-step form {
+  flex: 1 1 13rem;
+}
+
+.monthly-migration__complete h2 {
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
+}
+
+@media (max-width: 340px) {
+  .monthly-migration__actions {
+    margin-left: 0;
+  }
+
+  .monthly-migration__button,
+  .monthly-migration__completion-links a {
+    flex: 1 1 8rem;
+  }
+}

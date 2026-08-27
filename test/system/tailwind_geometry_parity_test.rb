@@ -1,13 +1,13 @@
 require "application_system_test_case"
 require "digest"
 require "json"
-require "open3"
 
 # Replays every immutable geometry row against the T2 bundle and the exact T0
 # stylesheet on the same live DOM. Comparing one state twice isolates migration
 # drift from fixture text, timestamps, font rendering, and browser build noise.
 class TailwindGeometryParityTest < ApplicationSystemTestCase
-  T0_COMMIT = "54547c8b6899307947a0d3a5a57f3c4f3efb3b23"
+  T0_STYLESHEET_PATH = Rails.root.join("test/fixtures/files/tailwind_v4_t0.css")
+  T0_STYLESHEET_BYTES = 23_218
   T0_STYLESHEET_SHA256 = "df75385665a9f4f48af1f66156953e712493c2e85575de861ffc09963bfa5ceb"
   GEOMETRY_CONTRACT = JSON.parse(
     Rails.root.join("docs/tailwind-v4-baseline/geometry.json").read
@@ -62,6 +62,7 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
       "320-dark-architects" => 34,
       "390-system-marker" => 34
     }, GEOMETRY_CONTRACT.map { |row| row.fetch("profile") }.tally)
+    assert_equal T0_STYLESHEET_BYTES, t0_stylesheet.bytesize
     assert_equal T0_STYLESHEET_SHA256, Digest::SHA256.hexdigest(t0_stylesheet)
 
     verified = GEOMETRY_CONTRACT.count do |contract|
@@ -87,15 +88,7 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
   private
 
   def t0_stylesheet
-    @t0_stylesheet ||= begin
-      source, error, status = Open3.capture3(
-        "git", "show", "#{T0_COMMIT}:app/assets/tailwind/legacy.css",
-        chdir: Rails.root.to_s
-      )
-      raise "Could not load T0 stylesheet: #{error}" unless status.success?
-
-      source
-    end
+    @t0_stylesheet ||= T0_STYLESHEET_PATH.binread
   end
 
   def reset_journal
