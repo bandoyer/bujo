@@ -1,1 +1,146 @@
-/* Monthly Migration presentation moves here at T4. */
+/* Monthly Migration is a temporary reading lens, so it uses the established
+   journal shell and tokens while keeping its one current decision prominent. */
+.monthly-migration .entry-list {
+  padding: 0.5rem 0;
+}
+
+.monthly-log__migration-link,
+.monthly-migration__primary-link,
+.monthly-migration__completion-links a {
+  padding: 0 0.8rem;
+  border-radius: 0.6rem;
+}
+
+.monthly-log__migration-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.monthly-migration {
+  gap: 0;
+}
+
+.monthly-migration__context,
+.monthly-migration__stage,
+.monthly-migration__source {
+  margin: 0.45rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.monthly-migration__context {
+  color: var(--accent);
+}
+
+.monthly-migration__stage {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.monthly-migration__source {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+}
+
+.monthly-migration__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.monthly-migration__inventory,
+.monthly-migration__tree,
+.monthly-migration__complete,
+.monthly-migration__checkpoint,
+.monthly-migration__confirmation {
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.monthly-migration__confirmation {
+  min-height: 44px;
+  padding: 0.35rem 0 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.monthly-migration__confirmation p,
+.monthly-migration__confirmation form,
+.monthly-migration__checkpoint p {
+  margin: 0;
+}
+
+.monthly-migration__capture {
+  min-width: 0;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.monthly-migration__capture > label,
+.monthly-migration__second-step label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.monthly-migration__capture-row,
+.monthly-migration__choices,
+.monthly-migration__second-step,
+.monthly-migration__second-step form,
+.monthly-migration__completion-links {
+  gap: 0.5rem;
+}
+
+.monthly-migration__capture-row input,
+.monthly-migration__second-step input {
+  flex: 1 1 10rem;
+  padding: 0 0.65rem;
+  border-radius: 0.5rem;
+}
+
+.monthly-migration__primary-link {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.monthly-migration__candidate {
+  min-width: 0;
+}
+
+.monthly-migration__actions {
+  min-width: 0;
+  margin: 0.5rem 0 0 2.5rem;
+}
+
+.monthly-migration__actions form {
+  margin: 0;
+}
+
+.monthly-migration__button {
+  padding: 0 0.7rem;
+  border-radius: 0.5rem;
+}
+
+.monthly-migration__second-step form {
+  flex: 1 1 13rem;
+}
+
+.monthly-migration__complete h2 {
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
+}
+
+@media (max-width: 340px) {
+  .monthly-migration__actions {
+    margin-left: 0;
+  }
+
+  .monthly-migration__button,
+  .monthly-migration__completion-links a {
+    flex: 1 1 8rem;
+  }
+}

@@ -1,1 +1,8 @@
-/* Authentication presentation moves here at T4. */
+/* Authentication otherwise keeps its generator-era native and base-owned presentation. */
+.auth-flash--alert {
+  color: red;
+}
+
+.auth-flash--notice {
+  color: green;
+}

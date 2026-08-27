@@ -2,7 +2,7 @@ require "test_helper"
 
 # Guards readable T2 ownership boundaries. Rendered system tests carry the
 # geometry and behavior contract; this test prevents declarations drifting
-# back into the later-page checkpoint.
+# back into the declaration-empty cleanup checkpoint.
 class SharedPresentationSourceTest < ActiveSupport::TestCase
   ROOT = Rails.root.join("app/assets/tailwind")
   DECLARATION_CONTRACTS = {
@@ -125,7 +125,7 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy retains only explicitly deferred page composition" do
+  test "legacy retains no presentation declarations" do
     legacy = ROOT.join("legacy.css").read
 
     %w[:root body .visually-hidden .flash .preference-toggle__button .rapid-log .tab-bar].each do |selector|
@@ -133,7 +133,8 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     end
     assert_no_match(/TODO\(6B\):/, legacy)
     assert_no_match(/TODO\(7A\):/, legacy)
-    assert_match(/TODO\(7B\):/, legacy)
+    assert_no_match(/TODO\(7B\):/, legacy)
+    assert_empty authored_rules_for(ROOT.join("legacy.css"))
   end
 
   test "Entry declarations do not retain a competing legacy owner" do
@@ -143,7 +144,7 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     assert_empty entry_contracts & legacy_rules.keys,
       "Entry declarations must move completely out of legacy.css"
     assert_not_includes legacy_rules.keys, ".collection-page > .entry-list"
-    assert_includes legacy_rules.keys, ".monthly-migration .entry-list"
+    assert_not_includes legacy_rules.keys, ".monthly-migration .entry-list"
     assert_not_includes legacy_rules.keys, ".monthly-calendar__residents .entry"
     assert_includes authored_rules_for(ROOT.join("pages/monthly.css")).keys,
       ".monthly-calendar__residents .entry"

@@ -112,18 +112,15 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy retains only the exact Migration checkpoint owner" do
+  test "legacy remains as the declaration-empty final cleanup checkpoint" do
     legacy = authored_rules_for(ROOT.join("legacy.css"))
 
-    assert_empty legacy.keys.grep(/\A\.monthly-calendar/)
-    assert_empty legacy.keys.grep(/\A\.collection/)
-    assert_includes legacy, ".monthly-migration .entry-list"
-    assert_includes legacy, ".monthly-log__migration-link"
+    assert_empty legacy
 
     source = ROOT.join("legacy.css").read
     assert_not_includes source, "TODO(6B)"
     assert_not_includes source, "TODO(7A)"
-    assert_includes source, "TODO(7B)"
+    assert_not_includes source, "TODO(7B)"
   end
 
   test "Calendar body declarations remain byte-for-value equivalent to T0" do

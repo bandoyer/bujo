@@ -1,15 +1,12 @@
 require "test_helper"
-require "digest"
 
 # Freezes the T4 Index and Custom Collection declaration boundary. Rendered
 # system tests own browser parity; this contract keeps the residual T0 values
-# under one readable page owner and preserves the following 7B checkpoint.
+# under one readable page owner and preserves the final cleanup checkpoint.
 class CollectionsPresentationSourceTest < ActiveSupport::TestCase
   ROOT = Rails.root.join("app/assets/tailwind")
   OWNER = "pages/collections.css"
   T0_STYLESHEET = Rails.root.join("test/fixtures/files/tailwind_v4_t0.css")
-  LEGACY_7B_BYTES = 2_871
-  LEGACY_7B_SHA256 = "bc9df047e887945912d8d18aef969da47fe8ebca5c6cf2e36414227eb8879246"
   DECLARATION_CONTRACTS = {
     ".collection-page__header" => %w[grid-template-columns],
     ".collection-page__heading" => %w[min-width],
@@ -74,16 +71,12 @@ class CollectionsPresentationSourceTest < ActiveSupport::TestCase
     end
   end
 
-  test "legacy is the exact untouched 7B suffix" do
-    legacy = ROOT.join("legacy.css").binread
-
-    assert legacy.start_with?("/* TODO(7B):"), "legacy.css must begin at the 7B checkpoint"
-    assert_not_includes legacy, "TODO(7A)"
-    assert_equal LEGACY_7B_BYTES, legacy.bytesize
-    assert_equal LEGACY_7B_SHA256, Digest::SHA256.hexdigest(legacy)
-
+  test "legacy remains present and declaration-empty for final cleanup" do
+    assert_path_exists ROOT.join("legacy.css")
     legacy_rules = authored_declarations_for(ROOT.join("legacy.css"))
+    assert_empty legacy_rules
     assert_empty DECLARATION_CONTRACTS.keys & legacy_rules.keys
+    assert_not_includes ROOT.join("legacy.css").read, "TODO(7B)"
   end
 
   test "Collection owner does not absorb Monthly Migration" do
