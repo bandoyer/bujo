@@ -1,1 +1,32 @@
-/* Shared action presentation moves here at T2. */
+.action {
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.action--surface {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.action--link {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.action--muted {
+  color: var(--muted);
+}
+
+.action--warn {
+  color: var(--warn);
+}
+
+.action-row {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+}

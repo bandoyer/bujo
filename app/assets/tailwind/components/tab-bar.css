@@ -1,1 +1,41 @@
-/* Shared tab-bar presentation moves here at T2. */
+.tab-bar {
+  position: fixed;
+  right: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
+  left: 0;
+  z-index: 3;
+  display: grid;
+  height: 65px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  font-family: var(--font-mono);
+}
+
+.tab-bar__item {
+  display: flex;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 0.65rem;
+  text-decoration: none;
+}
+
+.tab-bar__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.tab-bar__item--active {
+  color: var(--accent);
+}

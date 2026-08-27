@@ -1,14 +1,14 @@
 <% content_for :title, "Index · Bujo" %>
 
-<main class="daily-log collection-page collection-index" data-controller="placement">
-  <header class="daily-log__header collection-page__header">
-    <div class="collection-page__heading">
-      <h1>Index</h1>
+<main class="page-shell daily-log collection-page collection-index" data-controller="placement">
+  <header class="page-shell__header daily-log__header collection-page__header">
+    <div class="page-shell__heading collection-page__heading">
+      <h1 class="page-shell__title">Index</h1>
       <p class="collection-page__context">Your collections</p>
     </div>
     <button type="button"
             id="new_collection_toggle"
-            class="collection-page__button"
+            class="action action--surface collection-page__button"
             aria-expanded="<%= @new_collection_open ? "true" : "false" %>"
             aria-controls="new_collection_panel"
             data-placement-target="toggle"
@@ -20,31 +20,32 @@
            data-placement-target="panel"
            <%= "hidden" unless @new_collection_open %>>
     <% if @form_errors.present? %>
-      <p class="form-errors"><%= @form_errors.to_sentence %></p>
+      <p class="state-text form-errors"><%= @form_errors.to_sentence %></p>
     <% end %>
     <%= form_with model: @new_collection, class: "collection-form" do |form| %>
-      <%= form.label :name, "Topic" %>
+      <%= form.label :name, "Topic", class: "field-label" %>
       <%= form.text_field :name,
                           value: @new_collection_name,
                           autocomplete: "off",
+                          class: "field",
                           data: { placement_target: "focus" } %>
-      <%= form.submit "Create", class: "collection-page__button" %>
+      <%= form.submit "Create", class: "action action--surface collection-page__button" %>
     <% end %>
   </section>
 
   <% if @collections.empty? %>
-    <p class="collection-index__empty">Nothing indexed yet.</p>
+    <p class="state-text state-text--empty collection-index__empty">Nothing indexed yet.</p>
   <% else %>
     <nav class="collection-index__topics" aria-label="Indexed Collections">
       <% @collections.each do |collection| %>
-        <%= link_to collection.name, collection_path(collection), class: "collection-index__topic-link" %>
+        <%= link_to collection.name, collection_path(collection), class: "action collection-index__topic-link" %>
       <% end %>
     </nav>
   <% end %>
 
   <button type="button"
           id="locate_collection_toggle"
-          class="collection-page__button collection-index__locate-toggle"
+          class="action action--surface collection-page__button collection-index__locate-toggle"
           aria-expanded="<%= @locate_open ? "true" : "false" %>"
           aria-controls="locate_collection_panel"
           data-placement-target="toggle"
@@ -54,9 +55,9 @@
            data-placement-target="panel"
            <%= "hidden" unless @locate_open %>>
     <%= form_with url: locate_collections_path, class: "collection-form" do |form| %>
-      <%= form.label :topic, "Exact Topic" %>
-      <%= form.text_field :topic, value: nil, autocomplete: "off", data: { placement_target: "focus" } %>
-      <%= form.submit "Open", class: "collection-page__button" %>
+      <%= form.label :topic, "Exact Topic", class: "field-label" %>
+      <%= form.text_field :topic, value: nil, autocomplete: "off", class: "field", data: { placement_target: "focus" } %>
+      <%= form.submit "Open", class: "action action--surface collection-page__button" %>
     <% end %>
   </section>
 

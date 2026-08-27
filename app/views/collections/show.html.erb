@@ -1,15 +1,15 @@
 <% content_for :title, "#{@collection.name} · Bujo" %>
 <% content_for :deferred_flash, true %>
 
-<main class="daily-log collection-page" data-controller="placement task-actions">
-  <header class="daily-log__header collection-page__header">
-    <div class="collection-page__heading">
-      <h1><%= @collection.name %></h1>
+<main class="page-shell daily-log collection-page" data-controller="placement task-actions">
+  <header class="page-shell__header daily-log__header collection-page__header">
+    <div class="page-shell__heading collection-page__heading">
+      <h1 class="page-shell__title"><%= @collection.name %></h1>
       <p class="collection-page__context">Collection · <%= @collection.index_position? ? "indexed" : "not indexed" %></p>
     </div>
     <button type="button"
             id="manage_collection_toggle"
-            class="collection-page__button"
+            class="action action--surface collection-page__button"
             aria-expanded="<%= @manage_open ? "true" : "false" %>"
             aria-controls="manage_collection_panel"
             data-placement-target="toggle"
@@ -22,18 +22,18 @@
            data-placement-target="panel"
            <%= "hidden" unless @manage_open %>>
     <% if @form_errors.present? %>
-      <p class="form-errors"><%= @form_errors.to_sentence %></p>
+      <p class="state-text form-errors"><%= @form_errors.to_sentence %></p>
     <% end %>
     <%= form_with model: @collection, class: "collection-form" do |form| %>
-      <%= form.label :name, "Rename Topic" %>
-      <%= form.text_field :name, autocomplete: "off", data: { placement_target: "focus" } %>
-      <%= form.submit "Rename", class: "collection-page__button" %>
+      <%= form.label :name, "Rename Topic", class: "field-label" %>
+      <%= form.text_field :name, autocomplete: "off", class: "field", data: { placement_target: "focus" } %>
+      <%= form.submit "Rename", class: "action action--surface collection-page__button" %>
     <% end %>
     <% if @collection.deletable? %>
       <%= button_to "Delete Collection",
                     collection_path(@collection),
                     method: :delete,
-                    class: "collection-page__button collection-page__button--warn",
+                    class: "action action--surface action--warn collection-page__button collection-page__button--warn",
                     form: { data: { turbo_confirm: "Delete this unused Collection?" } } %>
     <% end %>
   </section>
@@ -48,12 +48,12 @@
 
   <div class="collection-page__registration">
     <% if @collection.registrable? %>
-      <%= button_to "Add to Index", register_collection_path(@collection), class: "collection-page__button" %>
+      <%= button_to "Add to Index", register_collection_path(@collection), class: "action action--surface collection-page__button" %>
     <% elsif @collection.index_position? %>
       <%= button_to "Remove from Index",
                     registration_collection_path(@collection),
                     method: :delete,
-                    class: "collection-page__button" %>
+                    class: "action action--surface collection-page__button" %>
     <% end %>
   </div>
 
@@ -67,7 +67,7 @@
             data-placement-target="toggle"
             data-action="placement#toggle">
       <% if @entries.empty? %>
-        <span class="entry-list__empty">
+        <span class="state-text state-text--empty state-text--handwritten entry-list__empty">
           <span>Nothing logged yet.</span>
           <span>Add a first entry, then add it to the Index.</span>
         </span>

@@ -1,8 +1,8 @@
 <% content_for :title, "Migration item not found · Bujo" %>
 <% content_for :deferred_flash, true %>
 
-<main class="daily-log monthly-migration monthly-migration--missing">
-  <h1>Migration item not found</h1>
+<main class="page-shell daily-log monthly-migration monthly-migration--missing">
+  <h1 class="page-shell__title">Migration item not found</h1>
   <p class="monthly-migration__stage">Return to Monthly Migration to continue.</p>
   <%= render "shared/tab_bar", active: :month %>
 </main>

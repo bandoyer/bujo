@@ -1,11 +1,13 @@
 <%= render layout: "monthly_migrations/shell", locals: { stage: "Scan the Future Log" } do %>
   <section class="monthly-migration__complete">
     <h2>Monthly Migration complete</h2>
-    <div class="monthly-migration__completion-links">
+    <div class="action-row monthly-migration__completion-links">
       <%= link_to "#{@target_month.strftime('%B')} Calendar",
-                  monthly_log_path(month: target_param) %>
+                  monthly_log_path(month: target_param),
+                  class: "action action--surface action--link" %>
       <%= link_to "#{@target_month.strftime('%B')} Tasks",
-                  monthly_log_path(month: target_param, view: "tasks") %>
+                  monthly_log_path(month: target_param, view: "tasks"),
+                  class: "action action--surface action--link" %>
     </div>
   </section>
 <% end %>

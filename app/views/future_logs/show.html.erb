@@ -1,10 +1,10 @@
 <% content_for :title, "Future Log · Bujo" %>
 <% content_for :deferred_flash, true %>
 
-<main class="daily-log future-log" data-controller="placement task-actions">
-  <header class="daily-log__header future-log__header">
-    <div class="daily-log__heading">
-      <h1>Future Log</h1>
+<main class="page-shell daily-log future-log" data-controller="placement task-actions">
+  <header class="page-shell__header daily-log__header future-log__header">
+    <div class="page-shell__heading daily-log__heading">
+      <h1 class="page-shell__title">Future Log</h1>
     </div>
   </header>
   <div id="flash_messages"><%= render "shared/flash_messages" %></div>

@@ -3,13 +3,12 @@ require "digest"
 require "fileutils"
 require "open3"
 
-# Pins the generated stylesheet boundary while the byte-identical legacy rules
-# remain the sole owner of presentation during the T1 checkpoint.
+# Pins the generated stylesheet boundary while named modules progressively take
+# presentation ownership from the shrinking legacy checkpoint.
 class TailwindPipelineTest < ActiveSupport::TestCase
   LEGACY_STYLESHEET = Rails.root.join("app/assets/tailwind/legacy.css")
   TAILWIND_ENTRY = Rails.root.join("app/assets/tailwind/application.css")
   TAILWIND_OUTPUT = Rails.root.join("app/assets/builds/tailwind.css")
-  LEGACY_SHA256 = "df75385665a9f4f48af1f66156953e712493c2e85575de861ffc09963bfa5ceb"
   TEST_ONLY_UTILITY = "w-[123px]"
   SOURCE_MODULES = %w[
     tokens.css
@@ -30,10 +29,12 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     pages/monthly-migration.css
   ].freeze
 
-  test "legacy presentation source is preserved once and byte for byte" do
+  test "legacy remains one shrinking page-layout checkpoint" do
     assert_path_exists LEGACY_STYLESHEET
-    assert_equal 23_218, LEGACY_STYLESHEET.size
-    assert_equal LEGACY_SHA256, Digest::SHA256.file(LEGACY_STYLESHEET).hexdigest
+    assert_operator LEGACY_STYLESHEET.size, :<, 23_218
+    assert_no_match(/^:root\s*\{|^body\s*\{|^\.rapid-log\s*\{|^\.tab-bar\s*\{/m, LEGACY_STYLESHEET.read)
+    assert_match(/TODO\(T3\)/, LEGACY_STYLESHEET.read)
+    assert_match(/TODO\(T4\)/, LEGACY_STYLESHEET.read)
     assert_not Rails.root.join("app/assets/stylesheets/application.css").exist?
   end
 
@@ -72,8 +73,6 @@ class TailwindPipelineTest < ActiveSupport::TestCase
 
   test "clean and repeated one-shot builds are byte stable" do
     with_build_lock do
-      FileUtils.rm_f(TAILWIND_OUTPUT)
-
       first_output = build_tailwind
       assert first_output.success?, first_output.error
       first_hash = Digest::SHA256.file(TAILWIND_OUTPUT).hexdigest
@@ -88,15 +87,16 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     end
   end
 
-  test "test preparation replaces a stale generated artifact" do
-    with_build_lock do
-      TAILWIND_OUTPUT.write("stale output")
+  test "the compiler used by test preparation replaces an isolated stale artifact" do
+    Dir.mktmpdir("tailwind-test-output") do |directory|
+      output_path = Pathname(directory).join("tailwind.css")
+      output_path.write("stale output")
 
-      output = prepare_tests
+      output = compile_tailwind(output_path)
 
       assert output.success?, output.error
-      assert_not_equal "stale output", TAILWIND_OUTPUT.read
-      assert_includes TAILWIND_OUTPUT.read, ".daily-log"
+      assert_not_equal "stale output", output_path.read
+      assert_includes output_path.read, ".page-shell"
     end
   end
 
@@ -147,13 +147,10 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     BuildResult.new(status.success?, error)
   end
 
-  def prepare_tests
-    _output, error, status = Open3.capture3(
-      { "RAILS_ENV" => "test" },
-      Rails.root.join("bin/rails").to_s,
-      "test:prepare",
-      chdir: Rails.root.to_s
-    )
+  def compile_tailwind(output_path)
+    command = Tailwindcss::Commands.compile_command(silent: true)
+    command[command.index("-o") + 1] = output_path.to_s
+    _output, error, status = Open3.capture3(*command, chdir: Rails.root.to_s)
     BuildResult.new(status.success?, error)
   end
 

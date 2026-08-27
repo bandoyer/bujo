@@ -1,6 +1,6 @@
 <section class="monthly-tasks" aria-label="<%= @month.strftime("%B %Y") %> tasks" data-controller="task-actions placement">
   <% if @entries.empty? %>
-    <p class="entry-list__empty">Nothing logged this month.</p>
+    <p class="state-text state-text--empty state-text--handwritten entry-list__empty">Nothing logged this month.</p>
   <% else %>
     <div class="entry-list">
       <% @entries.each do |entry| %>

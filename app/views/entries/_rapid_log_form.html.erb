@@ -6,7 +6,7 @@
 <% line_data = { rapid_log_target: "line", placement_target: ("focus" unless future_month) }.compact %>
 <%= form_with url: entries_path,
               id: form_id,
-              class: "rapid-log",
+              class: class_names("rapid-log", "rapid-log--embedded": future_month),
               data: {
                 controller: "rapid-log",
                 action: [
@@ -24,12 +24,13 @@
   <% elsif capture_date %>
     <%= form.hidden_field :on, value: capture_date.iso8601 %>
   <% end %>
-  <div class="rapid-log__capture-row">
+  <div class="<%= class_names("rapid-log__capture-row", "rapid-log__capture-row--page-grid": future_month) %>">
     <% if future_month %>
       <%= form.number_field :day,
                             id: "future_month_#{future_month.strftime('%Y_%m')}_day",
                             inputmode: "numeric",
                             required: true,
+                            class: "field",
                             aria: { label: "Day of the month" },
                             data: { placement_target: "day focus" } %>
     <% end %>

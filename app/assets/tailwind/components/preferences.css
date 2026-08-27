@@ -1,1 +1,8 @@
-/* Shared preference presentation moves here at T2. */
+.preference-toggle__button {
+  padding: 0 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+}
