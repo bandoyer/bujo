@@ -39,7 +39,51 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     ".rapid-log__input-wrap" => [ "components/rapid-log.css", %w[display overflow border background] ],
     ".rapid-log__capture-row:not(.rapid-log__capture-row--page-grid)" => [ "components/rapid-log.css", %w[display] ],
     ".rapid-log__capture-row" => [ "components/rapid-log.css", %w[min-width gap] ],
-    ".rapid-log__submit" => [ "components/rapid-log.css", %w[min-width min-height border background color] ]
+    ".rapid-log__submit" => [ "components/rapid-log.css", %w[min-width min-height border background color] ],
+    ".entry:not(.monthly-calendar__residents .entry):not(.future-entry__resident .entry)" => [
+      "components/entries.css", %w[padding]
+    ],
+    ".entry--selected" => [ "components/entries.css", %w[border-radius background] ],
+    ".entry__line" => [ "components/entries.css", %w[display width min-height grid-template-columns gap align-items] ],
+    ".entry__toggle" => [ "components/entries.css", %w[border-radius padding border background color cursor text-align] ],
+    ".entry__signifier" => [ "components/entries.css", %w[color font-family] ],
+    ".entry__glyph" => [ "components/entries.css", %w[color font-family] ],
+    ".entry__text" => [ "components/entries.css", %w[min-width overflow-wrap] ],
+    ".entry__text--struck" => [
+      "components/entries.css", %w[text-decoration text-decoration-color text-decoration-thickness]
+    ],
+    ".entry__meta" => [
+      "components/entries.css",
+      %w[font-family min-width overflow-wrap display flex-wrap justify-content gap color font-size]
+    ],
+    ".entry__actions" => [ "components/entries.css", %w[gap] ],
+    ".entry__action-strip" => [ "components/entries.css", %w[margin] ],
+    ".entry__action-strip form" => [ "components/entries.css", %w[margin] ],
+    ".entry-action" => [ "components/entries.css", %w[border-radius font-family font-size padding] ],
+    ".entry-action--cancel" => [ "components/entries.css", %w[padding] ],
+    ".entry__edit-step" => [ "components/entries.css", %w[gap align-items] ],
+    ".entry__edit" => [ "components/entries.css", %w[min-width flex display] ],
+    ".entry__edit .rapid-log__kinds" => [ "components/entries.css", %w[margin-bottom] ],
+    ".entry__edit label" => [ "components/entries.css", %w[display margin-bottom font-family font-size] ],
+    ".entry__edit-row" => [
+      "components/entries.css", %w[display min-width grid-template-columns gap]
+    ],
+    ".entry__edit-row input[type=\"text\"]" => [ "components/entries.css", %w[padding border-radius] ],
+    ".entry__schedule-step" => [ "components/entries.css", %w[gap align-items] ],
+    ".entry__schedule" => [
+      "components/entries.css", %w[min-width flex display grid-template-columns gap]
+    ],
+    ".entry__schedule label" => [ "components/entries.css", %w[font-family font-size] ],
+    ".entry__schedule input[type=\"date\"]" => [
+      "components/entries.css", %w[border-radius font-family font-size width padding]
+    ],
+    ".entry__schedule-actions" => [ "components/entries.css", %w[gap] ],
+    ".entry__move-step" => [ "components/entries.css", %w[gap] ],
+    ".entry__move" => [ "components/entries.css", %w[gap] ],
+    ".entry__move input[type=\"text\"]" => [
+      "components/entries.css", %w[border-radius font-family font-size max-width padding]
+    ],
+    ".entry__children" => [ "components/entries.css", %w[margin-left] ]
   }.freeze
   SHARED_VIEW_CLASS = /(?<![\w-])(?:page-shell(?:__[a-z][\w-]*)?|action(?:--[a-z][\w-]*)?|action-row|field(?:--[a-z][\w-]*)?|field-label|notice(?:--[a-z][\w-]*)?|state-text(?:--[a-z][\w-]*)?|rapid-log--[a-z][\w-]*|rapid-log__capture-row--[a-z][\w-]*)\b/
 
@@ -91,19 +135,48 @@ class SharedPresentationSourceTest < ActiveSupport::TestCase
     assert_match(/TODO\(T4\):/, legacy)
   end
 
+  test "Entry declarations do not retain a competing legacy owner" do
+    legacy_rules = authored_rules_for(ROOT.join("legacy.css"))
+    entry_contracts = DECLARATION_CONTRACTS.keys.grep(/\A\.entry/)
+
+    assert_empty entry_contracts & legacy_rules.keys,
+      "Entry declarations must move completely out of legacy.css"
+    assert_includes legacy_rules.keys, ".entry-list"
+    assert_includes legacy_rules.keys, ".monthly-calendar__residents .entry"
+    assert_includes legacy_rules.keys, ".future-entry__resident .entry"
+  end
+
+  test "Entry runtime hooks remain stable for Stimulus and rendered rows" do
+    entry_views = %w[_entry.html.erb _task_actions.html.erb].map do |name|
+      Rails.root.join("app/views/entries", name).read
+    end.join("\n")
+    controller = Rails.root.join("app/javascript/controllers/task_actions_controller.js").read
+
+    %w[entry entry__toggle entry__action-strip].each do |hook|
+      assert_includes entry_views, hook
+      assert_includes controller, ".#{hook}"
+    end
+    assert_includes entry_views, "entry--selected"
+    assert_includes controller, "entry--selected"
+  end
+
   private
 
   def authored_rules
     ROOT.glob("**/*.css").each_with_object(Hash.new { |rules, selector| rules[selector] = [] }) do |path, rules|
-      source = path.read.gsub(%r{/\*.*?\*/}m, "")
-      source.scan(/([^{}]+)\{([^{}]*)\}/m) do |selector_list, body|
-        properties = body.scan(/(?:\A|;)\s*([-\w]+)\s*:/).flatten
-        next if properties.empty?
-
-        selector_list.split(",").map(&:strip).each do |selector|
-          rules[selector] << [ path.relative_path_from(ROOT).to_s, properties ]
-        end
+      authored_rules_for(path).each do |selector, properties|
+        rules[selector] << [ path.relative_path_from(ROOT).to_s, properties ]
       end
+    end
+  end
+
+  def authored_rules_for(path)
+    source = path.read.gsub(%r{/\*.*?\*/}m, "")
+    source.scan(/([^{}]+)\{([^{}]*)\}/m).each_with_object(Hash.new { |rules, selector| rules[selector] = [] }) do |(selector_list, body), rules|
+      properties = body.scan(/(?:\A|;)\s*([-\w]+)\s*:/).flatten
+      next if properties.empty?
+
+      selector_list.split(",").map(&:strip).each { |selector| rules[selector].concat(properties) }
     end
   end
 end

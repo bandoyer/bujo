@@ -1,1 +1,169 @@
-/* Shared Entry presentation moves here at T3. */
+/* One journal row keeps four stable columns while reader-authored text and
+   destination metadata negotiate the remaining width. */
+/* Calendar and Future own zero-padding resident overrides in legacy until
+   their page checkpoints. Excluding those contexts prevents this later layer
+   from outranking the frozen page rules merely because it is imported later. */
+.entry:not(.monthly-calendar__residents .entry):not(.future-entry__resident .entry) {
+  padding: 0.65rem 0;
+}
+
+.entry--selected {
+  border-radius: 0.5rem;
+  background: var(--selected-row);
+}
+
+.entry__line {
+  display: grid;
+  width: 100%;
+  min-height: 44px;
+  /* Capping metadata keeps a long destination Topic from starving the text
+     track; both minmax and fit-content remain shrinkable at phone widths. */
+  grid-template-columns: 1rem 1.25rem minmax(0, 1fr) fit-content(45%);
+  gap: 0.25rem;
+  align-items: baseline;
+}
+
+.entry__toggle {
+  border-radius: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.entry__signifier {
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.entry__glyph,
+.entry__meta {
+  font-family: var(--font-mono);
+}
+
+.entry__glyph {
+  color: var(--ink);
+}
+
+.entry__text--struck {
+  text-decoration: line-through;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 2px;
+}
+
+/* Both columns contain unbounded journal text. Anywhere wrapping shrinks each
+   intrinsic minimum without truncating or hiding the reader's words. */
+.entry__text,
+.entry__meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entry__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+/* Entry command surfaces consume the shared action and field primitives; this
+   owner defines only their row-specific spacing and multi-step anatomy. */
+.entry__actions,
+.entry__edit-step,
+.entry__schedule-step,
+.entry__schedule-actions,
+.entry__move-step,
+.entry__move {
+  gap: 0.25rem;
+}
+
+.entry__action-strip {
+  margin: 0.35rem 0 0 2.5rem;
+}
+
+.entry__action-strip form {
+  margin: 0;
+}
+
+.entry-action,
+.entry__schedule input[type="date"],
+.entry__move input[type="text"] {
+  border-radius: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.entry-action {
+  padding: 0 0.65rem;
+}
+
+.entry-action--cancel {
+  padding: 0 0.65rem;
+}
+
+.entry__schedule input[type="date"] {
+  width: 100%;
+  padding: 0 0.4rem;
+}
+
+.entry__schedule-step,
+.entry__edit-step {
+  align-items: end;
+}
+
+.entry__schedule,
+.entry__edit {
+  min-width: 0;
+  flex: 1 1 15rem;
+}
+
+.entry__schedule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+}
+
+.entry__schedule label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__edit {
+  display: block;
+}
+
+.entry__edit .rapid-log__kinds {
+  margin-bottom: 0.35rem;
+}
+
+.entry__edit label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__edit-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem;
+}
+
+.entry__edit-row input[type="text"] {
+  padding: 0 0.6rem;
+  border-radius: 0.5rem;
+}
+
+.entry__move input[type="text"] {
+  max-width: 11rem;
+  padding: 0 0.6rem;
+}
+
+.entry__children {
+  margin-left: 1.5rem;
+}
