@@ -75,10 +75,22 @@
   color: var(--accent);
 }
 
-.daily-reflection .entry[tabindex="-1"]:focus-visible,
-.daily-reflection :where(a, button, input)[autofocus]:focus {
+.daily-reflection .daily-reflection__mode[autofocus],
+.daily-reflection #reflection_line[autofocus],
+.daily-reflection .entry__toggle[autofocus],
+.daily-reflection .entry__line[autofocus],
+.daily-reflection .entry__schedule input[autofocus] {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.daily-reflection [autofocus] {
+  /* Reserve the fixed tabs plus the controls below Schedule's focused field. */
+  scroll-margin-block: 1rem 8rem;
+}
+
+html:has(.daily-reflection) {
+  scroll-padding-block: 1rem calc(65px + 8rem);
 }
 
 .daily-reflection__stage {

@@ -1,6 +1,7 @@
 <% content_for :title, "Daily Reflection · Bujo" %>
 <% content_for :deferred_flash, true %>
-<main class="page-shell daily-reflection" data-controller="task-actions">
+<%# Native visits let response autofocus and viewport placement settle together after the selected hand wraps. %>
+<main class="page-shell daily-reflection" data-controller="task-actions" data-turbo="false">
   <h1 class="page-shell__title">Daily Reflection</h1>
   <p class="daily-reflection__date"><%= @today.strftime("%A · %B %-d").upcase %></p>
   <div class="daily-reflection__preferences">

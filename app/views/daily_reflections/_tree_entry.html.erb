@@ -3,8 +3,7 @@
 <% actionable = priority_action || commands.any? %>
 <% entry_focus = reflection_focus?(:entry, entry) %>
 <% schedule_open = reflection_focus?(:schedule, entry) %>
-<article id="entry_<%= entry.id %>" class="<%= class_names("entry", "entry--selected": schedule_open) %>" data-entry-id="<%= entry.id %>"
-         <%= "tabindex=-1 autofocus" if entry_focus && !actionable %>>
+<article id="entry_<%= entry.id %>" class="<%= class_names("entry", "entry--selected": schedule_open) %>" data-entry-id="<%= entry.id %>">
   <% if actionable %>
     <% action_strip_id = "entry_#{entry.id}_actions" %>
     <button type="button"
@@ -30,7 +29,9 @@
                  schedule_open_path: evening_reflection_path %>
     <% end %>
   <% else %>
-    <div class="entry__line"><%= render "entries/entry_line", entry: entry %></div>
+    <div class="entry__line" <%= "tabindex=-1 autofocus" if entry_focus %>>
+      <%= render "entries/entry_line", entry: entry %>
+    </div>
   <% end %>
 
   <% children = entry.children.kept %>

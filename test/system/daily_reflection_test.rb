@@ -285,7 +285,13 @@ class DailyReflectionTest < ApplicationSystemTestCase
         page.current_window.resize_to(width, 844)
         @user.entries.update_all(deleted_at: Time.current)
 
-        morning = create_entry(text: "A very long authored Morning line " * 8,
+        leading = create_entry(text: "A very long leading Morning branch " * 8,
+          page_kind: "daily", page_on: TODAY)
+        3.times do |index|
+          leading = create_entry(text: "Leading nested Morning context #{index} " * 5,
+            kind: "note", page_kind: "daily", page_on: TODAY, parent: leading)
+        end
+        morning = create_entry(text: "Morning priority focus target",
           page_kind: "daily", page_on: TODAY, priority: true)
         root = morning
         3.times do |index|
@@ -302,6 +308,13 @@ class DailyReflectionTest < ApplicationSystemTestCase
           assert_no_button "Mark priority"
         end
         assert_phone_state(theme: theme, hand: hand, mode: "Morning")
+
+        within("#entry_#{morning.id}") { find_button("Clear priority").send_keys(:enter) }
+        assert_selector "#entry_#{morning.id} .entry__signifier[aria-label='Not priority']", visible: :all
+        assert_focused "#entry_#{morning.id} .entry__toggle"
+        keyboard_entry_command(morning, "Mark priority")
+        assert_selector "#entry_#{morning.id} .entry__signifier[aria-label='Priority']"
+        assert_focused "#entry_#{morning.id} .entry__toggle"
 
         invalid_line = "+#{'preserved-long-tag-' * 8}"
         choose_reflection_kind("Event")
@@ -342,6 +355,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
 
         within("#entry_#{evening.id}") { find_button("Schedule…").send_keys(:enter) }
         assert_focused "#entry_#{evening.id} input[type='date']"
+        assert_schedule_step_clear(evening)
         assert_phone_state(theme: theme, hand: hand, mode: "Evening")
 
         set_date_field("Schedule for", TODAY)
@@ -415,6 +429,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
       within("#entry_#{task.id}") { find_button("Schedule…").send_keys(:enter) }
 
       assert_focused "#entry_#{task.id} input[type='date']"
+      assert_schedule_step_clear(task)
       assert_selector "#entry_#{task.id}.entry--selected .entry__toggle[aria-expanded='true']"
       within("#entry_#{task.id}") { find_button("Cancel").send_keys(:enter) }
       assert_focused "#entry_#{task.id} .entry__toggle", response: false
@@ -443,18 +458,18 @@ class DailyReflectionTest < ApplicationSystemTestCase
 
       visit evening_reflection_path
       activate_entry_command(complete, "Complete")
-      assert_focused "#entry_#{complete.id}[tabindex='-1']"
+      assert_focused "#entry_#{complete.id} > .entry__line[tabindex='-1']"
       assert_selector "#entry_#{complete.id} .entry__glyph", text: "x"
 
       activate_entry_command(strike, "Strike")
-      assert_focused "#entry_#{strike.id}[tabindex='-1']"
+      assert_focused "#entry_#{strike.id} > .entry__line[tabindex='-1']"
       assert_selector "#entry_#{strike.id} .entry__text--struck"
 
       reveal_actions(schedule)
       within("#entry_#{schedule.id}") { find_button("Schedule…").send_keys(:enter) }
       set_date_field("Schedule for", TODAY + 2.days)
       within("#entry_#{schedule.id}") { find_button("Schedule", exact: true).send_keys(:enter) }
-      assert_focused "#entry_#{schedule.id}[tabindex='-1']"
+      assert_focused "#entry_#{schedule.id} > .entry__line[tabindex='-1']"
 
       refresh
       assert_no_selector "#entry_#{schedule.id}[autofocus]", visible: :all
@@ -463,15 +478,23 @@ class DailyReflectionTest < ApplicationSystemTestCase
   end
 
   test "17 one real keyboard walk settles every Reflection response on a visible target" do
-    priority = create_entry(text: "walk priority", page_kind: "daily", page_on: TODAY)
-    complete = create_entry(text: "walk complete", page_kind: "daily", page_on: TODAY)
-    strike = create_entry(text: "walk strike", page_kind: "daily", page_on: TODAY)
+    priority = create_entry(text: "walk priority " * 8, page_kind: "daily", page_on: TODAY)
+    complete = create_entry(text: "walk complete " * 8, page_kind: "daily", page_on: TODAY)
+    descendant = complete
+    3.times do |index|
+      descendant = create_entry(text: "complete descendant #{index} " * 8, kind: "note",
+        page_kind: "daily", page_on: TODAY, parent: descendant)
+    end
+    strike = create_entry(text: "walk strike " * 8, page_kind: "daily", page_on: TODAY)
     refused = create_entry(text: "walk refused schedule", page_kind: "daily", page_on: TODAY)
     calendar = create_entry(text: "walk calendar schedule", page_kind: "daily", page_on: TODAY)
     future = create_entry(text: "walk future schedule", page_kind: "daily", page_on: TODAY)
 
     travel_to TODAY do
       sign_in_through_browser @user
+      page.current_window.resize_to(320, 844)
+      set_preferences(theme: "dark", hand: "rock-salt")
+      visit root_path
       click_link "Reflect"
 
       keyboard_tab_to("#reflection_evening_mode")
@@ -506,26 +529,28 @@ class DailyReflectionTest < ApplicationSystemTestCase
       assert_focused "#reflection_evening_mode"
 
       keyboard_entry_command(complete, "Complete")
-      assert_focused "#entry_#{complete.id}[tabindex='-1']"
+      assert_focused "#entry_#{complete.id} > .entry__line[tabindex='-1']"
       keyboard_entry_command(strike, "Strike")
-      assert_focused "#entry_#{strike.id}[tabindex='-1']"
+      assert_focused "#entry_#{strike.id} > .entry__line[tabindex='-1']"
 
       keyboard_entry_command(refused, "Schedule…")
       assert_focused "#entry_#{refused.id} input[type='date']"
+      assert_schedule_step_clear(refused)
       within("#entry_#{refused.id}") { find_button("Cancel").send_keys(:enter) }
       assert_focused "#entry_#{refused.id} .entry__toggle", response: false
       within("#entry_#{refused.id}") { find_button("Schedule…").send_keys(:enter) }
       assert_focused "#entry_#{refused.id} input[type='date']"
+      assert_schedule_step_clear(refused)
       set_date_field("Schedule for", TODAY)
       within("#entry_#{refused.id}") { find_button("Schedule", exact: true).send_keys(:enter) }
       assert_focused "#entry_#{refused.id} .entry__toggle"
       assert_nil refused.reload.successor
 
       keyboard_schedule(calendar, TODAY + 2.days)
-      assert_focused "#entry_#{calendar.id}[tabindex='-1']"
+      assert_focused "#entry_#{calendar.id} > .entry__line[tabindex='-1']"
       assert_equal "monthly_calendar", calendar.reload.successor.page_kind
       keyboard_schedule(future, TODAY.next_month)
-      assert_focused "#entry_#{future.id}[tabindex='-1']"
+      assert_focused "#entry_#{future.id} > .entry__line[tabindex='-1']"
       assert_equal "future", future.reload.successor.page_kind
 
       keyboard_tab_to("#reflection_line")
@@ -619,7 +644,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
   end
 
   def assert_tab_clearance
-    page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+    page.driver.browser.action.scroll_by(0, 10_000).perform
     covered = page.evaluate_script(<<~JAVASCRIPT)
       (() => {
         const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
@@ -701,6 +726,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
   def keyboard_schedule(entry, date)
     keyboard_entry_command(entry, "Schedule…")
     assert_focused "#entry_#{entry.id} input[type='date']"
+    assert_schedule_step_clear(entry)
     set_date_field("Schedule for", date)
     within("#entry_#{entry.id}") { find_button("Schedule", exact: true).send_keys(:enter) }
   end
@@ -731,23 +757,55 @@ class DailyReflectionTest < ApplicationSystemTestCase
     find(selector)
     focused = page.evaluate_script("document.activeElement.matches(#{selector.to_json})")
     assert focused, "Expected #{selector} to own focus"
+    find(selector).assert_matches_style("outline-style" => /^(?!none$)/)
     outline = page.evaluate_script("getComputedStyle(document.activeElement).outlineStyle")
     assert_not_equal "none", outline
     geometry = page.evaluate_script(<<~JAVASCRIPT)
       (() => {
         const target = document.activeElement.getBoundingClientRect()
         const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        const focusStyle = getComputedStyle(document.activeElement)
+        const focusClearance = parseFloat(focusStyle.outlineWidth) + parseFloat(focusStyle.outlineOffset)
         return {
+          left: target.left,
+          right: target.right,
           top: target.top,
           bottom: target.bottom,
+          viewportRight: document.documentElement.clientWidth,
           viewportBottom: document.documentElement.clientHeight,
-          unobscuredBottom: tabs.top
+          unobscuredBottom: tabs.top,
+          focusClearance: focusClearance
         }
       })()
     JAVASCRIPT
-    assert_operator geometry.fetch("top"), :>=, 0
+    clearance = geometry.fetch("focusClearance")
+    assert_operator geometry.fetch("left"), :>=, clearance
+    assert_operator geometry.fetch("right"), :<=, geometry.fetch("viewportRight") - clearance
+    assert_operator geometry.fetch("top"), :>=, clearance
     assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("viewportBottom")
-    assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("unobscuredBottom")
+    assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("unobscuredBottom") - clearance
+    assert_no_match(/[?&](?:focus|schedule)=/, page.current_url)
+  end
+
+  def assert_schedule_step_clear(entry)
+    geometry = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const step = document.querySelector("#entry_#{entry.id} .entry__schedule-step").getBoundingClientRect()
+        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        return {
+          left: step.left,
+          right: step.right,
+          top: step.top,
+          bottom: step.bottom,
+          viewportRight: document.documentElement.clientWidth,
+          tabTop: tabs.top
+        }
+      })()
+    JAVASCRIPT
+    assert_operator geometry.fetch("left"), :>=, 0
+    assert_operator geometry.fetch("right"), :<=, geometry.fetch("viewportRight")
+    assert_operator geometry.fetch("top"), :>=, 0
+    assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("tabTop")
   end
 
   def assert_not_focused(selector)
