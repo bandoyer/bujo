@@ -13,15 +13,14 @@ class DailyReflectionsController < ApplicationController
   # Shows the current month's dated-page review in paper reading order.
   def show
     prepare_morning
-    redirect_mode_focus(reflection_path) if params[:focus] == "mode"
+    redirect_with_focus(reflection_path, :mode) if params[:focus] == "mode"
   end
 
   # Shows the complete kept trees resident on today's Daily Log.
   def evening
     @daily_roots = user_entries.daily_log(@today).to_a
-    @done_task_count = @daily_roots.flat_map { |root| kept_resident_tree(root) }
-      .count { |entry| entry.kind == "task" && entry.state == "done" }
-    return redirect_mode_focus(evening_reflection_path) if params[:focus] == "mode"
+    @done_task_count = evening_residents.count { |entry| entry.kind == "task" && entry.state == "done" }
+    return redirect_with_focus(evening_reflection_path, :mode) if params[:focus] == "mode"
 
     open_schedule_step if params[:schedule].present?
   end
@@ -102,6 +101,10 @@ class DailyReflectionsController < ApplicationController
     offered_entry_commands(entry) & EVENING_COMMANDS
   end
 
+  def evening_residents
+    @evening_residents ||= @daily_roots.flat_map { |root| kept_resident_tree(root) }
+  end
+
   def set_priority_entry
     @priority_entry = user_entries.kept.find(params[:id])
   end
@@ -111,39 +114,48 @@ class DailyReflectionsController < ApplicationController
     raise Entry::LifecycleError unless morning_priority_eligible?(@priority_entry)
 
     @priority_entry.public_send(command)
-    redirect_to reflection_path, flash: { reflection_focus: "entry:#{@priority_entry.id}" }
+    redirect_with_focus(reflection_path, :entry, @priority_entry)
   end
 
   def refuse_priority_change
-    focus = @morning_priority_ids&.include?(@priority_entry&.id) ? "entry:#{@priority_entry.id}" : "mode"
-    redirect_to reflection_path, alert: REFUSAL_ALERT, flash: { reflection_focus: focus }
+    if morning_priority_eligible?(@priority_entry)
+      redirect_with_focus(reflection_path, :entry, @priority_entry, alert: REFUSAL_ALERT)
+    else
+      redirect_with_focus(reflection_path, :mode, alert: REFUSAL_ALERT)
+    end
   end
 
   def render_priority_not_found
     head :not_found
   end
 
-  def redirect_mode_focus(path)
-    redirect_to path, flash: { reflection_focus: "mode" }
+  def open_schedule_step
+    entry = evening_residents.find { |candidate| candidate.id == params[:schedule] }
+    if entry && evening_commands(entry).include?("schedule")
+      redirect_with_focus(evening_reflection_path, :schedule, entry)
+    else
+      redirect_with_focus(evening_reflection_path, :mode)
+    end
   end
 
-  def open_schedule_step
-    entry = @daily_roots.flat_map { |root| kept_resident_tree(root) }
-      .find { |candidate| candidate.id == params[:schedule] }
-    focus = entry && evening_commands(entry).include?("schedule") ? "schedule:#{entry.id}" : "mode"
-    redirect_to evening_reflection_path, flash: { reflection_focus: focus }
+  def redirect_with_focus(path, kind, entry = nil, **options)
+    redirect_to path, **options, flash: { reflection_focus: focus_token(kind, entry) }
   end
 
   def reflection_focus?(kind, entry = nil)
-    expected = entry ? "#{kind}:#{entry.id}" : kind.to_s
-    flash[:reflection_focus] == expected
+    flash[:reflection_focus] == focus_token(kind, entry)
+  end
+
+  def focus_token(kind, entry = nil)
+    entry ? "#{kind}:#{entry.id}" : kind.to_s
   end
 
   def reflection_mode_focus?(mode)
-    return true if reflection_focus?(:mode)
+    reflection_focus?(:mode) || stale_entry_focus?(mode)
+  end
 
-    entry_focus = flash[:reflection_focus].to_s.match?(/\Aentry:/)
-    entry_focus && !reflection_focus_entry_visible?(mode)
+  def stale_entry_focus?(mode)
+    flash[:reflection_focus].to_s.start_with?("entry:") && !reflection_focus_entry_visible?(mode)
   end
 
   def reflection_focus_entry_visible?(mode)
@@ -151,7 +163,7 @@ class DailyReflectionsController < ApplicationController
     if mode == :morning
       @morning_priority_ids.include?(id)
     else
-      @daily_roots.any? { |root| kept_resident_tree(root).any? { |entry| entry.id == id } }
+      evening_residents.any? { |entry| entry.id == id }
     end
   end
 end

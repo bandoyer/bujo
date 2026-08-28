@@ -24,7 +24,6 @@
     <% if offered_commands.include?("schedule") %>
       <% if local_assigns[:schedule_open_path] %>
         <%= button_to "Schedule…", schedule_open_path, method: :get,
-                      params: { schedule: schedule_entry_id },
                       class: "action action--surface action--muted entry-action" %>
       <% else %>
         <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showSchedule">Schedule…</button>

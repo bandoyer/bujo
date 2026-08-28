@@ -75,11 +75,7 @@
   color: var(--accent);
 }
 
-.daily-reflection .entry[tabindex="-1"]:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
+.daily-reflection .entry[tabindex="-1"]:focus-visible,
 .daily-reflection :where(a, button, input)[autofocus]:focus {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

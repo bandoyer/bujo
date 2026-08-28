@@ -1,10 +1,11 @@
 <% priority_action = mode == :morning && morning_priority_eligible?(entry) %>
 <% commands = mode == :evening ? evening_commands(entry) : [] %>
+<% actionable = priority_action || commands.any? %>
 <% entry_focus = reflection_focus?(:entry, entry) %>
 <% schedule_open = reflection_focus?(:schedule, entry) %>
 <article id="entry_<%= entry.id %>" class="<%= class_names("entry", "entry--selected": schedule_open) %>" data-entry-id="<%= entry.id %>"
-         <%= "tabindex=-1 autofocus" if entry_focus && !(priority_action || commands.any?) %>>
-  <% if priority_action || commands.any? %>
+         <%= "tabindex=-1 autofocus" if entry_focus && !actionable %>>
+  <% if actionable %>
     <% action_strip_id = "entry_#{entry.id}_actions" %>
     <button type="button"
             class="entry__line entry__toggle"
@@ -26,8 +27,7 @@
                  action_strip_id: action_strip_id,
                  edit_open: false,
                  schedule_open: schedule_open,
-                 schedule_open_path: evening_reflection_path,
-                 schedule_entry_id: entry.id %>
+                 schedule_open_path: evening_reflection_path(schedule: entry.id) %>
     <% end %>
   <% else %>
     <div class="entry__line"><%= render "entries/entry_line", entry: entry %></div>

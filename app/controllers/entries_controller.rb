@@ -226,7 +226,7 @@ class EntriesController < ApplicationController
   end
 
   def prepare_capture_response
-    flash[:reflection_focus] = "capture" if reflection_return
+    remember_reflection_focus("capture")
     case @placement
     when "future" then prepare_future_response
     when "daily" then prepare_daily_response
@@ -283,11 +283,13 @@ class EntriesController < ApplicationController
   # it persists, so no crafted parameter can send the reader elsewhere. Dated
   # pages keep the parameter-driven destination the reader navigated from.
   def redirect_to_viewed_page(**response_options)
-    redirect_to command_return_path(viewed_page_path), **reflection_response_options(response_options)
+    remember_reflection_focus("entry:#{@entry.id}")
+    redirect_to command_return_path(viewed_page_path), **response_options
   end
 
   def redirect_to_entry_page(**response_options)
-    redirect_to command_return_path(entry_page_path), **reflection_response_options(response_options)
+    remember_reflection_focus("entry:#{@entry.id}")
+    redirect_to command_return_path(entry_page_path), **response_options
   end
 
   def viewed_page_path
@@ -360,13 +362,11 @@ class EntriesController < ApplicationController
     flash[:alert] = REFUSAL_ALERT
     flash[:reflection_line] = params[:line].to_s
     flash[:reflection_kind] = default_kind.to_s
-    flash[:reflection_focus] = "capture"
+    remember_reflection_focus("capture")
     redirect_to reflection_destination, status: :see_other
   end
 
-  def reflection_response_options(response_options)
-    return response_options unless reflection_return
-
-    response_options.merge(flash: { reflection_focus: "entry:#{@entry.id}" })
+  def remember_reflection_focus(token)
+    flash[:reflection_focus] = token if reflection_return
   end
 end
