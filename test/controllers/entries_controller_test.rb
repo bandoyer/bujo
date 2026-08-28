@@ -159,6 +159,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
           }
         end
         assert_redirected_to path
+        assert_equal "capture", flash[:reflection_focus]
         captured = @user.entries.find_by!(text: "captured from #{return_to}")
         assert_equal [ "note", nil, "daily", today, nil, nil ],
           captured.values_at(:kind, :state, :page_kind, :page_on, :collection_id, :migrated_from_id)
@@ -180,6 +181,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to evening_reflection_path
       assert_equal "-", flash[:reflection_line]
       assert_equal "event", flash[:reflection_kind]
+      assert_equal "capture", flash[:reflection_focus]
       follow_redirect!
       assert_select "input#reflection_line[value='-']"
       assert_select "button[aria-label='Event'][aria-pressed='true']"
@@ -194,11 +196,13 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
       complete = create_open_task("evening complete", page_on: today)
       post complete_entry_path(complete), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
       assert_redirected_to evening_reflection_path
+      assert_equal "entry:#{complete.id}", flash[:reflection_focus]
       assert_equal "done", complete.reload.state
 
       struck = create_open_task("evening strike", page_on: today)
       post strike_entry_path(struck), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
       assert_redirected_to evening_reflection_path
+      assert_equal "entry:#{struck.id}", flash[:reflection_focus]
       assert_equal "struck", struck.reload.state
 
       scheduled = create_open_task("evening schedule", page_on: today)
@@ -206,6 +210,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
         return_to: "reflection_evening", viewed_on: today.iso8601, date: (today + 2.days).iso8601
       }
       assert_redirected_to evening_reflection_path
+      assert_equal "entry:#{scheduled.id}", flash[:reflection_focus]
       assert_equal [ "monthly_calendar", today.beginning_of_month, today + 2.days ],
         scheduled.reload.successor.values_at(:page_kind, :page_on, :occurs_on)
 

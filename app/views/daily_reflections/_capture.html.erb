@@ -6,5 +6,6 @@
              label: label,
              return_to: return_to,
              submitted_line: flash[:reflection_line].to_s,
+             autofocus: reflection_focus?(:capture),
              selected_kind: flash[:reflection_kind].presence_in(Entry::KINDS) || "task" %>
 </section>

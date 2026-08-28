@@ -45,6 +45,7 @@
                           id: line_id,
                           value: submitted_line,
                           placeholder: "Rapid log…",
+                          autofocus: local_assigns[:autofocus],
                           autocomplete: "off",
                           data: line_data %>
       <%= form.submit "Log", class: "rapid-log__submit" %>

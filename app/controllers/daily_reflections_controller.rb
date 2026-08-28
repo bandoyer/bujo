@@ -13,6 +13,7 @@ class DailyReflectionsController < ApplicationController
   # Shows the current month's dated-page review in paper reading order.
   def show
     prepare_morning
+    redirect_mode_focus(reflection_path) if params[:focus] == "mode"
   end
 
   # Shows the complete kept trees resident on today's Daily Log.
@@ -20,6 +21,9 @@ class DailyReflectionsController < ApplicationController
     @daily_roots = user_entries.daily_log(@today).to_a
     @done_task_count = @daily_roots.flat_map { |root| kept_resident_tree(root) }
       .count { |entry| entry.kind == "task" && entry.state == "done" }
+    return redirect_mode_focus(evening_reflection_path) if params[:focus] == "mode"
+
+    open_schedule_step if params[:schedule].present?
   end
 
   # Adds the existing priority signifier to one currently eligible Morning task.
@@ -32,7 +36,8 @@ class DailyReflectionsController < ApplicationController
     change_priority(:clear_priority!)
   end
 
-  helper_method :morning_priority_eligible?, :evening_commands
+  helper_method :morning_priority_eligible?, :evening_commands,
+    :reflection_focus?, :reflection_mode_focus?
 
   private
 
@@ -106,14 +111,47 @@ class DailyReflectionsController < ApplicationController
     raise Entry::LifecycleError unless morning_priority_eligible?(@priority_entry)
 
     @priority_entry.public_send(command)
-    redirect_to reflection_path
+    redirect_to reflection_path, flash: { reflection_focus: "entry:#{@priority_entry.id}" }
   end
 
   def refuse_priority_change
-    redirect_to reflection_path, alert: REFUSAL_ALERT
+    focus = @morning_priority_ids&.include?(@priority_entry&.id) ? "entry:#{@priority_entry.id}" : "mode"
+    redirect_to reflection_path, alert: REFUSAL_ALERT, flash: { reflection_focus: focus }
   end
 
   def render_priority_not_found
     head :not_found
+  end
+
+  def redirect_mode_focus(path)
+    redirect_to path, flash: { reflection_focus: "mode" }
+  end
+
+  def open_schedule_step
+    entry = @daily_roots.flat_map { |root| kept_resident_tree(root) }
+      .find { |candidate| candidate.id == params[:schedule] }
+    focus = entry && evening_commands(entry).include?("schedule") ? "schedule:#{entry.id}" : "mode"
+    redirect_to evening_reflection_path, flash: { reflection_focus: focus }
+  end
+
+  def reflection_focus?(kind, entry = nil)
+    expected = entry ? "#{kind}:#{entry.id}" : kind.to_s
+    flash[:reflection_focus] == expected
+  end
+
+  def reflection_mode_focus?(mode)
+    return true if reflection_focus?(:mode)
+
+    entry_focus = flash[:reflection_focus].to_s.match?(/\Aentry:/)
+    entry_focus && !reflection_focus_entry_visible?(mode)
+  end
+
+  def reflection_focus_entry_visible?(mode)
+    id = flash[:reflection_focus].to_s.delete_prefix("entry:")
+    if mode == :morning
+      @morning_priority_ids.include?(id)
+    else
+      @daily_roots.any? { |root| kept_resident_tree(root).any? { |entry| entry.id == id } }
+    end
   end
 end

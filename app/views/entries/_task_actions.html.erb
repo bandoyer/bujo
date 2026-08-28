@@ -3,8 +3,9 @@
     resolved which commands it may offer; this strip only renders them. %>
 <% viewed_on_iso = viewed_on.iso8601 %>
 <% return_params = { viewed_on: viewed_on_iso, return_to: return_to }.compact %>
-<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" <%= "hidden" unless edit_open %>>
-  <div class="action-row entry__actions" data-step="actions" <%= "hidden" if edit_open %>>
+<% schedule_open = local_assigns.fetch(:schedule_open, false) %>
+<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" <%= "hidden" unless edit_open || schedule_open %>>
+  <div class="action-row entry__actions" data-step="actions" <%= "hidden" if edit_open || schedule_open %>>
     <% if offered_commands.include?("update") %>
       <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showEdit">Edit</button>
     <% end %>
@@ -21,7 +22,13 @@
       <%= button_to "Reopen", reopen_entry_path(entry), params: return_params, class: "action action--surface action--muted entry-action" %>
     <% end %>
     <% if offered_commands.include?("schedule") %>
-      <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showSchedule">Schedule…</button>
+      <% if local_assigns[:schedule_open_path] %>
+        <%= button_to "Schedule…", schedule_open_path, method: :get,
+                      params: { schedule: schedule_entry_id },
+                      class: "action action--surface action--muted entry-action" %>
+      <% else %>
+        <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showSchedule">Schedule…</button>
+      <% end %>
     <% end %>
     <% if offered_commands.include?("move_to_collection") %>
       <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showMove">Move to Collection…</button>
@@ -56,12 +63,12 @@
   <%# The date step belongs only to a row that may actually schedule, so a
       Collection row never carries a hidden second step it can never reach. %>
   <% if offered_commands.include?("schedule") %>
-    <div class="action-row entry__schedule-step" data-step="schedule" hidden>
+    <div class="action-row entry__schedule-step" data-step="schedule" <%= "hidden" unless schedule_open %>>
       <%= form_with url: schedule_entry_path(entry), class: "entry__schedule" do |form| %>
         <%= form.hidden_field :viewed_on, value: viewed_on_iso %>
         <%= form.hidden_field :return_to, value: return_to if return_to %>
         <%= form.label :date, "Schedule for", class: "field-label" %>
-        <%= form.date_field :date, required: true, class: "field field--muted" %>
+        <%= form.date_field :date, required: true, autofocus: schedule_open, class: "field field--muted" %>
         <div class="action-row entry__schedule-actions">
           <%= form.submit "Schedule", class: "action action--surface action--muted entry-action" %>
           <button type="button"

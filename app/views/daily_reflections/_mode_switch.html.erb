@@ -1,8 +1,12 @@
 <nav class="daily-reflection__mode-switch" aria-label="Daily Reflection mode">
-  <%= link_to "Morning", reflection_path,
+  <%= link_to "Morning", reflection_path(focus: "mode"),
+              id: "reflection_morning_mode",
               class: class_names("daily-reflection__mode", "daily-reflection__mode--active": mode == :morning),
+              autofocus: (reflection_mode_focus?(mode) if mode == :morning),
               aria: { current: ("page" if mode == :morning) } %>
-  <%= link_to "Evening", evening_reflection_path,
+  <%= link_to "Evening", evening_reflection_path(focus: "mode"),
+              id: "reflection_evening_mode",
               class: class_names("daily-reflection__mode", "daily-reflection__mode--active": mode == :evening),
+              autofocus: (reflection_mode_focus?(mode) if mode == :evening),
               aria: { current: ("page" if mode == :evening) } %>
 </nav>

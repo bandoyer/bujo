@@ -163,13 +163,29 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
       original = task.attributes.except("priority", "updated_at")
       post mark_priority_reflection_path(task), params: { page_kind: "future", on: TODAY.next_day.iso8601 }
       assert_redirected_to reflection_path
+      assert_equal "entry:#{task.id}", flash[:reflection_focus]
       assert_predicate task.reload, :priority?
       assert_equal original, task.attributes.except("priority", "updated_at")
 
       post clear_priority_reflection_path(task)
       assert_redirected_to reflection_path
+      assert_equal "entry:#{task.id}", flash[:reflection_focus]
       assert_not task.reload.priority?
       assert_equal original, task.attributes.except("priority", "updated_at")
+    end
+  end
+
+  test "mode and Schedule entry requests redirect with one-response focus state" do
+    task = create_entry(text: "schedule candidate", page_kind: "daily", page_on: TODAY)
+
+    travel_to TODAY do
+      get evening_reflection_path, params: { focus: "mode" }
+      assert_redirected_to evening_reflection_path
+      assert_equal "mode", flash[:reflection_focus]
+
+      get evening_reflection_path, params: { schedule: task.id }
+      assert_redirected_to evening_reflection_path
+      assert_equal "schedule:#{task.id}", flash[:reflection_focus]
     end
   end
 
@@ -193,6 +209,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
         post mark_priority_reflection_path(task)
         assert_redirected_to reflection_path
         assert_equal "That entry can't do that.", flash[:alert]
+        assert_equal "mode", flash[:reflection_focus]
         assert_equal snapshot, journal_snapshot
       end
 
@@ -200,6 +217,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
       snapshot = journal_snapshot
       post mark_priority_reflection_path(marked)
       assert_equal snapshot, journal_snapshot
+      assert_equal "entry:#{marked.id}", flash[:reflection_focus]
     end
   end
 
