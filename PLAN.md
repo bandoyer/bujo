@@ -13,8 +13,11 @@ next.
 > dogfooding. The accepted tree is green at 265 fast tests / 6434 assertions
 > and 95 headless-Chrome system tests / 15234 assertions, with RuboCop clean.
 > Production still runs 1.4.1. Dan chose 1.5.4 Daily Reflection as the next
-> planning track; authentication Step 1 remains separate and unstarted. See
-> `HANDOFF.md`.
+> planning track. Dan approved its source-aligned contract, six digital
+> translations, and review board on 2026-08-27. The configured
+> `six-mix-fable-review` swarm is authorized to implement 1.5.4 in isolation;
+> terminal integration still requires separate approval. Authentication Step 1
+> remains separate and unstarted. See `HANDOFF.md`.
 
 ## What this is
 
@@ -97,6 +100,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-27 | **Tailwind v4 presentation migration approved.** Dan approved the complete source-aligned contract and keeping all 135 T0 screenshots in the repository. Commit/push of the planning baseline and `swarm squad up` are authorized. Work remains isolated on `codex/tailwind-v4`; passing terminal QA does not authorize root integration or deployment |
 | 2026-08-27 | **Tailwind v4 presentation migration landed.** Dan approved terminal candidate `8d7ccbd` after corrected terminal QA pass 2. The presentation-only migration keeps all accepted behavior and geometry, exact-pins `tailwindcss-rails` 4.6.0 and `tailwindcss-ruby` 4.3.3, uses no Node, Preflight, or default Tailwind theme, and serves one fingerprinted application bundle. The merged tree passes 265 fast tests / 6424 assertions, 94 system tests / 15445 assertions, RuboCop, security audits, coverage/CRAP/duplication, immutable T0 parity, production asset, and Docker checks. Deployment remains Dan's action |
 | 2026-08-27 | **Post-Tailwind Calendar baseline correction landed.** Real-device dogfooding exposed Calendar resident ink 13.5 CSS px above the centered date row. The Calendar-only correction brings the date number, weekday, resident glyph, first text line, and metadata within 4 CSS px at 390 px and 320 px; wrapped resident ink grows downward and horizontal geometry and behavior remain unchanged. Dan accepted the corrected phone result and chose Daily Reflection next. The merged tree passes 265 fast tests / 6434 assertions, 95 system tests / 15234 assertions, and RuboCop |
+| 2026-08-27 | **Slice 1.5.4 Daily Reflection approved; implementation authorized.** The current-day, no-schema reference lens keeps Morning to shared capture plus current-month dated-page review through the existing `*` priority, and Evening to shared capture plus today's Daily trees with focused Complete/Strike/Schedule actions and derived progress copy. Dan approved all six digital translations in `docs/slices/1.5.4-daily-reflection.md` and the review board at `mockups/DailyReflection.dc.html`. `six-mix-fable-review` may implement in isolation; terminal integration remains separately gated |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -264,11 +268,16 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             4 CSS px on both phone profiles while wrapped ink grows downward.
             Merged-tree receipts: 265 fast tests / 6434 assertions, 95 system
             tests / 15234 assertions, RuboCop clean.
-      - [ ] **NEXT: 1.5.4 Daily Reflection**: a small first-class AM/PM
-            review: AM sees the current month's open tasks; PM walks
-            today's entries to complete, strike, or schedule and makes
-            progress visible. This is a reference lens over resident
-            entries, never a new page or automatic movement.
+      - [ ] **IMPLEMENTATION AUTHORIZED: 1.5.4 Daily Reflection**: a current-day,
+            no-schema AM/PM reference lens. Morning captures overnight
+            thoughts and reviews current-month dated-page tasks through the
+            existing `*` priority; Evening captures missed entries and shows
+            today's complete Daily trees with focused Complete, Strike, and
+            Schedule gestures plus quiet derived progress. Proposed contract:
+            `docs/slices/1.5.4-daily-reflection.md`; review board:
+            `mockups/DailyReflection.dc.html`. Dan approved all six digital
+            translations on 2026-08-27; `six-mix-fable-review` may implement
+            in isolation, while terminal integration remains separately gated.
       - [ ] **1.5.5 Core notation and hierarchy fidelity** — add the
             `!` inspiration signifier and gate a master task's
             completion until every subtask is done or struck. Keep the

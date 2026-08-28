@@ -146,21 +146,33 @@ Tailwind T0 artifacts remain unchanged.
 ## Next work: 1.5.4 Daily Reflection planning
 
 Dan chose **1.5.4 Daily Reflection** rather than authentication Step 1 as the
-next track. Begin with a source-aligned spec and the smallest review mock needed
-for the AM/PM lens. The current plan boundary remains a small AM/PM reference
-lens:
+next track. A source-aligned draft now exists at
+`docs/slices/1.5.4-daily-reflection.md`, with the smallest review board at
+`mockups/DailyReflection.dc.html`. Dan approved both and all six digital
+translations on 2026-08-27. The planning baseline may be committed and pushed,
+then the configured `six-mix-fable-review` swarm may implement in isolation.
+Terminal integration and deployment remain separately gated.
 
-- morning reflection brings the current month's open tasks into view;
-- evening reflection walks today's entries deliberately through appropriate
-  completion, strike, and scheduling gestures;
+The source check returned to the complete Morning and Evening Reflection
+passages. They establish overnight capture, review of the current month's open
+tasks, today's complete Daily record, individual assessment, completion,
+strike, future scheduling, and appreciation of progress. The proposed lens is:
+
+- Morning embeds today's shared capture, then shows current-month Calendar,
+  Tasks, and Daily trees in paper order. It persists only Mark/Clear of the
+  existing `*` priority and never copies a task to Today;
+- Evening embeds today's shared capture, then shows today's complete Daily
+  trees with Complete/Strike/Schedule only where appropriate and quiet derived
+  completed-task copy;
 - reflection references resident entries and never becomes another page,
   duplicate residency, background sweep, notification system, or automatic
   movement.
 
-When 1.5.4 is specified, start with `docs/METHOD.md`; return to the book's
-Morning Reflection, Evening Reflection, Daily Log, and Migration passages only
-where project authority leaves a source question unresolved. Surface genuinely
-digital decisions to Dan rather than guessing.
+The six approved translations are binding: current-day route/mode behavior,
+exact Morning scope/order, priority as the only Morning choice state, focused
+Evening controls, derived progress only, and embedded shared capture. Commit
+and push the planning baseline before starting `six-mix-fable-review`; do not
+reinterpret them during implementation.
 
 The separate authentication track is also unblocked: Step 1 is Resend delivery
 plus short-lived, single-use magic links, governed by

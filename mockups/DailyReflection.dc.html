@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bujo Daily Reflection review board</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&amp;family=Rock+Salt&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --paper: #f6f1e6;
+      --paper-surface: #fdfaf2;
+      --paper-ink: #201d18;
+      --paper-muted: #8d8574;
+      --paper-faint: #a39a89;
+      --paper-line: #e0d8c4;
+      --paper-accent: #a8722a;
+      --paper-warn: #a0524a;
+      --paper-selected: color-mix(in srgb, var(--paper-surface) 94%, var(--paper-accent));
+      --dark: #16161e;
+      --dark-surface: #1a1b26;
+      --dark-ink: #c0caf5;
+      --dark-muted: #565f89;
+      --dark-line: #2f3549;
+      --dark-accent: #7aa2f7;
+      --dark-warn: #f7768e;
+      --dark-selected: color-mix(in srgb, var(--dark-surface) 90%, var(--dark-accent));
+    }
+    body {
+      margin: 0;
+      background: #d9d4c8;
+      color: #201d18;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .board {
+      display: grid;
+      width: 1320px;
+      min-height: 930px;
+      grid-template-columns: 390px 390px 444px;
+      gap: 32px;
+      align-items: start;
+      padding: 32px;
+    }
+    .light {
+      --background: var(--paper);
+      --surface: var(--paper-surface);
+      --ink: var(--paper-ink);
+      --muted: var(--paper-muted);
+      --faint: var(--paper-faint);
+      --line: var(--paper-line);
+      --accent: var(--paper-accent);
+      --warn: var(--paper-warn);
+      --selected: var(--paper-selected);
+      --dot: rgba(32, 29, 24, 0.09);
+      --hand: "Rock Salt", system-ui, sans-serif;
+    }
+    .dark {
+      --background: var(--dark);
+      --surface: var(--dark-surface);
+      --ink: var(--dark-ink);
+      --muted: var(--dark-muted);
+      --faint: var(--dark-muted);
+      --line: var(--dark-line);
+      --accent: var(--dark-accent);
+      --warn: var(--dark-warn);
+      --selected: var(--dark-selected);
+      --dot: rgba(192, 202, 245, 0.07);
+      --hand: "Architects Daughter", system-ui, sans-serif;
+    }
+    .phone, .inset {
+      position: relative;
+      overflow: auto;
+      scrollbar-width: none;
+      border: 1px solid var(--line);
+      background-color: var(--background);
+      background-image: radial-gradient(var(--dot) 1px, transparent 1.1px);
+      background-size: 22px 22px;
+      color: var(--ink);
+      font-family: var(--hand);
+      box-shadow: 0 18px 45px rgba(32, 29, 24, 0.16);
+    }
+    .phone {
+      display: flex;
+      width: 390px;
+      height: 844px;
+      flex-direction: column;
+      border-radius: 30px;
+    }
+    .dark.phone, .dark.inset { box-shadow: 0 18px 45px rgba(22, 22, 30, 0.35); }
+    .page {
+      min-height: 0;
+      flex: 1;
+      overflow: hidden;
+      padding: 26px 16px 78px;
+    }
+    h1 {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1.05;
+    }
+    h2 { margin: 0; font-size: 20px; font-weight: 400; }
+    .date, .preferences, .cue, .source, .count, .progress, .capture-label, .inset-label {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .date { margin: 7px 0 0; color: var(--accent); }
+    .preferences { margin: 5px 0 0; }
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-top: 12px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+    }
+    .mode {
+      display: grid;
+      min-height: 44px;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+    .mode.active { background: var(--selected); color: var(--accent); }
+    .stage-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 13px;
+    }
+    .cue { margin: 3px 0 0; }
+    .capture {
+      margin-top: 9px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+    }
+    .capture-label { display: block; margin: 0 0 6px; color: var(--ink); }
+    .kind-and-line { display: flex; gap: 6px; }
+    .kinds { display: flex; gap: 4px; }
+    .kind {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+    }
+    .kind[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+    .rapid-line {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+    }
+    .rapid-line input {
+      min-width: 0;
+      flex: 1;
+      padding: 0 10px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+    .rapid-line button {
+      min-width: 48px;
+      min-height: 44px;
+      padding: 0 10px;
+      border: 0;
+      background: var(--accent);
+      color: var(--surface);
+    }
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 13px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--line);
+    }
+    .section-heading h2 { font-size: 18px; color: var(--accent); }
+    .source {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+    .source span:last-child { color: var(--accent); font-size: 18px; }
+    .tree { padding-bottom: 2px; border-bottom: 1px solid var(--line); }
+    .entry { border-radius: 9px; }
+    .entry.selected { padding: 3px 5px 7px; background: var(--selected); }
+    .entry.child { margin-left: 19px; }
+    .entry-line {
+      display: grid;
+      min-height: 40px;
+      grid-template-columns: 13px 18px minmax(0, 1fr) fit-content(35%);
+      gap: 4px;
+      align-content: center;
+      align-items: baseline;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+    .signifier { color: var(--accent); }
+    .meta { color: var(--muted); font-size: 10px; text-align: right; }
+    .struck {
+      text-decoration-line: line-through;
+      text-decoration-color: currentColor;
+      text-decoration-thickness: 2px;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 35px; }
+    .action {
+      display: grid;
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0 11px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--hand);
+      font-size: 11px;
+    }
+    .action.warn { color: var(--warn); }
+    .progress { margin: 10px 0 0; color: var(--accent); }
+    .closing { margin: 3px 0 0; font-size: 12px; }
+    .tab-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 66px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--faint);
+      font-size: 10px;
+    }
+    .tab.active { color: var(--accent); }
+    .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .insets { display: grid; gap: 24px; }
+    .inset {
+      width: 444px;
+      min-height: 398px;
+      padding: 26px 22px 30px;
+      border-radius: 26px;
+    }
+    .inset h1 { font-size: 32px; }
+    .inset-label { margin: 7px 0 0; color: var(--accent); }
+    .day-nav {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      margin-top: 13px;
+      text-align: center;
+    }
+    .day-nav span { min-height: 44px; display: grid; place-items: center; }
+    .day-nav span:nth-child(2) { color: var(--accent); font-size: 12px; }
+    .reflect-link {
+      display: grid;
+      min-height: 44px;
+      margin-top: 14px;
+      padding: 0 14px;
+      place-items: center;
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--accent);
+      font-size: 13px;
+    }
+    .schedule {
+      margin-top: 18px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--surface);
+    }
+    .schedule label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; }
+    .schedule input {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--background);
+      color: var(--ink);
+      font-family: var(--hand);
+    }
+    .schedule-actions { display: flex; gap: 7px; margin-top: 8px; }
+    .schedule-actions .action:first-child { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="phone light" aria-label="Morning Daily Reflection">
+      <div class="page">
+        <h1>Daily Reflection</h1>
+        <p class="date">THURSDAY · AUGUST 27</p>
+        <p class="preferences">Theme: light · Hand: rock salt</p>
+        <nav class="mode-switch" aria-label="Daily Reflection mode">
+          <span class="mode active" aria-current="page">Morning</span>
+          <span class="mode">Evening</span>
+        </nav>
+        <div class="stage-row"><h2>Plan the day</h2></div>
+        <p class="cue">Clear your mind, then review what is still open this month.</p>
+
+        <section class="capture" aria-label="Morning rapid log">
+          <label class="capture-label" for="morning-line">What surfaced overnight?</label>
+          <div class="kind-and-line">
+            <div class="kinds" aria-label="Entry kind">
+              <button class="kind" type="button" aria-label="Task" aria-pressed="true">•</button>
+              <button class="kind" type="button" aria-label="Event" aria-pressed="false">O</button>
+              <button class="kind" type="button" aria-label="Note" aria-pressed="false">–</button>
+            </div>
+            <div class="rapid-line"><input id="morning-line" placeholder="Rapid log…"><button type="button">Log</button></div>
+          </div>
+        </section>
+
+        <div class="section-heading"><h2>Open this month</h2><span class="count">4 open</span></div>
+        <section aria-label="Monthly Calendar open tasks">
+          <div class="source"><span>Monthly Calendar · August 2026</span><span>›</span></div>
+          <div class="tree">
+            <article class="entry selected">
+              <div class="entry-line"><span class="signifier">*</span><span>•</span><span>Renew renters insurance</span><span class="meta">AUG 29</span></div>
+              <div class="actions"><button class="action" type="button">Clear priority</button></div>
+            </article>
+          </div>
+        </section>
+        <section aria-label="Monthly Tasks open tasks">
+          <div class="source"><span>Monthly Tasks · August 2026</span><span>›</span></div>
+          <div class="tree">
+            <article class="entry"><div class="entry-line"><span></span><span>•</span><span>Plan the September workshop</span><span class="meta">+WORK</span></div></article>
+            <article class="entry child"><div class="entry-line"><span></span><span>•</span><span>Ask Mina about the room</span><span class="meta"></span></div></article>
+          </div>
+        </section>
+        <section aria-label="Daily Log open tasks">
+          <div class="source"><span>Daily Log · August 26, 2026</span><span>›</span></div>
+          <div class="tree">
+            <article class="entry"><div class="entry-line"><span></span><span>•</span><span>Call the campground</span><span class="meta">+HOME</span></div></article>
+          </div>
+        </section>
+      </div>
+      <nav class="tab-bar" aria-label="Journal sections">
+        <span class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+      </nav>
+    </section>
+
+    <section class="phone dark" aria-label="Evening Daily Reflection">
+      <div class="page">
+        <h1>Daily Reflection</h1>
+        <p class="date">THURSDAY · AUGUST 27</p>
+        <p class="preferences">Theme: dark · Hand: architects daughter</p>
+        <nav class="mode-switch" aria-label="Daily Reflection mode">
+          <span class="mode">Morning</span>
+          <span class="mode active" aria-current="page">Evening</span>
+        </nav>
+        <div class="stage-row"><h2>Review the day</h2></div>
+        <p class="cue">Update today's record, consider each entry, and notice what moved forward.</p>
+
+        <section class="capture" aria-label="Evening rapid log">
+          <label class="capture-label" for="evening-line">What did you miss?</label>
+          <div class="kind-and-line">
+            <div class="kinds" aria-label="Entry kind">
+              <button class="kind" type="button" aria-label="Task" aria-pressed="true">•</button>
+              <button class="kind" type="button" aria-label="Event" aria-pressed="false">O</button>
+              <button class="kind" type="button" aria-label="Note" aria-pressed="false">–</button>
+            </div>
+            <div class="rapid-line"><input id="evening-line" placeholder="Rapid log…"><button type="button">Log</button></div>
+          </div>
+        </section>
+
+        <div class="section-heading"><h2>Today's entries</h2></div>
+        <div class="tree">
+          <article class="entry"><div class="entry-line"><span class="signifier">*</span><span>•</span><span>Review auth recovery notes</span><span class="meta">+WORK</span></div></article>
+          <article class="entry child"><div class="entry-line"><span></span><span>–</span><span>Keep the recovery path simple</span><span class="meta"></span></div></article>
+          <article class="entry selected">
+            <div class="entry-line"><span></span><span>•</span><span>Call the campground</span><span class="meta">+HOME</span></div>
+            <div class="actions">
+              <button class="action" type="button">Complete</button>
+              <button class="action warn" type="button">Strike</button>
+              <button class="action" type="button">Schedule…</button>
+            </div>
+          </article>
+          <article class="entry"><div class="entry-line"><span></span><span>x</span><span>Send the invoice</span><span class="meta"></span></div></article>
+          <article class="entry"><div class="entry-line"><span></span><span>O</span><span>Dinner with Lena</span><span class="meta">18:00</span></div></article>
+          <article class="entry"><div class="entry-line"><span></span><span>•</span><span class="struck">Buy another notebook</span><span class="meta"></span></div></article>
+        </div>
+        <p class="progress">1 task marked complete.</p>
+        <p class="closing">Notice what moved forward today.</p>
+      </div>
+      <nav class="tab-bar" aria-label="Journal sections">
+        <span class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+      </nav>
+    </section>
+
+    <aside class="insets" aria-label="Daily Reflection supporting states">
+      <section class="inset light" aria-label="Current Daily Log reflection entry point">
+        <h1>Daily Log</h1>
+        <p class="inset-label">Current Daily Log entry point</p>
+        <div class="day-nav"><span>‹</span><span>THU · AUG 27</span><span>›</span></div>
+        <button class="reflect-link" type="button">Reflect</button>
+        <div class="tree" style="margin-top: 17px;">
+          <article class="entry"><div class="entry-line"><span class="signifier">*</span><span>•</span><span>Review auth recovery notes</span><span class="meta">+WORK</span></div></article>
+          <article class="entry"><div class="entry-line"><span></span><span>O</span><span>Dinner with Lena</span><span class="meta">18:00</span></div></article>
+        </div>
+      </section>
+
+      <section class="inset dark" aria-label="Evening Schedule step">
+        <h1>Daily Reflection</h1>
+        <p class="inset-label">Evening · Schedule step</p>
+        <article class="entry selected" style="margin-top: 17px;">
+          <div class="entry-line"><span></span><span>•</span><span>Call the campground</span><span class="meta">+HOME</span></div>
+        </article>
+        <div class="schedule">
+          <label for="reflection-date">Schedule for</label>
+          <input id="reflection-date" type="date" value="2026-09-12">
+          <div class="schedule-actions"><button class="action" type="button">Schedule</button><button class="action" type="button">Cancel</button></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</body>
+</html>
