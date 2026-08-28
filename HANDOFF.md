@@ -1,4 +1,4 @@
-# Handoff: Daily Reflection landed; Index source correction authorized (2026-08-28)
+# Handoff: Index source correction landed; 1.5.5 at planning gate (2026-08-28)
 
 For the next operator session, any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next product
@@ -30,8 +30,10 @@ integrated on `main`; its contract is
 `docs/slices/1.5.3b-dogfood-entry-corrections.md`, with the approved review
 board at `mockups/PhoneDogfoodCorrections.dc.html`. Daily Reflection terminal
 candidate `c2127b5` is also integrated and pushed on `main` after Dan's explicit
-2026-08-28 approval. Nothing from 1.5.3a onward has been deployed by this
-handoff.
+2026-08-28 approval. Index source correction terminal candidate `12f8164` is
+also integrated and pushed after Dan's explicit approval; its completed
+`six-cg` swarm is retired. Nothing from 1.5.3a onward has been deployed by
+this handoff.
 
 Tailwind terminal candidate `8d7ccbde93f02f9a7afcc643d7547a43490792fa`
 is integrated on `main` with Dan's 2026-08-27 approval. Its complete T0 receipt
@@ -73,10 +75,11 @@ Daily Reflection subsequently landed.
 - Each Monthly Migration resolution offers one immediate Undo. Undo is a
   tenant-scoped compensating append for movement, never history mutation, and
   refuses stale or crafted requests without disturbing the live chain.
-- The currently landed Collection implementation still creates an unindexed
-  page and exposes registration. Dan rejected that digital translation after a
-  2026-08-28 source check; approved 1.5.2a corrects it before further feature
-  work. Entry deletion remains deferred.
+- Every kept Custom Collection now belongs to its owner's Index in permanent
+  server-allocated append order. Create persists the UUIDv7 page and position
+  atomically; prior kept NULL-position rows are registered once in
+  deterministic per-user order. Unindex/re-register and Open by Topic no
+  longer exist. Entry deletion remains deferred.
 - Monthly Migration is an explicitly opened target-month ritual. It never
   starts on page view or month rollover and never silently carries work.
 - Setup gives the ritual alone a task-only admission context for target Monthly
@@ -117,6 +120,13 @@ Daily Reflection subsequently landed.
   rounds. Root repeated the exact final tree at 286 fast tests / 6907
   assertions, 112 headless-Chrome system tests / 16797 assertions, and 114
   RuboCop-clean files before integration.
+- Index source correction terminal candidate `12f8164` passed the complete
+  `six-cg` chain. Root repeated the exact final tree at 281 fast tests / 6644
+  assertions, 112 headless-Chrome system tests / 16796 assertions, 30 focused
+  Collection/migration/controller tests / 375 assertions, and 116
+  RuboCop-clean files. Terminal QA also recorded CRAP ≤ 6 over 262 methods,
+  zero clones, RapidLog mutation 1105/1105, and passing concurrency and raw
+  database-constraint probes.
 - Architect review recorded one non-blocking dogfood seam: a populated
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
@@ -160,39 +170,18 @@ assertions, and RuboCop clean. The correction is documented as a post-T0
 product amendment in `docs/slices/1.5.3b-dogfood-entry-corrections.md`; frozen
 Tailwind T0 artifacts remain unchanged.
 
-## Next work: 1.5.2a Index source correction
+## Next work: 1.5.5 Core notation and hierarchy fidelity
 
-Phone dogfooding exposed a conceptual problem rather than a missing hint: a
-new Custom Collection could exist outside the Index, so returning through the
-fixed Index tab made a successful creation appear lost. The source check found
-that Ryder describes the Index as the container/retrieval map for Collections
-except Daily and does not define a deliberately hidden active Custom
-Collection. Dan ruled on 2026-08-28 that the web app must create and register a
-Custom Collection in one commitment; normal unindex/re-register and Open by
-Topic go away.
+The remaining method-spine slice adds Ryder's `!` inspiration signifier and
+gates a master task's completion until every subtask is done or struck. Begin
+with `docs/METHOD.md` and the Part II/III source, then prepare the complete
+source-aligned slice contract and the smallest reviewable phone mock before
+starting another swarm. Keep the parked date-grammar expansion, Entry
+deletion, search, settings polish, PWA work, authentication, active sync, and
+deployment outside this slice unless Dan separately changes the plan.
 
-The approved bounded contract is
-`docs/slices/1.5.2a-index-is-the-collection-register.md`; the smallest review
-board is `mockups/IndexSourceCorrection.dc.html`. Dan explicitly approved its
-four necessary digital translations on 2026-08-28:
-
-- web Create atomically persists the named UUIDv7 page and its next
-  server-owned Index position, even before first capture;
-- a one-way migration registers existing kept NULL-position Collections in
-  deterministic per-user `created_at, id` order after every retained rank;
-- append order becomes permanent—rename, capture, movement, and soft deletion
-  preserve it, with no reorder or unindex workaround; and
-- the nullable column remains for tombstones/wire compatibility while a check
-  constraint forbids NULL on a kept Collection.
-
-No broad search, filtering, picker, new entity, Entry behavior, delete scope,
-active sync, or deployment belongs in the correction. The configured
-`six-cg` swarm is authorized to implement from committed planning baseline
-`f397837`. Passing QA remains terminal only for the isolated candidate; it
-does not authorize integration, push of implementation, or deployment.
-
-The separate authentication track is unblocked but remains unstarted and does
-not run in parallel. After 1.5.2a, the remaining method-spine slice is 1.5.5.
+No 1.5.5 implementation is authorized yet. The separate authentication track
+is unblocked but remains unstarted and does not run in parallel.
 
 ## Build and review
 
@@ -210,10 +199,10 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-Daily Reflection terminal candidate `c2127b5` is integrated and pushed. Its
-completed six-role swarm, role worktrees, and daemons are retired. Do not start
-another swarm before its source-aligned specification and any necessary review
-mock are approved.
+Daily Reflection terminal candidate `c2127b5` and Index source correction
+candidate `12f8164` are integrated and pushed. Both completed six-role swarms,
+role worktrees, and daemons are retired. Do not start another swarm before its
+source-aligned specification and any necessary review mock are approved.
 
 The completed Tailwind track used a dynamic squad, not the old six persistent worktrees:
 at most two transient workers; Sol Max leader/specifier; Sol High coder and
@@ -223,9 +212,9 @@ canonical SwarmForge `main` at `b5b17bd` and passed its complete 375-check
 smoke suite. Dan's 2026-08-27 approval landed terminal candidate `8d7ccbd`; the
 squad is down and every transient worker is retired.
 
-After the bounded 1.5.2a correction, the remaining method-spine slice is `!`
-inspiration and master-task completion gating (1.5.5). Settings polish, broad
-search, grammar expansion, and PWA work remain deferred.
+The next method-spine slice is `!` inspiration and master-task completion
+gating (1.5.5). Settings polish, broad search, grammar expansion, and PWA work
+remain deferred.
 
 ## Deployment boundary
 

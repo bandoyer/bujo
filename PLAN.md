@@ -7,17 +7,14 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: 1.5.4 Daily Reflection LANDED (2026-08-28).** Dan approved and
-> root integrated terminal candidate `c2127b5`; the exact merged tree passes
-> 286 fast tests / 6907 assertions, 112 headless-Chrome system tests / 16797
-> assertions, and RuboCop over 114 files. Its completed `mix-*` swarm is
-> retired. Dan then corrected the Custom Collection source ruling: a live
-> Custom Collection belongs to the Index, so web creation and registration are
-> one commitment and deliberate unindex/Open by Topic disappear. Dan approved
-> the complete 1.5.2a contract and smallest review board on 2026-08-28;
-> implementation is authorized for the configured `six-cg` pack. Production
-> still runs 1.4.1; authentication Step 1 remains separate and unstarted. See
-> `HANDOFF.md`.
+> **Status: 1.5.2a Index source correction LANDED (2026-08-28).** Dan approved
+> and root integrated terminal candidate `12f8164`; the exact merged tree
+> passes 281 fast tests / 6644 assertions, 112 headless-Chrome system tests /
+> 16796 assertions, and RuboCop over 116 files. Every kept Custom Collection
+> now belongs to the Index in permanent append order, including the
+> deterministic transition of previously hidden rows. The completed `cg-*`
+> swarm is retired. Production still runs 1.4.1; authentication Step 1 remains
+> separate and unstarted. See `HANDOFF.md`.
 
 ## What this is
 
@@ -105,6 +102,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-28 | **Index source ruling corrected; implementation not yet authorized.** Ryder's Index is the retrieval container for Collections except Daily, not an optional visibility flag for active Custom Collections. Dan ruled that web Create atomically appends the new Collection to the Index; normal unindex/re-register, hidden live Collections, and Open by Topic go away. Proposed digital transition details are in `docs/slices/1.5.2a-index-is-the-collection-register.md` and `mockups/IndexSourceCorrection.dc.html`; approval remains required before the stopped `six-cg` swarm starts |
 | 2026-08-28 | **Current pack changed to `six-cg`.** Sol Max specifies; Sol High codes; Grok 4.6 High cleans; Grok 4.6 xhigh architects; Grok 4.6 High hardens; Sol xhigh QAs. All roles remain isolated and passing QA remains terminal only for implementation |
 | 2026-08-28 | **Slice 1.5.2a approved; implementation authorized.** Dan approved all four digital translations in the source-aligned amendment and the smallest review board. The committed planning baseline is `f397837`; `six-cg` may implement in isolated role worktrees. Terminal QA still requires operator review and Dan's explicit approval before integration; deployment remains separate |
+| 2026-08-28 | **Slice 1.5.2a Index source correction landed.** Dan approved terminal candidate `12f8164` after the complete `six-cg` chain and independent root review. Creation now atomically appends every live Custom Collection to the complete Index; the irreversible migration deterministically registers prior kept hidden rows; normal unindex/re-register and Open by Topic are gone. Root passes 281 fast tests / 6644 assertions, 112 system tests / 16796 assertions, focused Collection/migration/controller tests, and RuboCop; terminal QA additionally records CRAP ≤ 6 over 262 methods, zero clones, and RapidLog mutation 1105/1105. The completed swarm is retired; deployment remains Dan's action |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -282,15 +280,16 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             `mockups/DailyReflection.dc.html`. Terminal candidate `c2127b5`;
             merged-tree receipts: 286 fast tests / 6907 assertions, 112 system
             tests / 16797 assertions, and RuboCop clean over 114 files.
-      - [ ] **1.5.2a Index source correction — APPROVED** (2026-08-28) — make Custom
+      - [x] **1.5.2a Index source correction** ✅ (2026-08-28) — make Custom
             Collection creation and server-owned Index registration atomic;
             backfill existing kept unindexed pages deterministically; remove
             unindex/re-register and Open by Topic; preserve append order,
             stable URLs, tenant scoping, and every Entry invariant. Approved
             contract: `docs/slices/1.5.2a-index-is-the-collection-register.md`;
-            review board: `mockups/IndexSourceCorrection.dc.html`. Dan approved
-            all four digital translations; the isolated `six-cg` implementation
-            swarm is authorized.
+            review board: `mockups/IndexSourceCorrection.dc.html`. Terminal
+            candidate `12f8164`; merged-tree receipts: 281 fast tests / 6644
+            assertions, 112 system tests / 16796 assertions, and RuboCop clean
+            over 116 files. The completed `cg-*` swarm is retired.
       - [ ] **1.5.5 Core notation and hierarchy fidelity** — add the
             `!` inspiration signifier and gate a master task's
             completion until every subtask is done or struck. Keep the
@@ -371,8 +370,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   like press-start — passkeys first, magic email links second. The
   generator's email/password remains only as a transitional rollback. The
   provider foundation is complete; Step 1 is now unblocked in the separate
-  authentication track. Daily Reflection landed on 2026-08-28; the bounded
-  1.5.2a Index source correction and then 1.5.5 remain ahead of authentication,
+  authentication track. Daily Reflection and the bounded 1.5.2a Index source
+  correction landed on 2026-08-28; 1.5.5 remains ahead of authentication,
   which does not run in parallel.
   `docs/resend-transactional-email.md` owns its live checklist and safety gates.
   Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
