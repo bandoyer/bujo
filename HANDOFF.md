@@ -1,4 +1,4 @@
-# Handoff: Index source correction landed; 1.5.5 at planning gate (2026-08-28)
+# Handoff: 1.5.5 approved; six-cg implementation starting (2026-08-28)
 
 For the next operator session, any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next product
@@ -170,18 +170,24 @@ assertions, and RuboCop clean. The correction is documented as a post-T0
 product amendment in `docs/slices/1.5.3b-dogfood-entry-corrections.md`; frozen
 Tailwind T0 artifacts remain unchanged.
 
-## Next work: 1.5.5 Core notation and hierarchy fidelity
+## Next work: implement 1.5.5 Core notation and hierarchy fidelity
 
-The remaining method-spine slice adds Ryder's `!` inspiration signifier and
-gates a master task's completion until every subtask is done or struck. Begin
-with `docs/METHOD.md` and the Part II/III source, then prepare the complete
-source-aligned slice contract and the smallest reviewable phone mock before
-starting another swarm. Keep the parked date-grammar expansion, Entry
-deletion, search, settings polish, PWA work, authentication, active sync, and
-deployment outside this slice unless Dan separately changes the plan.
+The approved source-aligned contract lives at
+`docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md`; its smallest
+review board is `mockups/CoreNotationHierarchy.dc.html`. It adds Ryder's `!`
+inspiration signifier, follows append-only successor chains when deciding
+whether every subtask is done or struck, and preserves the no-cascade rule.
 
-No 1.5.5 implementation is authorized yet. The separate authentication track
-is unblocked but remains unstarted and does not run in parallel.
+The audit found one prior planning gap: Rails renders `parent_id` trees but has
+no normal gesture to create a child. Dan approved the explicit `Add below…`
+step using the existing three-kind rapid-log anatomy, along with independent,
+coexisting `*` + `!` signifiers. The `six-cg` swarm may implement that complete
+contract in isolated worktrees.
+
+Keep the parked date-grammar expansion, Entry deletion, search, settings
+polish, PWA work, authentication, active sync, and deployment outside this
+slice unless Dan separately changes the plan. The authentication track is
+unblocked but remains unstarted and does not run in parallel.
 
 ## Build and review
 
@@ -200,9 +206,9 @@ headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
 Daily Reflection terminal candidate `c2127b5` and Index source correction
-candidate `12f8164` are integrated and pushed. Both completed six-role swarms,
-role worktrees, and daemons are retired. Do not start another swarm before its
-source-aligned specification and any necessary review mock are approved.
+candidate `12f8164` are integrated and pushed. Both completed six-role swarms
+and role worktrees are retired. The approved 1.5.5 contract is the sole
+authorized work for the new `six-cg` run.
 
 The completed Tailwind track used a dynamic squad, not the old six persistent worktrees:
 at most two transient workers; Sol Max leader/specifier; Sol High coder and
@@ -212,9 +218,9 @@ canonical SwarmForge `main` at `b5b17bd` and passed its complete 375-check
 smoke suite. Dan's 2026-08-27 approval landed terminal candidate `8d7ccbd`; the
 squad is down and every transient worker is retired.
 
-The next method-spine slice is `!` inspiration and master-task completion
-gating (1.5.5). Settings polish, broad search, grammar expansion, and PWA work
-remain deferred.
+The current method-spine slice is `!` inspiration, master-task completion
+gating, and the approved write-beneath gesture (1.5.5). Settings polish, broad
+search, grammar expansion, and PWA work remain deferred.
 
 ## Deployment boundary
 

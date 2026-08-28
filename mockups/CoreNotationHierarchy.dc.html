@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bujo core notation and hierarchy review board</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&amp;family=Rock+Salt&amp;display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --paper: #f6f1e6;
+      --paper-surface: #fdfaf2;
+      --paper-ink: #201d18;
+      --paper-muted: #8d8574;
+      --paper-faint: #a39a89;
+      --paper-line: #e0d8c4;
+      --paper-accent: #a8722a;
+      --paper-warn: #a0524a;
+      --paper-selected: color-mix(in srgb, var(--paper-surface) 94%, var(--paper-accent));
+      --dark: #16161e;
+      --dark-surface: #1a1b26;
+      --dark-ink: #c0caf5;
+      --dark-muted: #565f89;
+      --dark-line: #2f3549;
+      --dark-accent: #7aa2f7;
+      --dark-warn: #f7768e;
+      --dark-selected: color-mix(in srgb, var(--dark-surface) 90%, var(--dark-accent));
+    }
+    body {
+      margin: 0;
+      background: #d9d4c8;
+      color: #201d18;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .board {
+      display: grid;
+      width: 1320px;
+      min-height: 930px;
+      grid-template-columns: 390px 390px 444px;
+      gap: 32px;
+      align-items: start;
+      padding: 32px;
+    }
+    .light {
+      --background: var(--paper);
+      --surface: var(--paper-surface);
+      --ink: var(--paper-ink);
+      --muted: var(--paper-muted);
+      --faint: var(--paper-faint);
+      --line: var(--paper-line);
+      --accent: var(--paper-accent);
+      --warn: var(--paper-warn);
+      --selected: var(--paper-selected);
+      --dot: rgba(32, 29, 24, 0.09);
+      --hand: "Rock Salt", system-ui, sans-serif;
+    }
+    .dark {
+      --background: var(--dark);
+      --surface: var(--dark-surface);
+      --ink: var(--dark-ink);
+      --muted: var(--dark-muted);
+      --faint: var(--dark-muted);
+      --line: var(--dark-line);
+      --accent: var(--dark-accent);
+      --warn: var(--dark-warn);
+      --selected: var(--dark-selected);
+      --dot: rgba(192, 202, 245, 0.07);
+      --hand: "Architects Daughter", system-ui, sans-serif;
+    }
+    .phone, .inset {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background-color: var(--background);
+      background-image: radial-gradient(var(--dot) 1px, transparent 1.1px);
+      background-size: 22px 22px;
+      color: var(--ink);
+      font-family: var(--hand);
+      box-shadow: 0 18px 45px rgba(32, 29, 24, 0.16);
+    }
+    .phone {
+      display: flex;
+      width: 390px;
+      height: 844px;
+      flex-direction: column;
+      border-radius: 30px;
+    }
+    .dark.phone, .dark.inset { box-shadow: 0 18px 45px rgba(22, 22, 30, 0.35); }
+    .page {
+      min-height: 0;
+      flex: 1;
+      overflow: hidden;
+      padding: 26px 16px 76px;
+    }
+    .header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1.05;
+    }
+    .utilities {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .preferences { display: flex; gap: 8px; }
+    .day-nav {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      margin-top: 4px;
+      text-align: center;
+    }
+    .day-nav span { display: grid; min-height: 44px; place-items: center; }
+    .day-nav span:nth-child(2) { color: var(--accent); font-size: 11px; }
+    .entry-list { padding-top: 8px; }
+    .entry { padding: 5px 0; border-radius: 8px; }
+    .entry.selected { padding: 5px 6px 8px; background: var(--selected); }
+    .entry.child { margin-left: 22px; }
+    .entry-line {
+      display: grid;
+      width: 100%;
+      min-height: 40px;
+      grid-template-columns: 22px 18px minmax(0, 1fr) fit-content(38%);
+      gap: 4px;
+      align-content: center;
+      align-items: baseline;
+      font-size: 12px;
+      line-height: 1.42;
+    }
+    .signifier { color: var(--accent); white-space: nowrap; }
+    .meta { color: var(--muted); font-size: 9px; overflow-wrap: anywhere; text-align: right; }
+    .struck {
+      text-decoration-line: line-through;
+      text-decoration-color: currentColor;
+      text-decoration-thickness: 2px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 4px 0 0 48px;
+    }
+    .action {
+      display: grid;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 9px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--hand);
+      font-size: 9px;
+    }
+    .action.warn { color: var(--warn); }
+    .blocked-copy {
+      margin: 7px 2px 0 48px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+    .canvas {
+      display: flex;
+      min-height: 98px;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .tab-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 66px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--faint);
+      font-size: 10px;
+    }
+    .tab.active { color: var(--accent); }
+    .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .inset {
+      width: 444px;
+      min-height: 544px;
+      padding: 26px 22px 30px;
+      border-radius: 26px;
+    }
+    .inset-label { margin: 7px 0 0; color: var(--accent); font-size: 10px; }
+    .inset .entry { margin-top: 16px; }
+    .child-form {
+      margin: 8px 0 0 48px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+    }
+    .child-form label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 10px; }
+    .kinds { display: flex; gap: 5px; margin-bottom: 7px; }
+    .kind {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+    }
+    .kind.selected { border-color: var(--accent); color: var(--accent); }
+    .line-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px; }
+    .line-row input {
+      min-width: 0;
+      min-height: 44px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--hand);
+      font-size: 10px;
+    }
+    .child-controls { display: flex; gap: 5px; margin-top: 7px; }
+    .line-row .action { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="phone light" aria-label="Blocked master task on the Daily Log">
+      <div class="page">
+        <header class="header">
+          <h1>Daily Log</h1>
+          <div class="utilities">
+            <div class="preferences"><span>Theme: light</span><span>Hand: Rock Salt</span></div>
+            <span>2 open</span>
+          </div>
+          <nav class="day-nav" aria-label="Daily Log days"><span>‹</span><span>FRI · AUG 28</span><span>›</span></nav>
+        </header>
+
+        <section class="entry-list" aria-label="Entries">
+          <article class="entry">
+            <div class="entry-line"><span class="signifier">!</span><span>–</span><span>Keep the weekend unhurried</span><span class="meta">+HOME</span></div>
+          </article>
+          <article class="entry selected">
+            <div class="entry-line"><span></span><span>•</span><span>Plan the cabin weekend</span><span class="meta">+HOME</span></div>
+            <div class="actions">
+              <button class="action" type="button">Edit</button>
+              <button class="action warn" type="button">Strike</button>
+              <button class="action" type="button">Migrate</button>
+              <button class="action" type="button">Schedule…</button>
+              <button class="action" type="button">Move to Collection…</button>
+              <button class="action" type="button">Add below…</button>
+            </div>
+            <p class="blocked-copy">Complete or strike every subtask first.</p>
+          </article>
+          <article class="entry child">
+            <div class="entry-line"><span></span><span>x</span><span>Reserve the cabin</span><span class="meta"></span></div>
+          </article>
+          <article class="entry child">
+            <div class="entry-line"><span></span><span>•</span><span>Ask Sam about the dates</span><span class="meta"></span></div>
+          </article>
+        </section>
+        <div class="canvas" aria-label="Trailing writing surface"></div>
+      </div>
+      <nav class="tab-bar" aria-label="Journal sections">
+        <span class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+      </nav>
+    </section>
+
+    <section class="phone dark" aria-label="Ready master task on the Daily Log">
+      <div class="page">
+        <header class="header">
+          <h1>Daily Log</h1>
+          <div class="utilities">
+            <div class="preferences"><span>Theme: dark</span><span>Hand: Architects Daughter</span></div>
+            <span>1 open</span>
+          </div>
+          <nav class="day-nav" aria-label="Daily Log days"><span>‹</span><span>FRI · AUG 28</span><span>›</span></nav>
+        </header>
+
+        <section class="entry-list" aria-label="Entries">
+          <article class="entry">
+            <div class="entry-line"><span class="signifier">*!</span><span>–</span><span>Protect the quiet hour</span><span class="meta">+HOME</span></div>
+          </article>
+          <article class="entry selected">
+            <div class="entry-line"><span></span><span>•</span><span>Plan the cabin weekend</span><span class="meta">+HOME</span></div>
+            <div class="actions">
+              <button class="action" type="button">Edit</button>
+              <button class="action" type="button">Complete</button>
+              <button class="action warn" type="button">Strike</button>
+              <button class="action" type="button">Migrate</button>
+              <button class="action" type="button">Schedule…</button>
+              <button class="action" type="button">Move to Collection…</button>
+              <button class="action" type="button">Add below…</button>
+            </div>
+          </article>
+          <article class="entry child">
+            <div class="entry-line"><span></span><span>x</span><span>Reserve the cabin</span><span class="meta"></span></div>
+          </article>
+          <article class="entry child">
+            <div class="entry-line"><span></span><span>•</span><span class="struck">Ask Sam about the dates</span><span class="meta"></span></div>
+          </article>
+        </section>
+        <div class="canvas" aria-label="Trailing writing surface"></div>
+      </div>
+      <nav class="tab-bar" aria-label="Journal sections">
+        <span class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg>Today</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M8 3v4M16 3v4"></path></svg>Month</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"></path></svg>Future</span>
+        <span class="tab"><svg viewBox="0 0 24 24"><path d="M6 6h12M6 12h12M6 18h12"></path></svg>Index</span>
+      </nav>
+    </section>
+
+    <aside class="inset light" aria-label="Add below step">
+      <h1>Daily Log</h1>
+      <p class="inset-label">FRI · AUG 28</p>
+      <article class="entry selected">
+        <div class="entry-line"><span></span><span>•</span><span>Plan the cabin weekend</span><span class="meta">+HOME</span></div>
+        <section class="child-form" aria-label="Add below">
+          <label for="child-line">Add below</label>
+          <div class="kinds" aria-label="Entry kind">
+            <button class="kind selected" type="button" aria-label="Task" aria-pressed="true">•</button>
+            <button class="kind" type="button" aria-label="Event" aria-pressed="false">O</button>
+            <button class="kind" type="button" aria-label="Note" aria-pressed="false">–</button>
+          </div>
+          <div class="line-row"><input id="child-line" value="Draft the packing list"><button class="action" type="button">Log</button></div>
+          <div class="child-controls"><button class="action" type="button">Cancel</button></div>
+        </section>
+      </article>
+      <article class="entry child">
+        <div class="entry-line"><span class="signifier">!</span><span>–</span><span>Bring the old field guide</span><span class="meta"></span></div>
+      </article>
+    </aside>
+  </main>
+</body>
+</html>

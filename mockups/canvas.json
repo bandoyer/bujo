@@ -14,10 +14,11 @@
     { "file": "PhoneCaptureCorrection.dc.html", "title": "Mobile · Capture and ritual clarity", "x": 0, "y": 3780, "w": 1320, "h": 930 },
     { "file": "PhoneDogfoodCorrections.dc.html", "title": "Mobile · Dogfood entry corrections", "x": 0, "y": 4810, "w": 1320, "h": 930 },
     { "file": "DailyReflection.dc.html", "title": "Mobile · Daily Reflection", "x": 0, "y": 5840, "w": 1320, "h": 930 },
-    { "file": "IndexSourceCorrection.dc.html", "title": "Mobile · Index source correction", "x": 0, "y": 6870, "w": 860, "h": 908 }
+    { "file": "IndexSourceCorrection.dc.html", "title": "Mobile · Index source correction", "x": 0, "y": 6870, "w": 860, "h": 908 },
+    { "file": "CoreNotationHierarchy.dc.html", "title": "Mobile · Core notation and hierarchy", "x": 0, "y": 7878, "w": 1320, "h": 930 }
   ],
   "annotations": [
-    { "id": "rapid-log-grammar", "x": 1900, "y": 780, "w": 300, "text": "The shared core is Ryder Carroll's rapid-logging grammar:\n• task   x done   > migrated   < scheduled\n○ event   – note   * priority\n\nIt's plain text, so one parser in Rails can serve the TUI, the web app, and even piped stdin." },
+    { "id": "rapid-log-grammar", "x": 1900, "y": 780, "w": 300, "text": "The shared core is Ryder Carroll's rapid-logging grammar:\n• task   x done   > migrated   < scheduled\n○ event   – note   * priority   ! inspiration\n\nIt's plain text, so one parser in Rails can serve the TUI, the web app, and even piped stdin." },
     { "id": "architecture", "x": 1900, "y": 1060, "w": 300, "text": "Architecture sketch: Rails is the system of record — a Hotwire/Turbo PWA for the phone, plus a JSON API. The TUI is a small Ruby client of that same API, with a local SQLite cache so rapid logging works offline and syncs later." },
     { "id": "migration-ritual", "x": 2250, "y": 780, "w": 300, "text": "Migration is the soul of the method, so both clients treat it as a deliberate ritual — a wizard in the TUI, cards on the phone. Nothing auto-rolls over; the friction is the feature." },
     { "id": "open-questions", "x": 2250, "y": 1060, "w": 300, "text": "Open questions for v0.1:\n– offline conflict rules (last-write-wins per entry?)\n– auth for the TUI (device token vs. OAuth)\n– custom collections: structured entries or free-form pages?\n– is the dark 'terminal-kin' alt worth losing the paper feel? (It gains one look everywhere, but the analog warmth is what drew you to BuJo.)" }

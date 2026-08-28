@@ -24,6 +24,7 @@ Live, editable canvas: https://claude.ai/code/artifact/749c4391-1504-488c-910e-e
 | `PhoneDogfoodCorrections.dc.html` | Mobile · Monthly kind parity, Entry Edit/Schedule, migration Undo, and post-create Collection clarity |
 | `DailyReflection.dc.html` | Mobile · Morning priority review, Evening entry review, and current-Daily entry point |
 | `IndexSourceCorrection.dc.html` | Mobile · newly created Collections appear immediately in the deliberate Index |
+| `CoreNotationHierarchy.dc.html` | Mobile · inspiration signifier, master-task completion gate, and write-beneath gesture |
 | `Migrate.dc.html` | Mobile · Migration as card-per-task review |
 | `AltDark.dc.html` | Alt direction · low-fi dark "terminal-kin" variant |
 | `canvas.json` | Canvas layout + design notes (architecture, open questions) |
@@ -36,7 +37,7 @@ The shared core across every client is plain text:
 
 ```
 • task    x done    > migrated    < scheduled
-○ event   – note    * priority signifier
+○ event   – note    * priority signifier    ! inspiration signifier
 ```
 
 One parser in Rails can serve the TUI, the web app, and piped stdin.

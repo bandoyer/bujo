@@ -7,14 +7,12 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: 1.5.2a Index source correction LANDED (2026-08-28).** Dan approved
-> and root integrated terminal candidate `12f8164`; the exact merged tree
-> passes 281 fast tests / 6644 assertions, 112 headless-Chrome system tests /
-> 16796 assertions, and RuboCop over 116 files. Every kept Custom Collection
-> now belongs to the Index in permanent append order, including the
-> deterministic transition of previously hidden rows. The completed `cg-*`
-> swarm is retired. Production still runs 1.4.1; authentication Step 1 remains
-> separate and unstarted. See `HANDOFF.md`.
+> **Status: 1.5.5 Core notation and hierarchy fidelity APPROVED
+> (2026-08-28).** Dan approved independent/coexisting `*` + `!` signifiers and
+> the `Add below…` hierarchy-writing gesture. The `six-cg` swarm may implement
+> the source-aligned contract in isolation; terminal integration remains a
+> separate operator gate. Production still runs 1.4.1 and authentication Step
+> 1 remains separate and unstarted. See `HANDOFF.md`.
 
 ## What this is
 
@@ -103,6 +101,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-28 | **Current pack changed to `six-cg`.** Sol Max specifies; Sol High codes; Grok 4.6 High cleans; Grok 4.6 xhigh architects; Grok 4.6 High hardens; Sol xhigh QAs. All roles remain isolated and passing QA remains terminal only for implementation |
 | 2026-08-28 | **Slice 1.5.2a approved; implementation authorized.** Dan approved all four digital translations in the source-aligned amendment and the smallest review board. The committed planning baseline is `f397837`; `six-cg` may implement in isolated role worktrees. Terminal QA still requires operator review and Dan's explicit approval before integration; deployment remains separate |
 | 2026-08-28 | **Slice 1.5.2a Index source correction landed.** Dan approved terminal candidate `12f8164` after the complete `six-cg` chain and independent root review. Creation now atomically appends every live Custom Collection to the complete Index; the irreversible migration deterministically registers prior kept hidden rows; normal unindex/re-register and Open by Topic are gone. Root passes 281 fast tests / 6644 assertions, 112 system tests / 16796 assertions, focused Collection/migration/controller tests, and RuboCop; terminal QA additionally records CRAP ≤ 6 over 262 methods, zero clones, and RapidLog mutation 1105/1105. The completed swarm is retired; deployment remains Dan's action |
+| 2026-08-28 | **Slice 1.5.5 proposed; implementation not authorized.** The contract adds Ryder's `!` inspiration signifier and gates master completion through kept descendant task successor chains. It recommends independent/coexisting `*` + `!` fields and exposes the previously missed Rails hierarchy-writing gap through one proposed `Add below…` gesture. Approval must settle both translations before the stopped `six-cg` swarm starts. Contract: `docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md`; review board: `mockups/CoreNotationHierarchy.dc.html` |
+| 2026-08-28 | **Slice 1.5.5 approved; implementation authorized.** Dan approved independent/coexisting `*` + `!` fields with canonical `*!` rendering and the `Add below…` gesture using the shared three-kind rapid-log anatomy. The planning baseline may be committed and pushed, and `six-cg` may implement in isolated `cg-*` worktrees. Terminal QA still requires Dan's explicit approval before root integration; deployment remains separate. |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -290,10 +290,16 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             candidate `12f8164`; merged-tree receipts: 281 fast tests / 6644
             assertions, 112 system tests / 16796 assertions, and RuboCop clean
             over 116 files. The completed `cg-*` swarm is retired.
-      - [ ] **1.5.5 Core notation and hierarchy fidelity** — add the
-            `!` inspiration signifier and gate a master task's
-            completion until every subtask is done or struck. Keep the
-            parked date-grammar expansion separate.
+      - [ ] **1.5.5 Core notation and hierarchy fidelity** — approved contract
+            adds the `!` inspiration signifier and gates a master task's
+            completion until every kept subtask chain ends done or struck.
+            It also closes the Rails app's missing hierarchy-writing gap with
+            an explicit `Add below…` gesture using the shared three-kind
+            rapid-log anatomy. Keep the parked date-grammar expansion
+            separate. Approved contract:
+            `docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md`;
+            review board: `mockups/CoreNotationHierarchy.dc.html`. The
+            `six-cg` swarm is authorized; integration remains separately gated.
 - [ ] **1.6 PWA** — manifest/service worker, vendor the fonts for
       offline. (The deploy, Kamal, and Litestream landed early, with
       1.3 — done 2026-08-24 per the dogfood-first ruling; Phase 1 gets
@@ -371,8 +377,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   generator's email/password remains only as a transitional rollback. The
   provider foundation is complete; Step 1 is now unblocked in the separate
   authentication track. Daily Reflection and the bounded 1.5.2a Index source
-  correction landed on 2026-08-28; 1.5.5 remains ahead of authentication,
-  which does not run in parallel.
+  correction landed on 2026-08-28; approved 1.5.5 remains ahead of
+  authentication, which does not run in parallel.
   `docs/resend-transactional-email.md` owns its live checklist and safety gates.
   Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
   Start. Recovery is proven before password retirement by registering two
