@@ -11,6 +11,11 @@ class TailwindSelectorLedgerTest < ActiveSupport::TestCase
   T0_STYLESHEET = Rails.root.join("test/fixtures/files/tailwind_v4_t0.css")
   SELECTORS_CSV = Rails.root.join("docs/tailwind-v4-baseline/selectors.csv")
   DEAD_SELECTOR = ".monthly-calendar__glyph--event"
+  POST_T0_REPLACEMENTS = {
+    [ ".monthly-calendar__day", "align-items", "center" ] => {
+      selector: ".monthly-calendar__day", value: "start", owner: "pages/monthly.css"
+    }
+  }.freeze
   T0_STYLESHEET_BYTES = 23_218
   T0_STYLESHEET_SHA256 = "df75385665a9f4f48af1f66156953e712493c2e85575de861ffc09963bfa5ceb"
   ARTIFACT_SHA256 = {
@@ -180,6 +185,18 @@ class TailwindSelectorLedgerTest < ActiveSupport::TestCase
 
       t0_rule.declarations.each do |property, value|
         next if native_element_effect?(selector, property, value)
+        if (replacement = POST_T0_REPLACEMENTS[[ selector, property, value ]])
+          owners = current_rules.filter_map do |rule|
+            next unless rule.selector == replacement.fetch(:selector)
+            next unless rule.media == t0_rule.media
+            next unless rule.declarations.assoc(property)&.last == replacement.fetch(:value)
+
+            rule.owner
+          end
+          assert_equal [ replacement.fetch(:owner) ], owners.uniq,
+            "#{selector} #{property} must have its explicit post-T0 owner"
+          next
+        end
 
         matches = matching_current_rules(current_rules, selector, property, value, t0_rule.media)
         if matches.empty?

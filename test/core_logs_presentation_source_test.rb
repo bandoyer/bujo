@@ -58,7 +58,7 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
       ".future-entry__day" => %w[font-family color text-align]
     }
   }.freeze
-  CALENDAR_CONTRACTS = {
+  CALENDAR_T0_CONTRACTS = {
     ".monthly-calendar" => %w[padding],
     ".monthly-calendar__day" =>
       %w[display min-height grid-template-columns gap align-items padding border-radius color],
@@ -78,6 +78,13 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     ".monthly-calendar__number" => %w[font-family text-align],
     ".monthly-calendar__weekday" => %w[font-family color]
   }.freeze
+  CALENDAR_CORRECTIONS = {
+    ".monthly-calendar__residents .entry__line" => %w[align-content padding-block-start]
+  }.freeze
+  POST_T0_CALENDAR_DECLARATIONS = {
+    [ ".monthly-calendar__day", "align-items" ] => "start"
+  }.freeze
+  CALENDAR_CONTRACTS = CALENDAR_T0_CONTRACTS.merge(CALENDAR_CORRECTIONS).freeze
 
   test "Daily Monthly Tasks and Future declarations have one page owner" do
     rules = authored_rules
@@ -124,9 +131,18 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     monthly = authored_declarations_for(ROOT.join("pages/monthly.css"))
     baseline = authored_declarations_for(T0_STYLESHEET)
 
-    CALENDAR_CONTRACTS.each_key do |selector|
-      assert_equal baseline.fetch(selector), monthly.fetch(selector),
+    CALENDAR_T0_CONTRACTS.each_key do |selector|
+      corrected_properties = POST_T0_CALENDAR_DECLARATIONS.keys
+        .select { |corrected_selector, _property| corrected_selector == selector }
+        .map(&:last)
+      expected = baseline.fetch(selector).reject { |property, _value| corrected_properties.include?(property) }
+      actual = monthly.fetch(selector).reject { |property, _value| corrected_properties.include?(property) }
+      assert_equal expected, actual,
         "#{selector} must retain its T0 declarations under the Monthly page owner"
+    end
+
+    POST_T0_CALENDAR_DECLARATIONS.each do |(selector, property), value|
+      assert_includes monthly.fetch(selector), [ property, value ]
     end
   end
 

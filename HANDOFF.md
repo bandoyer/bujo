@@ -1,4 +1,4 @@
-# Handoff — Tailwind v4 landed; phone dogfood next (2026-08-27)
+# Handoff: Tailwind and Calendar alignment landed; Daily Reflection next (2026-08-27)
 
 For the next operator session, any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next product
@@ -35,7 +35,9 @@ Tailwind terminal candidate `8d7ccbde93f02f9a7afcc643d7547a43490792fa`
 is integrated on `main` with Dan's 2026-08-27 approval. Its complete T0 receipt
 remains at `docs/tailwind-v4-baseline/README.md` and its landed contract at
 `docs/slices/tailwind-v4-presentation-migration.md`. Deployment is not
-authorized; Dan runs deployments himself.
+authorized; Dan runs deployments himself. Real-device dogfooding then found a
+bounded Calendar resident-baseline defect. Dan accepted its correction and
+chose Daily Reflection as the next planning track.
 
 ## Exact landed state
 
@@ -123,29 +125,30 @@ to committed `six-mix-fable-review`; `swarmforge/squad.conf` remains as the
 historical Tailwind squad policy. Do not touch unrelated SwarmForge processes
 from other repositories.
 
-## Next work — phone dogfood, then one chosen track
+## Accepted post-Tailwind phone correction
 
-Run the merged app locally and repeat the reported phone flows in both themes:
-Daily empty capture; Monthly Task/Event/Note capture and correction; native-date
-scheduling to Calendar and Future; wrapped-row alignment and lifecycle ink;
-every Monthly Migration Undo outcome; Collection creation guidance; and the
-sign-in and preference surfaces touched by presentation ownership. Confirm the
-Tailwind build remains visually and behaviorally indistinguishable before
-starting another implementation slice.
+The reported Calendar row defect was real: resident glyph, first-line text,
+and metadata sat 13.5 CSS px above the date/weekday baseline at 390 px. The
+accepted Calendar-only correction centers Entry's first internal line beside
+the date while allowing wrapped ink to grow downward. Its executable contract
+holds the date number, weekday, glyph, first text line, and metadata within 4
+CSS px at the 390 px light/Rock Salt and 320 px dark/Architects Daughter phone
+profiles. Horizontal geometry, capture, navigation, residency, and entry
+behavior are unchanged.
 
-After that review, choose one track rather than running both in parallel:
+Dan accepted the corrected phone result on 2026-08-27 and elected to keep
+moving, leaving smaller visual polish for later. Root verification is green at
+265 fast tests / 6434 assertions, 95 headless-Chrome system tests / 15234
+assertions, and RuboCop clean. The correction is documented as a post-T0
+product amendment in `docs/slices/1.5.3b-dogfood-entry-corrections.md`; frozen
+Tailwind T0 artifacts remain unchanged.
 
-- **1.5.4 Daily Reflection**, the next method-spine slice, beginning with a
-  source-aligned spec and the smallest review mock needed for the AM/PM lens;
-- **authentication Step 1**, Resend delivery plus short-lived, single-use
-  magic links under `docs/resend-transactional-email.md`.
+## Next work: 1.5.4 Daily Reflection planning
 
-Record any dogfood correction as its own approved product amendment before
-either track.
-
-After the landed Tailwind build is dogfooded, the next method-spine slice is
-**1.5.4 Daily Reflection**. Its current plan boundary remains a small AM/PM
-reference lens:
+Dan chose **1.5.4 Daily Reflection** rather than authentication Step 1 as the
+next track. Begin with a source-aligned spec and the smallest review mock needed
+for the AM/PM lens. The current plan boundary remains a small AM/PM reference
+lens:
 
 - morning reflection brings the current month's open tasks into view;
 - evening reflection walks today's entries deliberately through appropriate
@@ -161,8 +164,10 @@ digital decisions to Dan rather than guessing.
 
 The separate authentication track is also unblocked: Step 1 is Resend delivery
 plus short-lived, single-use magic links, governed by
-`docs/resend-transactional-email.md`. Phone review is the immediate gate; do
-not start Daily Reflection or authentication in parallel without Dan's choice.
+`docs/resend-transactional-email.md`. It remains unstarted and does not run in
+parallel. Planning does not authorize a swarm or implementation: present the
+source-aligned Daily Reflection boundary and any necessary mock to Dan for
+explicit approval first.
 
 ## Build and review
 

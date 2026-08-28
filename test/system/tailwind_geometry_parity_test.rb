@@ -40,6 +40,11 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
   }.freeze
   STYLE_PROPERTIES = %w[display fontFamily fontSize gridTemplateColumns].freeze
   NUMERIC_PROPERTIES = %w[x y right bottom width height].freeze
+  POST_T0_CALENDAR_VERTICAL_METRICS = %w[
+    calendarDailyLink calendarDay calendarResidents calendarReveal
+    entryGlyph entryLine entryMeta entrySignifier entryText
+  ].freeze
+  POST_T0_CALENDAR_SIZED_METRICS = %w[calendarDay calendarResidents entryLine].freeze
   FRACTIONAL_PIXEL_TOLERANCE = 0.75
 
   setup do
@@ -55,7 +60,7 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
     travel_back
   end
 
-  test "all 102 recorded geometry rows retain T0 bounds grids wrapping and scroll geometry" do
+  test "all 102 recorded geometry rows retain T0 except the approved Calendar baseline correction" do
     assert_equal 102, GEOMETRY_CONTRACT.size
     assert_equal({
       "390-light-rock-salt" => 34,
@@ -559,6 +564,8 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
       baseline_metric = baseline.fetch(key)
       if key == "viewport"
         metric.each do |property, value|
+          next if post_t0_calendar_exception?(contract, key, property)
+
           assert_in_delta value, baseline_metric.fetch(property), FRACTIONAL_PIXEL_TOLERANCE,
             "#{row_label(contract)} viewport.#{property} changed from T0"
         end
@@ -566,6 +573,8 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
       end
 
       NUMERIC_PROPERTIES.each do |property|
+        next if post_t0_calendar_exception?(contract, key, property)
+
         assert_in_delta metric.fetch(property), baseline_metric.fetch(property),
           FRACTIONAL_PIXEL_TOLERANCE, "#{row_label(contract)} #{key}.#{property} changed from T0"
       end
@@ -574,6 +583,16 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
           "#{row_label(contract)} #{key}.#{property} changed from T0"
       end
     end
+  end
+
+  def post_t0_calendar_exception?(contract, metric, property)
+    return false unless contract.fetch("state").start_with?("monthly-calendar-")
+    return true if metric == "viewport" && property == "scrollHeight"
+    return true if metric == "page" && %w[bottom height].include?(property)
+    return false unless POST_T0_CALENDAR_VERTICAL_METRICS.include?(metric)
+    return true if %w[y bottom].include?(property)
+
+    property == "height" && POST_T0_CALENDAR_SIZED_METRICS.include?(metric)
   end
 
   def row_label(contract)

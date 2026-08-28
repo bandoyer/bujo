@@ -267,6 +267,31 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
     assert_no_field "Rapid log…"
   end
 
+  test "Calendar residents share the date row baseline on phone profiles" do
+    day = Time.zone.today
+    entry = @user.entries.create!(
+      kind: "event", state: nil, text: "calendar resident", tags: [],
+      page_kind: "monthly_calendar", page_on: day.beginning_of_month,
+      occurs_on: day, time_of_day: "18:00"
+    )
+    sign_in
+
+    [
+      [ 390, "light", "rock-salt" ],
+      [ 320, "dark", "architects-daughter" ]
+    ].each do |width, theme, hand|
+      page.current_window.resize_to(width, 844)
+      set_preferences(theme:, hand:)
+      visit monthly_log_path(month: day.strftime("%Y-%m"))
+      settle_calendar_layout
+
+      baselines = calendar_row_baselines(day, entry)
+      assert_operator baselines.max - baselines.min, :<=, 4,
+        "Calendar row baselines drifted at #{width}px: #{baselines.inspect}"
+    end
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
 
   test "Future resident columns share a baseline and never widen a narrow phone" do
     future_on = Time.zone.today.next_month.beginning_of_month + 12.days
@@ -444,6 +469,38 @@ class MonthFutureLogsTest < ApplicationSystemTestCase
                  body: document.documentElement.scrollWidth,
                  viewport: document.documentElement.clientWidth }
       })()
+    JAVASCRIPT
+  end
+
+  def calendar_row_baselines(day, entry)
+    page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const row = document.querySelector(#{calendar_day(day).to_json})
+        const entry = document.querySelector("#monthly_entry_#{entry.id}")
+        const firstTextBottom = (element) => {
+          const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+          let text = walker.nextNode()
+          while (text && text.nodeValue.trim() === "") text = walker.nextNode()
+          const range = document.createRange()
+          range.setStart(text, 0)
+          range.setEnd(text, 1)
+          return Math.round(range.getBoundingClientRect().bottom * 4) / 4
+        }
+        return [
+          row.querySelector(".monthly-calendar__number"),
+          row.querySelector(".monthly-calendar__weekday"),
+          entry.querySelector(".entry__glyph"),
+          entry.querySelector(".entry__text"),
+          entry.querySelector(".entry__meta")
+        ].map(firstTextBottom)
+      })()
+    JAVASCRIPT
+  end
+
+  def settle_calendar_layout
+    page.driver.browser.execute_async_script(<<~JAVASCRIPT)
+      const done = arguments[arguments.length - 1]
+      requestAnimationFrame(() => requestAnimationFrame(done))
     JAVASCRIPT
   end
 

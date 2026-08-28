@@ -77,7 +77,7 @@
   min-height: 44px;
   grid-template-columns: 3.75rem minmax(0, 1fr) 44px;
   gap: 0.3rem;
-  align-items: center;
+  align-items: start;
   padding: 0 0.45rem;
   border-radius: 0.6rem;
   color: var(--ink);
@@ -117,6 +117,13 @@
 .monthly-calendar__residents .entry {
   padding: 0;
   pointer-events: auto;
+}
+
+/* Keep Entry's internal glyph/text/meta baseline while centering its first
+   line beside Calendar's centered date and weekday. Wrapped ink grows down. */
+.monthly-calendar__residents .entry__line {
+  align-content: start;
+  padding-block-start: max(0px, calc((44px - 1lh) / 2));
 }
 
 .monthly-calendar__daily-link {

@@ -7,13 +7,14 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: Tailwind v4 presentation migration LANDED (2026-08-27).** Dan
-> approved terminal candidate `8d7ccbd`, now integrated on `main`. The accepted
-> tree is green at 265 fast tests / 6424 assertions and 94 headless-Chrome
-> system tests / 15445 assertions, with RuboCop and the complete security and
-> presentation parity bars clean. Production still runs 1.4.1. Phone
-> dogfooding is the immediate gate before choosing 1.5.4 Daily Reflection or
-> authentication Step 1. See `HANDOFF.md`.
+> **Status: Tailwind v4 and its Calendar phone correction LANDED
+> (2026-08-27).** Dan approved terminal candidate `8d7ccbd`, then accepted the
+> bounded Calendar resident-baseline correction found during real-device
+> dogfooding. The accepted tree is green at 265 fast tests / 6434 assertions
+> and 95 headless-Chrome system tests / 15234 assertions, with RuboCop clean.
+> Production still runs 1.4.1. Dan chose 1.5.4 Daily Reflection as the next
+> planning track; authentication Step 1 remains separate and unstarted. See
+> `HANDOFF.md`.
 
 ## What this is
 
@@ -95,6 +96,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-27 | **Tailwind T0 and source-aligned specification prepared; implementation not authorized.** Baseline `434a9a9` is frozen in `docs/tailwind-v4-baseline/` with 135 screenshots, computed geometry, selector ownership, assets, and green quality receipts. The proposed contract at `docs/slices/tailwind-v4-presentation-migration.md` fixes exact Ruby-hosted v4 gems, no Node/Preflight/default theme, staged legacy parity, stable product behavior, and the bounded squad graph. No mock change is needed for parity; no squad starts until explicit approval |
 | 2026-08-27 | **Tailwind v4 presentation migration approved.** Dan approved the complete source-aligned contract and keeping all 135 T0 screenshots in the repository. Commit/push of the planning baseline and `swarm squad up` are authorized. Work remains isolated on `codex/tailwind-v4`; passing terminal QA does not authorize root integration or deployment |
 | 2026-08-27 | **Tailwind v4 presentation migration landed.** Dan approved terminal candidate `8d7ccbd` after corrected terminal QA pass 2. The presentation-only migration keeps all accepted behavior and geometry, exact-pins `tailwindcss-rails` 4.6.0 and `tailwindcss-ruby` 4.3.3, uses no Node, Preflight, or default Tailwind theme, and serves one fingerprinted application bundle. The merged tree passes 265 fast tests / 6424 assertions, 94 system tests / 15445 assertions, RuboCop, security audits, coverage/CRAP/duplication, immutable T0 parity, production asset, and Docker checks. Deployment remains Dan's action |
+| 2026-08-27 | **Post-Tailwind Calendar baseline correction landed.** Real-device dogfooding exposed Calendar resident ink 13.5 CSS px above the centered date row. The Calendar-only correction brings the date number, weekday, resident glyph, first text line, and metadata within 4 CSS px at 390 px and 320 px; wrapped resident ink grows downward and horizontal geometry and behavior remain unchanged. Dan accepted the corrected phone result and chose Daily Reflection next. The merged tree passes 265 fast tests / 6434 assertions, 95 system tests / 15234 assertions, and RuboCop |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -255,7 +257,14 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             `docs/slices/tailwind-v4-presentation-migration.md`. Terminal
             candidate `8d7ccbd`; merged-tree receipts: 265 fast tests / 6424
             assertions, 94 system tests / 15445 assertions, RuboCop clean.
-      - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
+      - [x] **Post-Tailwind Calendar alignment correction** ✅ (2026-08-27):
+            real-device dogfooding found the resident's first-line ink above
+            the centered Calendar date row. The bounded Calendar-only fix
+            aligns date, weekday, glyph, first text line, and metadata within
+            4 CSS px on both phone profiles while wrapped ink grows downward.
+            Merged-tree receipts: 265 fast tests / 6434 assertions, 95 system
+            tests / 15234 assertions, RuboCop clean.
+      - [ ] **NEXT: 1.5.4 Daily Reflection**: a small first-class AM/PM
             review: AM sees the current month's open tasks; PM walks
             today's entries to complete, strike, or schedule and makes
             progress visible. This is a reference lens over resident
@@ -340,8 +349,9 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   like press-start — passkeys first, magic email links second. The
   generator's email/password remains only as a transitional rollback. The
   provider foundation is complete; Step 1 is now unblocked in the separate
-  authentication track. The immediate product gate is phone dogfooding of the
-  landed Tailwind build; 1.5.4 remains the next method-spine slice.
+  authentication track. Dan chose 1.5.4 Daily Reflection as the next planning
+  track after accepting the landed Tailwind build and its Calendar phone
+  correction; authentication does not run in parallel.
   `docs/resend-transactional-email.md` owns its live checklist and safety gates.
   Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
   Start. Recovery is proven before password retirement by registering two
