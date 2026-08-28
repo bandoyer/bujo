@@ -43,6 +43,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2, clock_reads
     assert_select "main > h1:first-child", text: "Daily Reflection", count: 1
     assert_select "h1", count: 1
+    assert_select "main.page-shell.daily-reflection[data-turbo=false]"
     assert_select ".daily-reflection__date", text: TODAY.strftime("%A · %B %-d").upcase
     assert_select ".tab-bar__item--active[aria-current='page']", text: "Today"
   end

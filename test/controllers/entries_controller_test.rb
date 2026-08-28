@@ -194,16 +194,23 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
 
     travel_to today do
       complete = create_open_task("evening complete", page_on: today)
+      child = create_open_task("nested complete child", page_on: today, parent: complete)
       post complete_entry_path(complete), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
       assert_redirected_to evening_reflection_path
       assert_equal "entry:#{complete.id}", flash[:reflection_focus]
       assert_equal "done", complete.reload.state
+      follow_redirect!
+      assert_equal evening_reflection_path, path
+      assert_select "main.page-shell.daily-reflection[data-turbo=false]"
+      assert_own_line_focus complete, child
 
       struck = create_open_task("evening strike", page_on: today)
       post strike_entry_path(struck), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
       assert_redirected_to evening_reflection_path
       assert_equal "entry:#{struck.id}", flash[:reflection_focus]
       assert_equal "struck", struck.reload.state
+      follow_redirect!
+      assert_own_line_focus struck
 
       scheduled = create_open_task("evening schedule", page_on: today)
       post schedule_entry_path(scheduled), params: {
@@ -213,6 +220,8 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
       assert_equal "entry:#{scheduled.id}", flash[:reflection_focus]
       assert_equal [ "monthly_calendar", today.beginning_of_month, today + 2.days ],
         scheduled.reload.successor.values_at(:page_kind, :page_on, :occurs_on)
+      follow_redirect!
+      assert_own_line_focus scheduled
 
       future = create_open_task("evening future", page_on: today)
       post schedule_entry_path(future), params: {
@@ -322,6 +331,16 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to future_log_path
     assert_equal "That entry can't do that.", flash[:alert]
     assert_nil @user.entries.find_by(text: "must not land today", page_on: Time.zone.today)
+  end
+
+  def assert_own_line_focus(entry, descendant = nil)
+    assert_select "#entry_#{entry.id}[autofocus]", count: 0
+    assert_select "#entry_#{entry.id} > .entry__line[tabindex='-1'][autofocus]"
+    assert_select "#entry_#{entry.id} > .entry__children[autofocus]", count: 0
+    return unless descendant
+
+    assert_select "#entry_#{descendant.id}"
+    assert_select "#entry_#{descendant.id}[autofocus]", count: 0
   end
 
   def assert_schedule_rejected(schedule_params = {})

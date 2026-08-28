@@ -173,9 +173,15 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
 
     assert_path_exists reflection
     assert_includes entry, '@import "./pages/daily-reflection.css" layer(components);'
-    assert_match(/\.daily-reflection__mode/, reflection.read)
-    assert_match(/\.daily-reflection__capture/, reflection.read)
-    assert_no_match(/#[0-9a-f]{3,8}\b|rgba?\(|font-family:\s*(?!var)/i, reflection.read)
+    source = reflection.read
+    assert_match(/\.daily-reflection__mode/, source)
+    assert_match(/\.daily-reflection__capture/, source)
+    assert_includes source, ".page-shell.daily-reflection [autofocus]"
+    assert_match(/scroll-margin-block:\s*1rem\s+8rem/, source)
+    assert_match(/html:has\(\.daily-reflection\)/, source)
+    assert_match(/scroll-padding-block:\s*1rem\s+calc\(65px \+ 8rem\)/, source)
+    assert_no_match(/!important/, source)
+    assert_no_match(/#[0-9a-f]{3,8}\b|rgba?\(|font-family:\s*(?!var)/i, source)
   end
 
   private
