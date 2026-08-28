@@ -177,15 +177,60 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
 
   test "mode and Schedule entry requests redirect with one-response focus state" do
     task = create_entry(text: "schedule candidate", page_kind: "daily", page_on: TODAY)
+    event = create_entry(text: "schedule event", kind: "event", page_kind: "daily", page_on: TODAY)
 
     travel_to TODAY do
+      get reflection_path, params: { focus: "mode" }
+      assert_redirected_to reflection_path
+      assert_equal "mode", flash[:reflection_focus]
+      follow_redirect!
+      assert_select "a#reflection_morning_mode[autofocus]"
+      assert_select "a#reflection_evening_mode[autofocus]", count: 0
+
       get evening_reflection_path, params: { focus: "mode" }
       assert_redirected_to evening_reflection_path
       assert_equal "mode", flash[:reflection_focus]
+      follow_redirect!
+      assert_select "a#reflection_evening_mode[autofocus]"
+      assert_select "a#reflection_morning_mode[autofocus]", count: 0
 
       get evening_reflection_path, params: { schedule: task.id }
       assert_redirected_to evening_reflection_path
       assert_equal "schedule:#{task.id}", flash[:reflection_focus]
+      follow_redirect!
+      assert_select "#entry_#{task.id}.entry--selected input[type=date][autofocus]"
+      assert_select "#entry_#{task.id} .entry__toggle[aria-expanded=true][autofocus]", count: 0
+
+      get evening_reflection_path, params: { schedule: event.id }
+      assert_equal "schedule:#{event.id}", flash[:reflection_focus]
+    end
+  end
+
+  test "crafted focus and Schedule hints cannot authorize a write or open an ineligible row" do
+    note = create_entry(text: "today note", kind: "note", page_kind: "daily", page_on: TODAY)
+    done = create_entry(text: "today done", state: "done", page_kind: "daily", page_on: TODAY)
+    monthly = create_entry(text: "monthly task", page_kind: "monthly_tasks", page_on: MONTH)
+    foreign = create_entry(user: @other_user, text: "foreign evening", page_kind: "daily", page_on: TODAY)
+
+    travel_to TODAY do
+      snapshot = journal_snapshot
+
+      get reflection_path, params: { schedule: monthly.id, focus: "capture", page_kind: "future" }
+      assert_response :success
+      assert_nil flash[:reflection_focus]
+      assert_select ".entry--selected", count: 0
+
+      [ note.id, done.id, monthly.id, foreign.id, SecureRandom.uuid ].each do |id|
+        get evening_reflection_path, params: { schedule: id, return_to: "https://attacker.example" }
+        assert_redirected_to evening_reflection_path
+        assert_equal "mode", flash[:reflection_focus]
+        assert_equal snapshot, journal_snapshot
+      end
+
+      follow_redirect!
+      assert_select "a#reflection_evening_mode[autofocus]"
+      assert_select ".entry--selected", count: 0
+      assert_select "input[type=date][autofocus]", count: 0
     end
   end
 
