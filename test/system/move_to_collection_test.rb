@@ -6,10 +6,10 @@ class MoveToCollectionTest < ApplicationSystemTestCase
   setup do
     @user = users(:one)
     @user.entries.update_all(deleted_at: Time.current)
-    @destination = @user.collections.create!(name: "Camping Plans")
+    @destination = Collection.create_for(user: @user, topic: "Camping Plans")
   end
 
-  test "1 a Daily note moves to one unindexed Collection root and stays on its source" do
+  test "1 a Daily note moves to one indexed Collection root and stays on its source" do
     sign_in
     capture_note "call the ranger 5pm +camping"
     note = @user.entries.find_by!(text: "call the ranger")
@@ -43,7 +43,7 @@ class MoveToCollectionTest < ApplicationSystemTestCase
     assert_nil successor.parent_id
     assert_equal [ "collection", @destination.id, nil, nil ],
       successor.values_at(:page_kind, :collection_id, :occurs_on, :time_of_day)
-    assert_nil @destination.reload.index_position
+    assert_equal 2, @destination.reload.index_position
 
     visit collection_path(@destination)
     assert_selector entry_selector(successor), text: "call the ranger", count: 1
@@ -73,13 +73,13 @@ class MoveToCollectionTest < ApplicationSystemTestCase
 
     assert_equal [ calendar_task.id, monthly_task.id ].sort,
       @destination.entries.kept.pluck(:migrated_from_id).sort
-    assert_nil @destination.reload.index_position
+    assert_equal 2, @destination.reload.index_position
   end
 
   test "3 destination misses and ineligible residents refuse without changing rows" do
-    deleted = @user.collections.create!(name: "Deleted Destination")
+    deleted = Collection.create_for(user: @user, topic: "Deleted Destination")
     deleted.soft_delete_if_unused!
-    foreign = users(:two).collections.create!(name: "Foreign Destination")
+    foreign = Collection.create_for(user: users(:two), topic: "Foreign Destination")
     eligible = create_task("refused destination", page_kind: "daily", page_on: Time.zone.today)
     sign_in
 
@@ -130,7 +130,7 @@ class MoveToCollectionTest < ApplicationSystemTestCase
   test "5 unbroken Collection Topics and entry text wrap on every returned source page" do
     long_topic = "ExpeditionPlansForTheEntireUpperPeninsulaWithEveryCampsiteTrailheadWaterSourcePermitDeadlineAndEmergencyContactKeptReadable"
     long_entry_text = "ThisResidentEntryTextIsAlsoOneUnbrokenReaderWrittenStringThatMustWrapInsideTheSameJournalRowWithoutWideningThePage"
-    @destination = @user.collections.create!(name: long_topic)
+    @destination = Collection.create_for(user: @user, topic: long_topic)
     month = Time.zone.today.beginning_of_month
     daily_entry = create_note("daily overflow move", page_kind: "daily", page_on: Time.zone.today)
     daily_sibling = create_note(long_entry_text, page_kind: "daily", page_on: Time.zone.today)

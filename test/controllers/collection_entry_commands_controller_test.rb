@@ -8,8 +8,8 @@ class CollectionEntryCommandsControllerTest < ActionDispatch::IntegrationTest
 
   setup do
     @user = users(:one)
-    @collection = @user.collections.create!(name: "Rendered Commands")
-    @foreign_collection = users(:two).collections.create!(name: "Crafted Foreign Topic")
+    @collection = Collection.create_for(user: @user, topic: "Rendered Commands")
+    @foreign_collection = Collection.create_for(user: users(:two), topic: "Crafted Foreign Topic")
     sign_in_as @user
   end
 

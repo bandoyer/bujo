@@ -58,7 +58,7 @@ class MonthlyMigrationUndoControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "every movement resolution can be compensated to its exact source" do
-    collection = @user.collections.create!(name: "Undo Topic")
+    collection = Collection.create_for(user: @user, topic: "Undo Topic")
     cases = [
       [ :outgoing_tasks, -> { create_entry(page_kind: "daily", page_on: SOURCE + 2.days) }, {} ],
       [ :outgoing_collection, -> { create_entry(page_kind: "monthly_tasks", page_on: SOURCE) }, { topic: collection.name } ],

@@ -5,7 +5,7 @@ require "test_helper"
 class EntryCorrectionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
-    @collection = @user.collections.create!(name: "Correction Topic")
+    @collection = Collection.create_for(user: @user, topic: "Correction Topic")
     sign_in_as @user
   end
 

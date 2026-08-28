@@ -67,17 +67,6 @@
   text-decoration: none;
 }
 
-.collection-index__locate-toggle {
-  margin-top: 0.75rem;
-}
-
-.collection-page__registration {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.5rem 0;
-}
-
-.collection-page__registration form,
 .collection-panel form {
   margin: 0;
 }

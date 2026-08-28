@@ -5,8 +5,8 @@ require "test_helper"
 class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
-    @destination = @user.collections.create!(name: "Camping Move Target")
-    @foreign_destination = users(:two).collections.create!(name: "Ignored Foreign Topic")
+    @destination = Collection.create_for(user: @user, topic: "Camping Move Target")
+    @foreign_destination = Collection.create_for(user: users(:two), topic: "Ignored Foreign Topic")
     sign_in_as @user
   end
 
@@ -32,7 +32,7 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
       end
       assert_nil successor.hlc
       assert_nil successor.server_seq
-      assert_nil @destination.reload.index_position
+      assert_equal 2, @destination.reload.index_position
     end
   end
 
@@ -78,8 +78,8 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "destination lookup stays inside the current user's kept Collections" do
-    users(:two).collections.create!(name: "Shared Topic")
-    mine = @user.collections.create!(name: "Shared Topic")
+    Collection.create_for(user: users(:two), topic: "Shared Topic")
+    mine = Collection.create_for(user: @user, topic: "Shared Topic")
     entry = create_source_entry(page_kind: "daily", kind: "note")
 
     post_move(entry, topic: "Shared Topic")
@@ -91,15 +91,10 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
       "Move to Collection must resolve the Topic inside the current user's journal"
   end
 
-  test "indexed and unindexed exact Topics both resolve without changing registration" do
-    indexed = @user.collections.create!(name: "Reading List")
-    indexed.entries.create!(
-      user: @user, kind: "note", state: nil, text: "seed", tags: [],
-      page_kind: "collection", page_on: nil
-    )
-    indexed.register!
+  test "exact Topics resolve without changing permanent Index positions" do
+    reading = Collection.create_for(user: @user, topic: "Reading List")
 
-    [ @destination, indexed ].each do |collection|
+    [ @destination, reading ].each do |collection|
       task = create_source_entry(page_kind: "daily", kind: "task")
       original_collection = collection.attributes
 
@@ -109,14 +104,14 @@ class MoveToCollectionControllerTest < ActionDispatch::IntegrationTest
       assert_equal collection, task.reload.successor.collection
       assert_equal original_collection, collection.reload.attributes
     end
-    assert_nil @destination.reload.index_position
-    assert_not_nil indexed.reload.index_position
+    assert_equal 2, @destination.reload.index_position
+    assert_equal 3, reading.reload.index_position
   end
 
   test "every exact-Topic miss refuses identically without writing" do
-    deleted = @user.collections.create!(name: "Deleted Camp")
+    deleted = Collection.create_for(user: @user, topic: "Deleted Camp")
     deleted.soft_delete_if_unused!
-    foreign = users(:two).collections.create!(name: "Foreign Camp")
+    foreign = Collection.create_for(user: users(:two), topic: "Foreign Camp")
     misses = [ "", "Camping", "Trip", "Camp Trip", deleted.name, foreign.name, "camping trips" ]
 
     misses.each do |topic|

@@ -1,26 +1,26 @@
-# Connects deliberate Index and Custom Collection gestures to Collection's
-# domain-owned lifecycle operations.
+# Connects the complete Index and Custom Collection gestures to their domain.
 class CollectionsController < ApplicationController
   include JournalReading
 
-  # One reader-facing refusal for an unavailable Collection transition.
+  # One reader-facing refusal for guarded Collection deletion.
   REFUSAL_ALERT = "That Collection can't do that.".freeze
-  # The exact-name gesture deliberately reveals no distinction among misses.
-  LOCATE_ALERT = "No Collection with that exact Topic.".freeze
 
-  before_action :set_collection, except: %i[index create locate]
+  before_action :set_collection, except: %i[index create]
   rescue_from ActiveRecord::RecordNotFound, with: :render_collection_not_found
   rescue_from Collection::LifecycleError, with: :refuse_collection_change
 
-  # Shows only explicitly registered Topics in their manual order.
+  # Shows every kept Topic in permanent append order.
   def index
     prepare_index
   end
 
-  # Creates one unindexed Collection and opens its canonical page.
+  # Atomically creates and indexes one Collection, then opens its stable page.
   def create
-    @new_collection = user_collections.new(collection_params)
-    if @new_collection.save
+    @new_collection = Collection.create_for(
+      user: Current.user,
+      topic: collection_params[:name]
+    )
+    if @new_collection.persisted?
       redirect_to collection_path(@new_collection), notice: "Collection created."
     else
       @form_errors = @new_collection.errors.full_messages
@@ -29,17 +29,6 @@ class CollectionsController < ApplicationController
       prepare_index
       render :index, status: :unprocessable_entity
     end
-  end
-
-  # Opens a known Collection by exact Topic without exposing candidates.
-  def locate
-    collection = user_collections.kept.with_exact_topic(params[:topic]).first
-    return redirect_to collection_path(collection) if collection
-
-    flash.now[:alert] = LOCATE_ALERT
-    @locate_open = true
-    prepare_index
-    render :index, status: :unprocessable_entity
   end
 
   # Shows one kept Collection and its resident root trees.
@@ -54,18 +43,6 @@ class CollectionsController < ApplicationController
     else
       render_collection_validation
     end
-  end
-
-  # Adds a nonempty unindexed Collection at the end of the manual Index.
-  def register
-    @collection.register!
-    redirect_to collection_path(@collection)
-  end
-
-  # Removes an indexed Collection from the Index without deleting its page.
-  def unindex
-    @collection.unindex!
-    redirect_to collection_path(@collection)
   end
 
   # Soft-deletes a never-used Collection and returns to the Index.

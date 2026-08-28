@@ -236,7 +236,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "priority refuses every stale ineligible or mismatched current-user target atomically" do
-    collection = @user.collections.create!(name: "Private work")
+    collection = Collection.create_for(user: @user, topic: "Private work")
     cases = [
       create_entry(text: "wrong prior month", page_kind: "monthly_tasks", page_on: MONTH.prev_month),
       create_entry(text: "wrong future", page_kind: "future", page_on: nil, occurs_on: TODAY.next_month),
@@ -370,7 +370,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     create_entry(text: "hidden-descendant", page_kind: "daily", page_on: TODAY, parent: deleted_parent)
     deleted_parent.soft_delete!
     create_entry(text: "future", page_kind: "future", page_on: nil, occurs_on: TODAY.next_month)
-    collection = @user.collections.create!(name: "Excluded")
+    collection = Collection.create_for(user: @user, topic: "Excluded")
     create_entry(text: "collection", page_kind: "collection", page_on: nil, collection: collection)
     create_entry(text: "prior-month", page_kind: "monthly_tasks", page_on: MONTH.prev_month)
     create_entry(text: "future-day", page_kind: "daily", page_on: TODAY.next_day)
@@ -381,7 +381,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     create_entry(text: "prior-day", page_kind: "daily", page_on: TODAY.prev_day)
     create_entry(text: "monthly", page_kind: "monthly_tasks", page_on: MONTH)
     create_entry(text: "future", page_kind: "future", page_on: nil, occurs_on: TODAY.next_month)
-    collection = @user.collections.create!(name: "Evening excluded")
+    collection = Collection.create_for(user: @user, topic: "Evening excluded")
     create_entry(text: "collection", page_kind: "collection", page_on: nil, collection: collection)
     deleted = create_entry(text: "deleted", page_kind: "daily", page_on: TODAY)
     deleted.soft_delete!

@@ -46,7 +46,7 @@ class PageModelTest < ActiveSupport::TestCase
     assert_invalid build(page_kind: "future", page_on: PAGE_ON, occurs_on: AS_OF.next_month), :page_on
     assert_invalid build(page_kind: "future", page_on: nil, occurs_on: nil), :occurs_on
     assert_invalid build(page_kind: "collection", page_on: nil, collection: nil), :collection
-    foreign_collection = users(:two).collections.create!(name: "Foreign")
+    foreign_collection = Collection.create_for(user: users(:two), topic: "Foreign")
     assert_invalid build(page_kind: "collection", page_on: nil, collection: foreign_collection), :collection
   end
 

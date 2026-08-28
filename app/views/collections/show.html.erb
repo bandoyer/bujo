@@ -5,7 +5,7 @@
   <header class="page-shell__header daily-log__header collection-page__header">
     <div class="collection-page__heading">
       <h1 class="page-shell__title"><%= @collection.name %></h1>
-      <p class="collection-page__context">Collection · <%= @collection.index_position? ? "indexed" : "not indexed" %></p>
+      <p class="collection-page__context">Collection</p>
     </div>
     <button type="button"
             id="manage_collection_toggle"
@@ -46,17 +46,6 @@
     <% end %>
   </section>
 
-  <div class="collection-page__registration">
-    <% if @collection.registrable? %>
-      <%= button_to "Add to Index", register_collection_path(@collection), class: "action action--surface collection-page__button" %>
-    <% elsif @collection.index_position? %>
-      <%= button_to "Remove from Index",
-                    registration_collection_path(@collection),
-                    method: :delete,
-                    class: "action action--surface collection-page__button" %>
-    <% end %>
-  </div>
-
   <section class="daily-log__capture">
     <button type="button"
             id="capture_reveal"
@@ -67,10 +56,7 @@
             data-placement-target="toggle"
             data-action="placement#toggle">
       <% if @entries.empty? %>
-        <span class="state-text state-text--empty state-text--handwritten entry-list__empty">
-          <span>Nothing logged yet.</span>
-          <span>Add a first entry, then add it to the Index.</span>
-        </span>
+        <span class="state-text state-text--empty state-text--handwritten entry-list__empty">Nothing logged yet.</span>
       <% end %>
     </button>
     <div id="rapid_log_panel" class="daily-log__capture-panel" data-placement-target="panel" hidden>

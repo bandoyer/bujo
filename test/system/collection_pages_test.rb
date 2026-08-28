@@ -8,21 +8,28 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   test "1 create an empty Collection then capture all three root kinds" do
+    collections(:camping).soft_delete_if_unused!
     sign_in
     click_link "Index", exact: true
     assert_current_path journal_index_path
     assert_text "Nothing indexed yet."
-    assert_no_text collections(:camping).name
 
     reveal "new_collection_toggle", "new_collection_panel"
     fill_in "Topic", with: "Camping Notes"
     click_button "Create", exact: true
-    assert_text "Collection · not indexed"
+    assert_selector "h1", text: "Camping Notes"
+    assert_current_path %r{\A/collections/}
+    assert_text "Collection"
+    assert_no_text "not indexed"
     collection = Collection.find(page.current_path.split("/").last)
-    assert_equal [ @user, "Camping Notes" ], [ collection.user, collection.name ]
+    assert_equal [ @user, "Camping Notes", 2 ],
+      [ collection.user, collection.name, collection.index_position ]
     assert_current_path collection_path(collection)
-    assert_text "Add a first entry, then add it to the Index."
+    assert_text "Collection created."
+    assert_text "Nothing logged yet."
+    assert_no_text "Add a first entry, then add it to the Index."
     assert_no_button "Add to Index"
+    original_position = collection.index_position
 
     capture "reserve campsite", kind: "Task", expected_text: "reserve campsite"
     capture "campfire tomorrow 6pm", kind: "Event", expected_text: "campfire"
@@ -32,61 +39,49 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_text "reserve campsite"
     assert_text "campfire"
     assert_text "call after five"
-    assert_button "Add to Index"
+    assert_no_button "Add to Index"
     assert_selector ".entry__toggle", count: 3
     assert_selector ".entry__action-strip", count: 3, visible: :all
-  end
-
-  test "2 register rename unindex and re-register in deliberate order" do
-    first = create_filled_collection("Trail Plans")
-    second = create_filled_collection("Reading List")
-    sign_in
-    visit collection_path(first)
-    click_button "Add to Index"
-    visit collection_path(second)
-    click_button "Add to Index"
-    assert_text "Collection · indexed"
+    assert_equal original_position, collection.reload.index_position
 
     click_link "Index", exact: true
-    assert_equal [ "Trail Plans", "Reading List" ], all(".collection-index__topic-link").map(&:text)
+    assert_link collection.name
+  end
+
+  test "2 creation appends and rename preserves permanent order" do
+    first = create_collection("Trail Plans")
+    second = create_collection("Reading List")
+    sign_in
+    visit journal_index_path
+    assert_equal [ "Camping Trip", "Trail Plans", "Reading List" ],
+      all(".collection-index__topic-link").map(&:text)
 
     click_link "Trail Plans", exact: true
     reveal "manage_collection_toggle", "manage_collection_panel"
     fill_in "Rename Topic", with: "Camp Plan"
     click_button "Rename", exact: true
     assert_selector "h1", text: "Camp Plan"
-    click_button "Remove from Index"
-    assert_text "Collection · not indexed"
     click_link "Index", exact: true
-    assert_no_link "Camp Plan"
-    assert_link "Reading List"
-
-    visit collection_path(first)
-    click_button "Add to Index"
-    assert_text "Collection · indexed"
-    click_link "Index", exact: true
-    assert_equal [ "Reading List", "Camp Plan" ], all(".collection-index__topic-link").map(&:text)
+    assert_equal [ "Camping Trip", "Camp Plan", "Reading List" ],
+      all(".collection-index__topic-link").map(&:text)
+    assert_equal [ 2, 3 ], [ first.reload.index_position, second.reload.index_position ]
+    assert_no_button "Remove from Index"
   end
 
-  test "3 Open by Topic reaches only an exact known unindexed Topic" do
-    collection = @user.collections.create!(name: "Garden Plans")
+  test "3 Index has no Open by Topic surface and trailing canvas opens creation" do
+    collection = create_collection("Garden Plans")
     sign_in
     click_link "Index", exact: true
-    reveal "locate_collection_toggle", "locate_collection_panel"
-    fill_in "Exact Topic", with: "garden"
-    click_button "Open", exact: true
-    assert_current_path journal_index_path
-    assert_text "No Collection with that exact Topic."
-    assert_no_text collection.name
-
-    fill_in "Exact Topic", with: "  GARDEN PLANS  "
-    click_button "Open", exact: true
-    assert_current_path collection_path(collection)
+    assert_link collection.name
+    assert_no_button "Open by Topic"
+    assert_no_field "Exact Topic"
+    find("#index_create_reveal").click
+    assert_selector "#new_collection_panel:not([hidden])"
+    assert_equal "collection_name", page.evaluate_script("document.activeElement.id")
   end
 
   test "Index trailing canvas opens only New Collection and keeps other controls independent" do
     registered = create_filled_collection("Registered Topic")
-    registered.register!
     sign_in
     visit journal_index_path
 
@@ -101,14 +96,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_selector "#new_collection_panel:not([hidden])"
     assert_equal "collection_name", page.evaluate_script("document.activeElement.id")
     assert_no_difference -> { @user.collections.count } do
-      find("#locate_collection_toggle").click
-      assert_selector "#new_collection_panel[hidden]", visible: :all
-      assert_selector "#locate_collection_panel:not([hidden])"
-      fill_in "Exact Topic", with: "missing topic"
-      click_button "Open", exact: true
-      assert_text "No Collection with that exact Topic."
-      assert_selector "#new_collection_panel[hidden]", visible: :all
-      assert_selector "#locate_collection_panel:not([hidden])"
+      find("#new_collection_toggle").click
       click_link registered.name
     end
     assert_current_path collection_path(registered)
@@ -124,8 +112,8 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   test "4 guarded delete returns to Index and old or foreign paths share missing chrome" do
-    disposable = @user.collections.create!(name: "Disposable Topic")
-    foreign = users(:two).collections.create!(name: "Private Topic")
+    disposable = create_collection("Disposable Topic")
+    foreign = Collection.create_for(user: users(:two), topic: "Private Topic")
     sign_in
     visit collection_path(disposable)
     reveal "manage_collection_toggle", "manage_collection_panel"
@@ -146,7 +134,6 @@ class CollectionPagesTest < ApplicationSystemTestCase
 
   test "5 new screens honor both themes hands narrow layout and 44 pixel controls" do
     collection = create_filled_collection("A Topic Long Enough To Exercise Narrow Phone Wrapping")
-    collection.register!
     sign_in
     click_button "Theme: system", exact: true
     click_button "Hand: marker", exact: true
@@ -176,7 +163,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   test "6 empty and refused reader states stay useful and safe at phone widths" do
-    empty = @user.collections.create!(name: "Hidden Empty Topic")
+    empty = create_collection("Visible Empty Topic")
     sign_in
     click_button "Theme: system", exact: true
 
@@ -196,7 +183,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   test "7 deletion is offered only before a Collection has any entry history" do
-    never_used = @user.collections.create!(name: "Never Used")
+    never_used = create_collection("Never Used")
     kept_history = create_filled_collection("Kept History")
     deleted_history = create_filled_collection("Deleted History")
     deleted_entry = deleted_history.entries.first
@@ -226,12 +213,10 @@ class CollectionPagesTest < ApplicationSystemTestCase
 
   test "8 Collection reads and exact Topic lookup stay within the signed in user" do
     first_user_collection = create_filled_collection("First User Secret Topic")
-    first_user_collection.register!
     first_user_entry_text = first_user_collection.entries.first.text
 
     @user = users(:two)
     second_user_collection = create_filled_collection("Second User Topic")
-    second_user_collection.register!
     sign_in
 
     visit journal_index_path
@@ -244,28 +229,29 @@ class CollectionPagesTest < ApplicationSystemTestCase
     assert_no_text first_user_entry_text
 
     visit journal_index_path
-    reveal "locate_collection_toggle", "locate_collection_panel"
-    fill_in "Exact Topic", with: first_user_collection.name
-    click_button "Open", exact: true
-    assert_current_path journal_index_path
-    assert_text "No Collection with that exact Topic."
-    assert_selector "#locate_collection_toggle[aria-expanded='true']"
+    assert_no_button "Open by Topic"
+    assert_no_field "Exact Topic"
     assert_no_text first_user_collection.name
   end
 
   test "9 crafted Collection gestures are refused without changing rows" do
-    empty = @user.collections.create!(name: "Crafted Empty")
+    empty = create_collection("Crafted Empty")
     used = create_filled_collection("Crafted History")
-    duplicate = @user.collections.create!(name: "Duplicate Topic")
-    foreign = users(:two).collections.create!(name: "Foreign Capture Topic")
+    duplicate = create_collection("Duplicate Topic")
+    foreign = Collection.create_for(user: users(:two), topic: "Foreign Capture Topic")
     sign_in
 
-    visit collection_path(empty)
     empty_attributes = empty.attributes
-    submit_crafted_request(register_collection_path(empty), method: :post)
-    assert_current_path collection_path(empty)
-    assert_text "That Collection can't do that."
-    assert_equal empty_attributes, empty.reload.attributes
+    [
+      [ "/collections/locate", :post, { "topic" => empty.name } ],
+      [ "/collections/#{empty.id}/register", :post, {} ],
+      [ "/collections/#{empty.id}/registration", :delete, {} ]
+    ].each do |path, method, params|
+      visit collection_path(empty)
+      submit_crafted_request(path, method: method, params: params)
+      assert_text "Routing Error"
+      assert_equal empty_attributes, empty.reload.attributes
+    end
 
     visit collection_path(used)
     used_attributes = used.attributes
@@ -325,7 +311,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   test "10 Collection task lifecycle stays on its page and refuses outbound commands" do
-    collection = @user.collections.create!(name: "Lifecycle Commands")
+    collection = create_collection("Lifecycle Commands")
     task = create_collection_task(collection, "Command resident")
     sign_in
     visit collection_path(collection)
@@ -382,7 +368,7 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   test "11 open Collection actions fit both themed phone treatments" do
-    collection = @user.collections.create!(name: "Phone Command Layout")
+    collection = create_collection("Phone Command Layout")
     task = create_collection_task(collection, "A command row long enough to wrap on a narrow phone")
     sign_in
     click_button "Theme: system", exact: true
@@ -400,7 +386,6 @@ class CollectionPagesTest < ApplicationSystemTestCase
 
   test "12 an unbroken reader Topic wraps in the Index link and Collection heading" do
     collection = create_filled_collection("UnbrokenReaderWrittenTopic" * 3)
-    collection.register!
     sign_in
     click_button "Theme: system", exact: true
     click_button "Hand: marker", exact: true
@@ -438,12 +423,16 @@ class CollectionPagesTest < ApplicationSystemTestCase
   end
 
   def create_filled_collection(name)
-    collection = @user.collections.create!(name: name)
+    collection = create_collection(name)
     collection.entries.create!(
       user: @user, kind: "task", state: "open", text: "Resident", tags: [],
       page_kind: "collection", page_on: nil
     )
     collection
+  end
+
+  def create_collection(name)
+    Collection.create_for(user: @user, topic: name)
   end
 
   def create_collection_task(collection, text)
@@ -511,31 +500,32 @@ class CollectionPagesTest < ApplicationSystemTestCase
     visit journal_index_path
     assert_selector "html[data-theme='#{theme}']", visible: :all
     assert_title_first
-    assert_text "Nothing indexed yet."
+    assert_link collection.name
+    assert_no_text "Nothing indexed yet."
     assert_button "New Collection"
-    assert_no_text collection.name
+    assert_no_button "Open by Topic"
     assert_reader_layout_safe
-    assert_trailing_surface "#index_create_reveal", after: "#locate_collection_toggle"
+    assert_trailing_surface "#index_create_reveal", after: ".collection-index__topics"
 
     visit collection_path(collection)
     assert_selector "html[data-theme='#{theme}']", visible: :all
     assert_title_first
     assert_text "Nothing logged yet."
-    assert_text "Add a first entry, then add it to the Index."
+    assert_no_text "Add a first entry, then add it to the Index."
     assert_no_button "Add to Index"
+    assert_no_button "Remove from Index"
     assert_target_size "button[aria-label='Write on this page']"
     assert_reader_layout_safe
-    assert_trailing_surface "button[aria-label='Write on this page']", after: ".collection-page__registration"
+    assert_trailing_surface "button[aria-label='Write on this page']", after: ".entry-list"
 
     visit journal_index_path
-    reveal "locate_collection_toggle", "locate_collection_panel"
-    fill_in "Exact Topic", with: "Hidden Empty"
-    click_button "Open", exact: true
-    assert_text "No Collection with that exact Topic."
-    assert_selector "#locate_collection_toggle[aria-expanded='true']"
-    assert_selector "#locate_collection_panel:not([hidden])"
-    assert_no_selector ".collection-index__topics"
-    assert_no_text collection.name
+    reveal "new_collection_toggle", "new_collection_panel"
+    fill_in "Topic", with: "   "
+    click_button "Create", exact: true
+    assert_selector "#new_collection_toggle[aria-expanded='true']"
+    assert_selector "#new_collection_panel:not([hidden])"
+    assert_text "Name can't be blank"
+    assert_link collection.name
     assert_reader_layout_safe
 
     visit collection_path("missing-collection")

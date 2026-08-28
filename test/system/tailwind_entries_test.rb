@@ -24,7 +24,7 @@ class TailwindEntriesTest < ApplicationSystemTestCase
   test "row anatomy wraps complete text and destination metadata without losing either track" do
     long_topic = "ExpeditionPlansForEveryCampsiteTrailheadWaterSourcePermitDeadlineAndEmergencyContact"
     long_text = "ReaderAuthoredEntryWordsStayCompleteEvenWhenThisSingleUnbrokenStringMustShareTheRowWithDestinationMetadata"
-    destination = @user.collections.create!(name: long_topic)
+    destination = Collection.create_for(user: @user, topic: long_topic)
     predecessor = create_entry(text: long_text, kind: "note", state: nil, priority: true)
     predecessor.move_to!(page_kind: "collection", page_on: nil, collection: destination, as_of: @today)
     child = create_entry(text: "nested context", kind: "note", state: nil, parent: predecessor)
@@ -57,7 +57,7 @@ class TailwindEntriesTest < ApplicationSystemTestCase
   end
 
   test "Task Event Note and lifecycle rows keep glyph ink metadata and command matrix" do
-    destination = @user.collections.create!(name: "Archive Topic")
+    destination = Collection.create_for(user: @user, topic: "Archive Topic")
     task = create_entry(text: "open task", priority: true, time_of_day: "08:05", tags: %w[home])
     event = create_entry(text: "dated event", kind: "event", state: nil, occurs_on: @today, time_of_day: "14:30")
     note = create_entry(text: "plain note", kind: "note", state: nil)
@@ -105,7 +105,7 @@ class TailwindEntriesTest < ApplicationSystemTestCase
       tags: %w[long-metadata]
     )
     second_entry = create_entry(text: "second actionable task")
-    @user.collections.create!(name: "Camping Plans")
+    Collection.create_for(user: @user, topic: "Camping Plans")
     sign_in
 
     PROFILES.each do |profile|

@@ -21,9 +21,6 @@ class CollectionsPresentationSourceTest < ActiveSupport::TestCase
     ".collection-index__topics" => %w[display padding],
     ".collection-index__topic-link" =>
       %w[display min-width align-items border-bottom color overflow-wrap text-decoration],
-    ".collection-index__locate-toggle" => %w[margin-top],
-    ".collection-page__registration" => %w[display justify-content padding],
-    ".collection-page__registration form" => %w[margin],
     ".collection-panel form" => %w[margin],
     ".collection-page > .entry-list" => %w[padding],
     ".collection-page > .daily-log__capture" => %w[display min-height flex flex-direction],
@@ -41,8 +38,8 @@ class CollectionsPresentationSourceTest < ActiveSupport::TestCase
   }.freeze
 
   test "Index and Collection residual declarations have one page owner" do
-    assert_equal 21, DECLARATION_CONTRACTS.size
-    assert_equal 57, DECLARATION_CONTRACTS.values.sum(&:size)
+    assert_equal 18, DECLARATION_CONTRACTS.size
+    assert_equal 52, DECLARATION_CONTRACTS.values.sum(&:size)
 
     rules = authored_rules
     DECLARATION_CONTRACTS.each do |selector, properties|
@@ -59,7 +56,7 @@ class CollectionsPresentationSourceTest < ActiveSupport::TestCase
     owner = authored_declarations_for(ROOT.join(OWNER))
     baseline = authored_declarations_for(T0_STYLESHEET)
     assert_equal DECLARATION_CONTRACTS.keys.sort, owner.keys.sort
-    assert_equal 57, owner.values.sum(&:size)
+    assert_equal 52, owner.values.sum(&:size)
 
     DECLARATION_CONTRACTS.each do |selector, properties|
       baseline_selector = T0_SHARED_SELECTORS.fetch(selector, selector)

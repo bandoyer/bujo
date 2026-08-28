@@ -32,15 +32,7 @@ Rails.application.routes.draw do
   get "month/:month/migration/complete", to: "monthly_migrations#complete", as: :monthly_migration_complete
   get "future", to: "future_logs#show", as: :future_log
   get "index", to: "collections#index", as: :journal_index
-  resources :collections, only: %i[create show update destroy] do
-    collection do
-      post :locate
-    end
-    member do
-      post :register
-      delete :registration, action: :unindex
-    end
-  end
+  resources :collections, only: %i[create show update destroy]
   resources :entries, only: %i[create update] do
     member do
       post :complete

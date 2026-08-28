@@ -83,7 +83,7 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   test "3 outgoing Collection and Future second steps cancel, refuse, and append one successor" do
-    collection = @user.collections.create!(name: "Camping Plans")
+    collection = Collection.create_for(user: @user, topic: "Camping Plans")
     to_collection = create_entry(text: "collect permits", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
     to_future = create_entry(text: "book opening day", page_kind: "daily", page_on: SOURCE_MONTH + 5.days)
     sign_in
@@ -260,7 +260,7 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   test "outgoing exact-Topic Collection Undo appends an exact source restoration" do
-    collection = @user.collections.create!(name: "Undo Topic")
+    collection = Collection.create_for(user: @user, topic: "Undo Topic")
     outgoing = create_entry(
       text: "undo outgoing collection", page_kind: "monthly_tasks", page_on: SOURCE_MONTH
     )

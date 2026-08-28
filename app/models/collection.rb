@@ -1,27 +1,24 @@
-# Represents a reader-named Custom Collection and its deliberate Index
-# registration state.
+# Represents a reader-named Custom Collection, which always belongs to its
+# owner's Index while it is live.
 class Collection < ApplicationRecord
-  # Signals that a requested registration, unindex, or deletion transition is
-  # not available from the Collection's persisted state.
+  # Signals that guarded deletion is unavailable from the persisted state.
   class LifecycleError < StandardError; end
 
   include UuidV7Id
   include SoftDeletable
 
-  # Two registrations racing for the same rank collide on the kept-position
-  # unique index; the loser re-reads the greatest position and appends again,
-  # so only a run of collisions this long is treated as a refusal.
-  REGISTRATION_ATTEMPTS = 3
+  # A concurrent insertion can take the candidate append rank. Retrying this
+  # many times keeps that storage race bounded and turns exhaustion into an
+  # ordinary invalid result.
+  CREATION_ATTEMPTS = 3
 
   belongs_to :user
   has_many :entries
 
   before_validation :normalize_topic
 
-  # Returns kept, explicitly registered Topics in manual registration order.
-  scope :in_index_order, -> {
-    kept.where.not(index_position: nil).order(:index_position, :id)
-  }
+  # Returns every kept Topic in permanent server-allocated append order.
+  scope :in_index_order, -> { kept.order(:index_position, :id) }
   # Narrows a caller-scoped relation to one case-insensitive exact Topic.
   scope :with_exact_topic, ->(topic) {
     where("LOWER(name) = LOWER(?)", topic.to_s.strip)
@@ -39,39 +36,30 @@ class Collection < ApplicationRecord
   validates :index_position,
     uniqueness: { scope: :user_id, conditions: -> { kept } },
     allow_nil: true
+  validates :index_position, presence: true, if: :kept?
   validate :index_position_is_domain_owned
 
-  # Answers whether this Collection can be deliberately added to the Index.
-  def registrable?
-    kept? && index_position.nil? && entries.kept.exists?
-  end
+  # Creates one live Collection at its owner's next permanent Index position.
+  # Invalid Topic input returns the rejected record with its validation errors.
+  def self.create_for(user:, topic:, id: nil)
+    CREATION_ATTEMPTS.times do
+      collection = new(user: user, name: topic, id: id)
 
-  # Appends this nonempty Collection to the user's manual Index order.
-  def register!
-    attempts = 0
-
-    begin
-      attempts += 1
-      register_once!
-    rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-      # A lost attempt leaves its rejected rank assigned in memory, and a record
-      # carrying unsaved changes cannot be locked. Discard it so the next
-      # attempt re-reads the winner's rank, and so a refusal reports the
-      # position the row actually still holds.
-      reload
-      raise LifecycleError if attempts >= REGISTRATION_ATTEMPTS
-
-      retry
+      begin
+        transaction(requires_new: true) do
+          position = where(user: user).maximum(:index_position).to_i + 1
+          collection.send(:save_at_index_position!, position)
+        end
+        return collection
+      rescue ActiveRecord::RecordInvalid => error
+        return error.record
+      rescue ActiveRecord::RecordNotUnique
+        # The next attempt re-reads all retained ranks after the winner commits.
+      end
     end
-  end
 
-  # Removes this kept Collection from the Index without changing its Topic or
-  # residents.
-  def unindex!
-    with_lock do
-      raise LifecycleError unless kept? && index_position.present?
-
-      write_index_position!(nil)
+    new(user: user, name: topic, id: id).tap do |collection|
+      collection.errors.add(:base, "Collection could not be created")
     end
   end
 
@@ -81,8 +69,7 @@ class Collection < ApplicationRecord
     kept? && !entries.exists?
   end
 
-  # Soft-deletes a kept, never-used Collection while preserving every other
-  # field for later synchronization.
+  # Soft-deletes a kept, never-used Collection while retaining its Index rank.
   def soft_delete_if_unused!(at: Time.current)
     with_lock do
       raise LifecycleError unless deletable?
@@ -99,30 +86,16 @@ class Collection < ApplicationRecord
 
   def index_position_is_domain_owned
     return unless will_save_change_to_index_position?
-    return if @writing_index_position
+    return if @allocating_index_position
 
     errors.add(:index_position, :readonly)
   end
 
-  def register_once!
-    with_lock do
-      raise LifecycleError unless registrable?
-
-      write_index_position!(next_index_position)
-    end
-  end
-
-  # Soft-deleted rows count too. A phase-2 pull can deliver a tombstone that
-  # still carries the rank another device gave it, and no rank may be issued
-  # twice; no gesture in this app can reach that state on its own.
-  def next_index_position
-    user.collections.maximum(:index_position).to_i + 1
-  end
-
-  def write_index_position!(position)
-    @writing_index_position = true
-    update!(index_position: position)
+  def save_at_index_position!(position)
+    @allocating_index_position = true
+    self.index_position = position
+    save!
   ensure
-    @writing_index_position = false
+    @allocating_index_position = false
   end
 end

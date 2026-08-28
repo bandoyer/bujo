@@ -44,24 +44,6 @@
   <% end %>
 
   <button type="button"
-          id="locate_collection_toggle"
-          class="action action--surface collection-page__button collection-index__locate-toggle"
-          aria-expanded="<%= @locate_open ? "true" : "false" %>"
-          aria-controls="locate_collection_panel"
-          data-placement-target="toggle"
-          data-action="placement#toggle">Open by Topic</button>
-  <section id="locate_collection_panel"
-           class="collection-panel"
-           data-placement-target="panel"
-           <%= "hidden" unless @locate_open %>>
-    <%= form_with url: locate_collections_path, class: "collection-form" do |form| %>
-      <%= form.label :topic, "Exact Topic", class: "field-label" %>
-      <%= form.text_field :topic, value: nil, autocomplete: "off", class: "field", data: { placement_target: "focus" } %>
-      <%= form.submit "Open", class: "action action--surface collection-page__button" %>
-    <% end %>
-  </section>
-
-  <button type="button"
           id="index_create_reveal"
           class="collection-index__create-reveal"
           aria-label="New Collection"

@@ -158,8 +158,8 @@ class EntryTest < ActiveSupport::TestCase
 
   test "Collection pages contain only kept resident roots in capture order" do
     collection = collections(:camping)
-    other_collection = users(:one).collections.create!(name: "Other")
-    foreign_collection = users(:two).collections.create!(name: "Foreign")
+    other_collection = Collection.create_for(user: users(:one), topic: "Other")
+    foreign_collection = Collection.create_for(user: users(:two), topic: "Foreign")
     timestamp = Time.zone.parse("2033-10-01 08:00:00")
     later = create_entry(
       id: "0198f3b9-0000-7000-8000-000000000052",

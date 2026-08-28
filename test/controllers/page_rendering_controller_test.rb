@@ -192,7 +192,7 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
 
   test "entry refusal alerts follow titles on every resident page" do
     month = Time.zone.today.beginning_of_month
-    collection = @user.collections.create!(name: "Refusal Topic")
+    collection = Collection.create_for(user: @user, topic: "Refusal Topic")
     cases = [
       [ create_open_task("daily refusal", page_on: Time.zone.today), daily_log_path(date: Time.zone.today.iso8601) ],
       [ create_resident("calendar refusal", kind: "event", page_kind: "monthly_calendar",

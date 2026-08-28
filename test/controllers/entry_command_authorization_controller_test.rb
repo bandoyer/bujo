@@ -16,8 +16,8 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
 
   setup do
     @user = users(:one)
-    @collection = @user.collections.create!(name: "Command Matrix")
-    @foreign_collection = users(:two).collections.create!(name: "Foreign Command Target")
+    @collection = Collection.create_for(user: @user, topic: "Command Matrix")
+    @foreign_collection = Collection.create_for(user: users(:two), topic: "Foreign Command Target")
     sign_in_as @user
   end
 
@@ -240,7 +240,7 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
   end
 
   def unavailable_collection_entry(command, condition)
-    collection = @user.collections.create!(name: "Unavailable #{condition} #{command}")
+    collection = Collection.create_for(user: @user, topic: "Unavailable #{condition} #{command}")
     entry = create_collection_task(command, collection)
 
     case condition

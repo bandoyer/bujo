@@ -190,7 +190,6 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
   def render_index_populated_long
     collection = create_collection("This Is An Intentionally Very Long Indexed Collection Topic Used To Preserve Wrapping Geometry")
     create_collection_entry(collection)
-    collection.register!
     visit journal_index_path
   end
 
@@ -208,7 +207,6 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
   def render_collection_populated_indexed
     collection = create_collection("Camping Master Collection")
     create_collection_entry(collection)
-    collection.register!
     visit collection_path(collection)
   end
 
@@ -353,7 +351,7 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
   end
 
   def create_collection(name)
-    @user.collections.create!(name: name)
+    Collection.create_for(user: @user, topic: name)
   end
 
   def create_collection_entry(collection)

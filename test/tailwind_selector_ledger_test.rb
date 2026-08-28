@@ -11,6 +11,12 @@ class TailwindSelectorLedgerTest < ActiveSupport::TestCase
   T0_STYLESHEET = Rails.root.join("test/fixtures/files/tailwind_v4_t0.css")
   SELECTORS_CSV = Rails.root.join("docs/tailwind-v4-baseline/selectors.csv")
   DEAD_SELECTOR = ".monthly-calendar__glyph--event"
+  REMOVED_SELECTORS = [
+    DEAD_SELECTOR,
+    ".collection-index__locate-toggle",
+    ".collection-page__registration",
+    ".collection-page__registration form"
+  ].freeze
   POST_T0_REPLACEMENTS = {
     [ ".monthly-calendar__day", "align-items", "center" ] => {
       selector: ".monthly-calendar__day", value: "start", owner: "pages/monthly.css"
@@ -171,10 +177,11 @@ class TailwindSelectorLedgerTest < ActiveSupport::TestCase
     rows = ledger_rows
     t0_rules = parse_css(T0_STYLESHEET.read, owner: "t0")
     current_rules = current_source_rules
-    dead_rows, live_rows = rows.partition { |row| row.fetch("selector") == DEAD_SELECTOR }
+    dead_rows, live_rows = rows.partition { |row| REMOVED_SELECTORS.include?(row.fetch("selector")) }
 
-    assert_equal 1, dead_rows.size
-    assert_equal "dead-or-superseded", dead_rows.first.fetch("category")
+    assert_equal REMOVED_SELECTORS.sort, dead_rows.map { |row| row.fetch("selector") }.sort
+    assert_equal "dead-or-superseded",
+      dead_rows.find { |row| row.fetch("selector") == DEAD_SELECTOR }.fetch("category")
 
     missing = []
     live_rows.each do |row|
@@ -239,7 +246,7 @@ class TailwindSelectorLedgerTest < ActiveSupport::TestCase
     assert_no_match(/monthly-calendar__glyph--event/, monthly)
     assert today_rule, "today number/weekday must keep a grouped accent rule"
     assert_match(/color:\s*var\(--accent\);/, today_rule)
-    assert_empty current_source_rules.select { |rule| rule.selector == DEAD_SELECTOR }
+    assert_empty current_source_rules.select { |rule| REMOVED_SELECTORS.include?(rule.selector) }
 
     runtime_hits = application_runtime_paths.filter_map do |path|
       path.read.match?(DEAD_SELECTOR) ? path.relative_path_from(Rails.root).to_s : nil

@@ -159,7 +159,7 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "each outgoing movement rewrites only the selected row with exact destination semantics" do
-    destination = @user.collections.create!(name: "Camping Plans")
+    destination = Collection.create_for(user: @user, topic: "Camping Plans")
     parent = create_entry(
       text: "parent context", kind: "note", state: nil,
       page_kind: "daily", page_on: SOURCE_MONTH + 4.days
@@ -185,9 +185,10 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
     assert_nil successor.server_seq
 
     to_collection = create_entry(text: "move exact topic", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
+    destination_position = destination.index_position
     post migration_outgoing_collection_path(to_collection), params: { topic: "  CAMPING PLANS  ", collection_id: 999 }
     assert_equal destination, to_collection.reload.successor.collection
-    assert_nil destination.reload.index_position
+    assert_equal destination_position, destination.reload.index_position
     assert_nil to_collection.successor.occurs_on
 
     to_future = create_entry(
@@ -209,9 +210,9 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
   test "outgoing authorization refuses wrong stage state destination and stale candidates without side effects" do
     first = create_entry(text: "first candidate", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
     second = create_entry(text: "second candidate", page_kind: "daily", page_on: SOURCE_MONTH + 2.days)
-    collection = @user.collections.create!(name: "Known Topic")
-    foreign = @other_user.collections.create!(name: "Foreign Topic")
-    deleted = @user.collections.create!(name: "Deleted Topic")
+    collection = Collection.create_for(user: @user, topic: "Known Topic")
+    foreign = Collection.create_for(user: @other_user, topic: "Foreign Topic")
+    deleted = Collection.create_for(user: @user, topic: "Deleted Topic")
     deleted.soft_delete_if_unused!
 
     [
@@ -431,7 +432,7 @@ class MonthlyMigrationsControllerTest < ActionDispatch::IntegrationTest
     hidden_child.soft_delete!
     create_entry(text: "wrong month", page_kind: "monthly_tasks", page_on: SOURCE_MONTH.prev_month)
     create_entry(text: "future excluded", page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH.next_month + 1.day)
-    collection = @user.collections.create!(name: "Not a source")
+    collection = Collection.create_for(user: @user, topic: "Not a source")
     create_entry(text: "collection excluded", page_kind: "collection", page_on: nil, collection: collection)
   end
 
