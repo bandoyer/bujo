@@ -361,6 +361,9 @@ class EntryTest < ActiveSupport::TestCase
   test "priority transitions reject mismatched settled moved and deleted tasks" do
     already_marked = create_entry(priority: true)
     done = create_entry(state: "done")
+    struck = create_entry(state: "struck")
+    event = create_entry(kind: "event", state: nil)
+    note = create_entry(kind: "note", state: nil)
     moved = create_entry
     moved.move_to!(page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month, as_of: TODAY)
     deleted = create_entry
@@ -370,6 +373,9 @@ class EntryTest < ActiveSupport::TestCase
       [ already_marked, :mark_priority! ],
       [ create_entry, :clear_priority! ],
       [ done, :mark_priority! ],
+      [ struck, :mark_priority! ],
+      [ event, :mark_priority! ],
+      [ note, :clear_priority! ],
       [ moved, :mark_priority! ],
       [ deleted, :mark_priority! ]
     ].each do |task, command|

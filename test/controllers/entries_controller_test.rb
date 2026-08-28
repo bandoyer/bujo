@@ -226,8 +226,18 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     post complete_entry_path(task), params: { return_to: "https://attacker.example", viewed_on: today.iso8601 }
     assert_redirected_to daily_log_path(date: today.iso8601)
 
+    post complete_entry_path(create_open_task("prefix return", page_on: today)), params: {
+      return_to: "reflection_tomorrow", viewed_on: today.iso8601
+    }
+    assert_redirected_to daily_log_path(date: today.iso8601)
+
     post entries_path, params: {
       line: "safe capture", on: today.iso8601, return_to: "//attacker.example"
+    }
+    assert_redirected_to daily_log_path(date: today.iso8601)
+
+    post entries_path, params: {
+      line: "prefix capture", on: today.iso8601, return_to: "reflection_tomorrow"
     }
     assert_redirected_to daily_log_path(date: today.iso8601)
   end

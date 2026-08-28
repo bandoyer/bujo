@@ -32,16 +32,27 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
 
     begin
       get reflection_path
+      morning_reads = clock_reads
+      get evening_reflection_path, params: { date: "2026-01-01", on: "2026-01-01", month: "2026-01" }
     ensure
       zone.singleton_class.remove_method(:today)
     end
 
     assert_response :success
-    assert_equal 1, clock_reads
+    assert_equal 1, morning_reads
+    assert_equal 2, clock_reads
     assert_select "main > h1:first-child", text: "Daily Reflection", count: 1
     assert_select "h1", count: 1
     assert_select ".daily-reflection__date", text: TODAY.strftime("%A · %B %-d").upcase
     assert_select ".tab-bar__item--active[aria-current='page']", text: "Today"
+  end
+
+  test "an unmatched Reflection path is an ordinary route miss" do
+    [ "/reflection/yesterday", "/reflection/2026-08-26" ].each do |path|
+      assert_raises(ActionController::RoutingError) do
+        Rails.application.routes.recognize_path(path)
+      end
+    end
   end
 
   test "Morning renders qualifying kept trees in Calendar Tasks and Daily paper order" do
@@ -82,6 +93,9 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{daily_root.id} #entry_#{daily_task.id}"
     assert_select "form[action='#{mark_priority_reflection_path(calendar_task)}']", count: 1
     assert_select "form[action='#{mark_priority_reflection_path(calendar_root)}']", count: 0
+    assert_select "form[action='#{complete_entry_path(calendar_task)}']", count: 0
+    assert_select "form[action='#{strike_entry_path(calendar_task)}']", count: 0
+    assert_select "form[action='#{schedule_entry_path(calendar_task)}']", count: 0
     assert_body_order(
       "Monthly Calendar · August 2026",
       "nested calendar task",
@@ -111,6 +125,26 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".entry__text", text: "eligible descendant"
     assert_select "#entry_#{irrelevant.id}", count: 0
     assert_select ".daily-reflection__open-count", text: "1 open"
+  end
+
+  test "Morning membership follows dated-page residency through today, not occurs_on" do
+    first_of_month = create_entry(text: "first-of-month daily", page_kind: "daily", page_on: MONTH)
+    create_entry(text: "prior-month daily dated today", page_kind: "daily", page_on: MONTH.prev_day, occurs_on: TODAY)
+    create_entry(
+      text: "prior-month calendar", page_kind: "monthly_calendar",
+      page_on: MONTH.prev_month, occurs_on: MONTH.prev_month + 3.days
+    )
+    create_entry(text: "occurs-on today future", page_kind: "future", page_on: nil, occurs_on: TODAY)
+
+    travel_to TODAY do
+      get reflection_path
+    end
+
+    assert_select "#entry_#{first_of_month.id}", count: 1
+    assert_select "form[action='#{mark_priority_reflection_path(first_of_month)}']", count: 1
+    %w[prior-month\ daily\ dated\ today prior-month\ calendar occurs-on\ today\ future].each do |text|
+      assert_select ".entry__text", text: text, count: 0
+    end
   end
 
   test "Morning empty state makes no completion claim" do
@@ -178,11 +212,13 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
 
     travel_to TODAY do
       [ SecureRandom.uuid, foreign.id, deleted.id ].each do |id|
-        original = journal_snapshot
-        post mark_priority_reflection_path(id)
-        assert_response :not_found
-        assert_empty response.body
-        assert_equal original, journal_snapshot
+        [ mark_priority_reflection_path(id), clear_priority_reflection_path(id) ].each do |path|
+          original = journal_snapshot
+          post path
+          assert_response :not_found
+          assert_empty response.body
+          assert_equal original, journal_snapshot
+        end
       end
     end
   end
@@ -190,6 +226,7 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
   test "Evening renders only today's complete kept Daily trees and derives done copy" do
     root = create_entry(text: "today root", page_kind: "daily", page_on: TODAY)
     child = create_entry(text: "done child", state: "done", page_kind: "daily", page_on: TODAY, parent: root)
+    nested_open = create_entry(text: "open child", page_kind: "daily", page_on: TODAY, parent: root)
     event = create_entry(text: "today event", kind: "event", page_kind: "daily", page_on: TODAY)
     note = create_entry(text: "today note", kind: "note", page_kind: "daily", page_on: TODAY)
     create_evening_exclusions
@@ -201,16 +238,23 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "nav[aria-label='Daily Reflection mode'] a[aria-current='page']", text: "Evening"
     assert_select "label[for='reflection_line']", text: "What did you miss?"
-    [ root, child, event, note ].each { |entry| assert_select "#entry_#{entry.id}", count: 1 }
+    [ root, child, nested_open, event, note ].each { |entry| assert_select "#entry_#{entry.id}", count: 1 }
     assert_select "#entry_#{root.id} form[action='#{complete_entry_path(root)}']"
     assert_select "#entry_#{root.id} form[action='#{strike_entry_path(root)}']"
     assert_select "#entry_#{root.id} form[action='#{schedule_entry_path(root)}']"
+    assert_select "#entry_#{nested_open.id} form[action='#{complete_entry_path(nested_open)}']"
     assert_select "#entry_#{event.id} form[action='#{schedule_entry_path(event)}']"
     assert_select "#entry_#{note.id} form", count: 0
     assert_select "#entry_#{child.id} form", count: 0
+    [ root, nested_open ].each do |entry|
+      assert_select "#entry_#{entry.id} button", text: "Edit", count: 0
+      assert_select "#entry_#{entry.id} form[action='#{migrate_entry_path(entry)}']", count: 0
+      assert_select "#entry_#{entry.id} form[action='#{reopen_entry_path(entry)}']", count: 0
+      assert_select "#entry_#{entry.id} form[action='#{move_to_collection_entry_path(entry)}']", count: 0
+    end
     assert_select ".daily-reflection__progress", text: "1 task marked complete."
     assert_select ".daily-reflection__closing", text: "Notice what moved forward today."
-    %w[prior-day monthly future collection deleted hidden-evening foreign-evening].each do |text|
+    %w[prior-day monthly future collection deleted hidden-evening foreign-evening other-page-done monthly-done].each do |text|
       assert_select ".entry__text", text: text, count: 0
     end
   end
@@ -281,6 +325,8 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     create_entry(text: "hidden-evening", page_kind: "daily", page_on: TODAY, parent: deleted_parent)
     deleted_parent.soft_delete!
     create_entry(user: @other_user, text: "foreign-evening", page_kind: "daily", page_on: TODAY)
+    create_entry(text: "other-page-done", state: "done", page_kind: "daily", page_on: TODAY.prev_day)
+    create_entry(text: "monthly-done", state: "done", page_kind: "monthly_tasks", page_on: MONTH)
   end
 
   def journal_snapshot
