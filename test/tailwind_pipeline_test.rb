@@ -36,6 +36,7 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     pages/auth.css
     pages/collections.css
     pages/daily.css
+    pages/daily-reflection.css
     pages/future.css
     pages/monthly.css
     pages/monthly-migration.css

@@ -1,0 +1,73 @@
+<% content_for :title, "Daily Reflection · Bujo" %>
+<% content_for :deferred_flash, true %>
+<main class="page-shell daily-reflection" data-controller="task-actions">
+  <h1 class="page-shell__title">Daily Reflection</h1>
+  <p class="daily-reflection__date"><%= @today.strftime("%A · %B %-d").upcase %></p>
+  <div class="daily-reflection__preferences">
+    <%= render "themes/toggle" %>
+    <%= render "letterings/toggle" %>
+  </div>
+  <%= render "daily_reflections/mode_switch", mode: mode %>
+  <div id="flash_messages"><%= render "shared/flash_messages" %></div>
+
+  <% if mode == :morning %>
+    <section class="daily-reflection__stage" aria-labelledby="reflection-stage">
+      <h2 id="reflection-stage">Plan the day</h2>
+      <p>Clear your mind, then review what is still open this month.</p>
+    </section>
+    <section class="daily-reflection__capture" aria-label="Morning rapid log">
+      <%= render "entries/rapid_log_form",
+                 capture_date: @today,
+                 form_id: "reflection_capture",
+                 line_id: "reflection_line",
+                 label: "What surfaced overnight?",
+                 return_to: "reflection_morning",
+                 submitted_line: flash[:reflection_line].to_s,
+                 selected_kind: flash[:reflection_kind].presence_in(Entry::KINDS) || "task" %>
+    </section>
+    <div class="daily-reflection__section-heading">
+      <h2>Open this month</h2>
+      <% if @morning_priority_ids.any? %>
+        <span class="daily-reflection__open-count"><%= @morning_priority_ids.size %> open</span>
+      <% end %>
+    </div>
+    <% if @source_groups.empty? %>
+      <p class="daily-reflection__empty state-text state-text--empty state-text--handwritten">No open tasks on this month's pages.</p>
+    <% else %>
+      <div class="daily-reflection__sources">
+        <%= render partial: "daily_reflections/source_tree", collection: @source_groups, as: :group,
+                   locals: { mode: :morning } %>
+      </div>
+    <% end %>
+  <% else %>
+    <section class="daily-reflection__stage" aria-labelledby="reflection-stage">
+      <h2 id="reflection-stage">Review the day</h2>
+      <p>Update today's record, consider each entry, and notice what moved forward.</p>
+    </section>
+    <section class="daily-reflection__capture" aria-label="Evening rapid log">
+      <%= render "entries/rapid_log_form",
+                 capture_date: @today,
+                 form_id: "reflection_capture",
+                 line_id: "reflection_line",
+                 label: "What did you miss?",
+                 return_to: "reflection_evening",
+                 submitted_line: flash[:reflection_line].to_s,
+                 selected_kind: flash[:reflection_kind].presence_in(Entry::KINDS) || "task" %>
+    </section>
+    <div class="daily-reflection__section-heading"><h2>Today's entries</h2></div>
+    <% if @daily_roots.empty? %>
+      <p class="daily-reflection__empty state-text state-text--empty state-text--handwritten">Nothing logged today yet.</p>
+    <% else %>
+      <div class="daily-reflection__tree">
+        <%= render partial: "daily_reflections/tree_entry", collection: @daily_roots, as: :entry,
+                   locals: { mode: :evening } %>
+      </div>
+    <% end %>
+    <% if @done_task_count.positive? %>
+      <p class="daily-reflection__progress"><%= pluralize(@done_task_count, "task") %> marked complete.</p>
+    <% end %>
+    <p class="daily-reflection__closing">Notice what moved forward today.</p>
+  <% end %>
+
+  <%= render "shared/tab_bar", active: :today %>
+</main>

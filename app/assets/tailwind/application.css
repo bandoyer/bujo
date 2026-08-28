@@ -14,6 +14,7 @@
 @import "./pages/auth.css" layer(components);
 @import "./pages/collections.css" layer(components);
 @import "./pages/daily.css" layer(components);
+@import "./pages/daily-reflection.css" layer(components);
 @import "./pages/future.css" layer(components);
 @import "./pages/monthly.css" layer(components);
 @import "./pages/monthly-migration.css" layer(components);

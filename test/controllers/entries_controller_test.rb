@@ -143,6 +143,95 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal capture_date, captured.occurs_on
   end
 
+  test "Reflection capture ignores authored placement and date and returns to its originating mode" do
+    today = Date.new(2026, 8, 27)
+
+    travel_to today do
+      [ [ "reflection_morning", reflection_path ], [ "reflection_evening", evening_reflection_path ] ].each do |return_to, path|
+        assert_difference -> { @user.entries.daily_log(today).count }, 1 do
+          post entries_path, params: {
+            line: "captured from #{return_to}",
+            default_kind: "note",
+            return_to: return_to,
+            placement: "future",
+            on: today.next_month.iso8601,
+            page_kind: "collection"
+          }
+        end
+        assert_redirected_to path
+        captured = @user.entries.find_by!(text: "captured from #{return_to}")
+        assert_equal [ "note", nil, "daily", today, nil, nil ],
+          captured.values_at(:kind, :state, :page_kind, :page_on, :collection_id, :migrated_from_id)
+      end
+    end
+  end
+
+  test "Reflection capture refusal preserves the line and selected kind in its originating mode" do
+    travel_to Date.new(2026, 8, 27) do
+      assert_no_difference -> { @user.entries.count } do
+        post entries_path, params: {
+          line: "-",
+          default_kind: "event",
+          return_to: "reflection_evening",
+          placement: "future"
+        }
+      end
+
+      assert_redirected_to evening_reflection_path
+      assert_equal "-", flash[:reflection_line]
+      assert_equal "event", flash[:reflection_kind]
+      follow_redirect!
+      assert_select "input#reflection_line[value='-']"
+      assert_select "button[aria-label='Event'][aria-pressed='true']"
+      assert_select ".flash--alert", text: "That entry can't do that."
+    end
+  end
+
+  test "Evening lifecycle actions return safely and retain existing authorization" do
+    today = Date.new(2026, 8, 27)
+
+    travel_to today do
+      complete = create_open_task("evening complete", page_on: today)
+      post complete_entry_path(complete), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
+      assert_redirected_to evening_reflection_path
+      assert_equal "done", complete.reload.state
+
+      struck = create_open_task("evening strike", page_on: today)
+      post strike_entry_path(struck), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
+      assert_redirected_to evening_reflection_path
+      assert_equal "struck", struck.reload.state
+
+      scheduled = create_open_task("evening schedule", page_on: today)
+      post schedule_entry_path(scheduled), params: {
+        return_to: "reflection_evening", viewed_on: today.iso8601, date: (today + 2.days).iso8601
+      }
+      assert_redirected_to evening_reflection_path
+      assert_equal [ "monthly_calendar", today.beginning_of_month, today + 2.days ],
+        scheduled.reload.successor.values_at(:page_kind, :page_on, :occurs_on)
+
+      future = create_open_task("evening future", page_on: today)
+      post schedule_entry_path(future), params: {
+        return_to: "reflection_evening", viewed_on: today.iso8601, date: today.next_month.iso8601
+      }
+      assert_redirected_to evening_reflection_path
+      assert_equal [ "future", nil, today.next_month ],
+        future.reload.successor.values_at(:page_kind, :page_on, :occurs_on)
+    end
+  end
+
+  test "crafted return values never redirect lifecycle or capture to an arbitrary URL" do
+    today = Time.zone.today
+    task = create_open_task("safe return", page_on: today)
+
+    post complete_entry_path(task), params: { return_to: "https://attacker.example", viewed_on: today.iso8601 }
+    assert_redirected_to daily_log_path(date: today.iso8601)
+
+    post entries_path, params: {
+      line: "safe capture", on: today.iso8601, return_to: "//attacker.example"
+    }
+    assert_redirected_to daily_log_path(date: today.iso8601)
+  end
+
   test "turbo capture refusal stays on the submitting request" do
     assert_no_difference -> { @user.entries.count } do
       post entries_path(format: :turbo_stream), params: {

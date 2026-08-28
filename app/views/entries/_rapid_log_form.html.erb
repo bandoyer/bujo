@@ -3,6 +3,8 @@
 <% form_id = local_assigns.fetch(:form_id, "rapid_log_form") %>
 <% line_id = local_assigns.fetch(:line_id, "rapid-log-line") %>
 <% future_month = local_assigns[:future_month] %>
+<% selected_kind = local_assigns.fetch(:selected_kind, "task") %>
+<% submitted_line = local_assigns.fetch(:submitted_line, "") %>
 <% line_data = { rapid_log_target: "line", placement_target: ("focus" unless future_month) }.compact %>
 <%= form_with url: entries_path,
               id: form_id,
@@ -15,8 +17,12 @@
                 ].compact.join(" "),
                 month: (future_month.strftime("%Y-%m") if future_month)
               }.compact do |form| %>
-  <%= render "entries/kind_buttons", allowed_kinds: allowed_kinds %>
-  <%= form.hidden_field :default_kind, value: "task", data: { rapid_log_target: "kind" } %>
+  <% if local_assigns[:label] %>
+    <%= form.label :line, label, for: line_id, class: "field-label rapid-log__label" %>
+  <% end %>
+  <%= render "entries/kind_buttons", allowed_kinds: allowed_kinds, selected_kind: selected_kind %>
+  <%= form.hidden_field :default_kind, value: selected_kind, data: { rapid_log_target: "kind" } %>
+  <%= form.hidden_field :return_to, value: return_to if local_assigns[:return_to] %>
   <%= form.hidden_field :placement, value: placement if placement %>
   <%= form.hidden_field :collection_id, value: collection.id if local_assigns[:collection] %>
   <% if future_month %>
@@ -37,6 +43,7 @@
     <div class="rapid-log__input-wrap">
       <%= form.text_field :line,
                           id: line_id,
+                          value: submitted_line,
                           placeholder: "Rapid log…",
                           autocomplete: "off",
                           data: line_data %>

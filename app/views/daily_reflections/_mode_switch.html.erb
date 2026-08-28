@@ -1,0 +1,8 @@
+<nav class="daily-reflection__mode-switch" aria-label="Daily Reflection mode">
+  <%= link_to "Morning", reflection_path,
+              class: class_names("daily-reflection__mode", "daily-reflection__mode--active": mode == :morning),
+              aria: { current: ("page" if mode == :morning) } %>
+  <%= link_to "Evening", evening_reflection_path,
+              class: class_names("daily-reflection__mode", "daily-reflection__mode--active": mode == :evening),
+              aria: { current: ("page" if mode == :evening) } %>
+</nav>

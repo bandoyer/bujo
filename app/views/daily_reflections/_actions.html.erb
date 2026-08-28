@@ -1,0 +1,11 @@
+<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" hidden>
+  <div class="action-row entry__actions" data-step="actions">
+    <% if entry.priority? %>
+      <%= button_to "Clear priority", clear_priority_reflection_path(entry),
+                    class: "action action--surface action--muted entry-action" %>
+    <% else %>
+      <%= button_to "Mark priority", mark_priority_reflection_path(entry),
+                    class: "action action--surface action--muted entry-action" %>
+    <% end %>
+  </div>
+</div>

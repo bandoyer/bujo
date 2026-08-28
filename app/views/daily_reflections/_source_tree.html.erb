@@ -1,0 +1,9 @@
+<section class="daily-reflection__source-group" aria-label="<%= group.fetch(:label) %> open tasks">
+  <%= link_to group.fetch(:path), class: "daily-reflection__source-link" do %>
+    <span><%= group.fetch(:label) %></span><span aria-hidden="true">›</span>
+  <% end %>
+  <div class="daily-reflection__tree">
+    <%= render partial: "daily_reflections/tree_entry", collection: group.fetch(:roots), as: :entry,
+               locals: { mode: mode } %>
+  </div>
+</section>

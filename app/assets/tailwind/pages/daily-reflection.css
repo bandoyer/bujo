@@ -1,0 +1,169 @@
+/* Daily Reflection owns only the current-day lens and its one Daily entry
+   point. Shared Entry, action, capture, preference, and tab anatomy remains in
+   the reusable component owners. */
+.daily-reflection-entry {
+  position: fixed;
+  z-index: 3;
+  right: 1rem;
+  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  left: 1rem;
+  width: min(26rem, calc(100% - 2rem));
+  height: auto;
+  min-height: 44px;
+  padding: 0;
+  margin: 0 auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border: 1px solid var(--accent);
+  border-radius: 0.625rem;
+  color: var(--accent);
+}
+
+.daily-log:has(#rapid_log_panel:not([hidden])) .daily-reflection-entry {
+  display: none;
+}
+
+.daily-reflection {
+  gap: 0;
+}
+
+.daily-reflection__date,
+.daily-reflection__stage p,
+.daily-reflection__open-count,
+.daily-reflection__progress {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.daily-reflection__date {
+  margin: 0.45rem 0 0;
+  color: var(--accent);
+}
+
+.daily-reflection__preferences {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.daily-reflection__mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+  padding: 0.1875rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.daily-reflection__mode {
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.daily-reflection__mode--active {
+  background: var(--selected-row);
+  color: var(--accent);
+}
+
+.daily-reflection__stage {
+  margin-top: 0.8rem;
+}
+
+.daily-reflection__stage h2,
+.daily-reflection__section-heading h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.daily-reflection__stage p {
+  margin: 0.2rem 0 0;
+}
+
+.daily-reflection__capture {
+  margin-top: 0.55rem;
+}
+
+.daily-reflection__capture .rapid-log {
+  position: static;
+  bottom: auto;
+  padding: 0.5rem;
+  border-radius: 0.8125rem;
+}
+
+.daily-reflection__capture .rapid-log__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--ink);
+}
+
+.daily-reflection__section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.daily-reflection__section-heading h2 {
+  color: var(--accent);
+}
+
+.daily-reflection__source-link {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+.daily-reflection__source-link span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.daily-reflection__source-link span:last-child {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.daily-reflection__tree {
+  padding-bottom: 0.15rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.daily-reflection__empty {
+  margin: 0.75rem 0;
+}
+
+.daily-reflection__progress {
+  margin: 0.65rem 0 0;
+  color: var(--accent);
+}
+
+.daily-reflection__closing {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 22rem) {
+  .daily-reflection__capture .rapid-log__kinds {
+    flex-wrap: wrap;
+  }
+
+  .daily-reflection .entry__action-strip {
+    margin-left: 0;
+  }
+}

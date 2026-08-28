@@ -116,4 +116,19 @@ class DailyLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#entry_#{deleted_child.id}", count: 0
     assert_select "#entry_#{grandchild.id}", count: 0
   end
+
+  test "only the current Daily Log offers the Reflection entry point" do
+    today = Date.new(2026, 8, 27)
+
+    travel_to today do
+      get daily_log_path
+      assert_select "a[href='#{reflection_path}']", text: "Reflect", count: 1
+
+      get daily_log_path(date: today.prev_day.iso8601)
+      assert_select "a", text: "Reflect", count: 0
+
+      get daily_log_path(date: today.next_day.iso8601)
+      assert_select "a", text: "Reflect", count: 0
+    end
+  end
 end

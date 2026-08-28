@@ -167,6 +167,17 @@ class CoreLogsPresentationSourceTest < ActiveSupport::TestCase
     assert_not_includes monthly, ".monthly-log__migration-link"
   end
 
+  test "Daily Reflection has one page-only token-driven stylesheet owner" do
+    reflection = ROOT.join("pages/daily-reflection.css")
+    entry = ROOT.join("application.css").read
+
+    assert_path_exists reflection
+    assert_includes entry, '@import "./pages/daily-reflection.css" layer(components);'
+    assert_match(/\.daily-reflection__mode/, reflection.read)
+    assert_match(/\.daily-reflection__capture/, reflection.read)
+    assert_no_match(/#[0-9a-f]{3,8}\b|rgba?\(|font-family:\s*(?!var)/i, reflection.read)
+  end
+
   private
 
   def authored_rules

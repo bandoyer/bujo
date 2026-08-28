@@ -23,6 +23,10 @@
       <span class="day-navigation__viewed-day"><%= viewed_day_label %></span>
       <%= link_to "›", daily_log_path(date: (@date + 1.day).iso8601), aria: { label: "Next day" } %>
     </nav>
+    <% if viewing_today %>
+      <%= link_to "Reflect", reflection_path,
+                  class: "visually-hidden daily-reflection-entry action action--surface action--link" %>
+    <% end %>
   </header>
   <div id="flash_messages"><%= render "shared/flash_messages" %></div>
 

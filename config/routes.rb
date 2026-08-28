@@ -3,6 +3,12 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
 
   get "daily(/:date)", to: "daily_logs#show", as: :daily_log
+  get "reflection", to: "daily_reflections#show", as: :reflection
+  get "reflection/evening", to: "daily_reflections#evening", as: :evening_reflection
+  post "reflection/entries/:id/priority", to: "daily_reflections#mark_priority",
+    as: :mark_priority_reflection
+  post "reflection/entries/:id/priority/clear", to: "daily_reflections#clear_priority",
+    as: :clear_priority_reflection
   get "month(/:month)", to: "monthly_logs#show", as: :monthly_log
   get "month/:month/migration", to: "monthly_migrations#show", as: :monthly_migration
   post "month/:month/migration/inventory", to: "monthly_migrations#inventory", as: :monthly_migration_inventory

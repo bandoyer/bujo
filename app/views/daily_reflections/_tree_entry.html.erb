@@ -1,0 +1,37 @@
+<% priority_action = mode == :morning && morning_priority_eligible?(entry) %>
+<% commands = mode == :evening ? evening_commands(entry) : [] %>
+<% actionable = priority_action || commands.any? %>
+<article id="entry_<%= entry.id %>" class="entry" data-entry-id="<%= entry.id %>">
+  <% if actionable %>
+    <% action_strip_id = "entry_#{entry.id}_actions" %>
+    <button type="button"
+            class="entry__line entry__toggle"
+            aria-expanded="false"
+            aria-controls="<%= action_strip_id %>"
+            data-task-actions-target="toggle"
+            data-action="task-actions#toggle">
+      <%= render "entries/entry_line", entry: entry %>
+    </button>
+    <% if priority_action %>
+      <%= render "daily_reflections/actions", entry: entry, action_strip_id: action_strip_id %>
+    <% else %>
+      <%= render "entries/task_actions",
+                 entry: entry,
+                 viewed_on: @today,
+                 return_to: "reflection_evening",
+                 offered_commands: commands,
+                 action_strip_id: action_strip_id,
+                 edit_open: false %>
+    <% end %>
+  <% else %>
+    <div class="entry__line"><%= render "entries/entry_line", entry: entry %></div>
+  <% end %>
+
+  <% children = entry.children.kept %>
+  <% if children.any? %>
+    <div class="entry__children">
+      <%= render partial: "daily_reflections/tree_entry", collection: children, as: :entry,
+                 locals: { mode: mode } %>
+    </div>
+  <% end %>
+</article>

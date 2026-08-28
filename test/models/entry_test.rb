@@ -336,6 +336,50 @@ class EntryTest < ActiveSupport::TestCase
       [ open, struck, done, migrated, scheduled, event, note ].map(&:glyph)
   end
 
+  test "priority transitions change only priority and updated_at" do
+    task = create_entry(
+      text: "Choose this work",
+      tags: %w[reflection],
+      occurs_on: TODAY + 2.days,
+      time_of_day: "09:30",
+      hlc: "2026-08-24T09:30:00.000Z-0001-test",
+      server_seq: 41
+    )
+    original = task.attributes.except("priority", "updated_at")
+
+    task.mark_priority!
+
+    assert_predicate task.reload, :priority?
+    assert_equal original, task.attributes.except("priority", "updated_at")
+
+    task.clear_priority!
+
+    assert_not task.reload.priority?
+    assert_equal original, task.attributes.except("priority", "updated_at")
+  end
+
+  test "priority transitions reject mismatched settled moved and deleted tasks" do
+    already_marked = create_entry(priority: true)
+    done = create_entry(state: "done")
+    moved = create_entry
+    moved.move_to!(page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month, as_of: TODAY)
+    deleted = create_entry
+    deleted.soft_delete!
+
+    [
+      [ already_marked, :mark_priority! ],
+      [ create_entry, :clear_priority! ],
+      [ done, :mark_priority! ],
+      [ moved, :mark_priority! ],
+      [ deleted, :mark_priority! ]
+    ].each do |task, command|
+      snapshot = task.reload.attributes
+
+      assert_raises(Entry::LifecycleError) { task.public_send(command) }
+      assert_equal snapshot, task.reload.attributes
+    end
+  end
+
   test "soft deletion removes an entry from every log without deleting its row" do
     task = create_entry(page_on: TODAY, occurs_on: TODAY + 1)
     deleted_at = Time.zone.parse("2026-08-24 14:00:00")

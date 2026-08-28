@@ -205,6 +205,18 @@ class Entry < ApplicationRecord
     transition_to!("open", from: %w[done struck])
   end
 
+  # Marks this current open task as important without changing its journal
+  # position, lifecycle, words, movement history, or dormant sync fields.
+  def mark_priority!
+    transition_priority_to!(true, from: false)
+  end
+
+  # Clears this current open task's importance signifier while preserving the
+  # rest of the persisted journal row.
+  def clear_priority!
+    transition_priority_to!(false, from: true)
+  end
+
   # Appends one successor on a destination page. Tasks move only while open;
   # events and notes retain NULL state and become moved through their successor.
   def move_to!(page_kind:, page_on:, as_of:, collection: nil, occurs_on: nil)
@@ -447,6 +459,16 @@ class Entry < ApplicationRecord
   def transition_to!(new_state, from:)
     ensure_transition_from!(from)
     update!(state: new_state)
+  end
+
+  def transition_priority_to!(new_priority, from:)
+    with_lock do
+      reload
+      raise LifecycleError unless kept? && kind == "task" && state == "open" && successor.nil?
+      raise LifecycleError unless priority? == from
+
+      update!(priority: new_priority)
+    end
   end
 
   def ensure_movable!
