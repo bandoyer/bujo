@@ -32,34 +32,49 @@ class Collection < ApplicationRecord
     }
   validates :index_position,
     numericality: { only_integer: true, greater_than: 0 },
-    allow_nil: true
-  validates :index_position,
     uniqueness: { scope: :user_id, conditions: -> { kept } },
     allow_nil: true
   validates :index_position, presence: true, if: :kept?
   validate :index_position_is_domain_owned
 
-  # Creates one live Collection at its owner's next permanent Index position.
-  # Invalid Topic input returns the rejected record with its validation errors.
-  def self.create_for(user:, topic:, id: nil)
-    CREATION_ATTEMPTS.times do
-      collection = new(user: user, name: topic, id: id)
-
-      begin
-        transaction(requires_new: true) do
-          position = where(user: user).maximum(:index_position).to_i + 1
-          collection.send(:save_at_index_position!, position)
-        end
-        return collection
-      rescue ActiveRecord::RecordInvalid => error
-        return error.record
-      rescue ActiveRecord::RecordNotUnique
-        # The next attempt re-reads all retained ranks after the winner commits.
+  class << self
+    # Creates one live Collection at its owner's next permanent Index position.
+    # Invalid Topic input returns the rejected record with its validation errors.
+    def create_for(user:, topic:, id: nil)
+      CREATION_ATTEMPTS.times do
+        collection = attempt_create_for(user: user, topic: topic, id: id)
+        return collection if collection
       end
+
+      refused_create(user: user, topic: topic, id: id)
     end
 
-    new(user: user, name: topic, id: id).tap do |collection|
-      collection.errors.add(:base, "Collection could not be created")
+    private
+
+    # One attempt: persist at the next retained rank, return a validation
+    # refusal, or return nil so the caller can retry a uniqueness race.
+    def attempt_create_for(user:, topic:, id:)
+      collection = new(user: user, name: topic, id: id)
+      transaction(requires_new: true) do
+        # send keeps rank allocation off the public API; only this path writes it.
+        collection.send(:save_at_index_position!, next_index_position_for(user))
+      end
+      collection
+    rescue ActiveRecord::RecordInvalid => error
+      error.record
+    rescue ActiveRecord::RecordNotUnique
+      nil
+    end
+
+    # Soft-deleted rows count too, so a tombstone's retained rank is never reused.
+    def next_index_position_for(user)
+      where(user: user).maximum(:index_position).to_i + 1
+    end
+
+    def refused_create(user:, topic:, id:)
+      new(user: user, name: topic, id: id).tap do |collection|
+        collection.errors.add(:base, "Collection could not be created")
+      end
     end
   end
 

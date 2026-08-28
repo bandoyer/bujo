@@ -23,11 +23,7 @@ class CollectionsController < ApplicationController
     if @new_collection.persisted?
       redirect_to collection_path(@new_collection), notice: "Collection created."
     else
-      @form_errors = @new_collection.errors.full_messages
-      @new_collection_name = params.dig(:collection, :name)
-      @new_collection_open = true
-      prepare_index
-      render :index, status: :unprocessable_entity
+      render_index_validation
     end
   end
 
@@ -71,6 +67,16 @@ class CollectionsController < ApplicationController
 
   def collection_params
     params.fetch(:collection, {}).permit(:name)
+  end
+
+  def render_index_validation
+    # Keep the raw submitted Topic so a refusal does not display a stripped
+    # value, and keep the rejected record so Rails can mark the field.
+    @form_errors = @new_collection.errors.full_messages
+    @new_collection_name = params.dig(:collection, :name)
+    @new_collection_open = true
+    prepare_index
+    render :index, status: :unprocessable_entity
   end
 
   def render_collection_validation

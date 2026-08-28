@@ -95,10 +95,6 @@
   border: 0;
   background: transparent;
   cursor: text;
-}
-
-.collection-index__create-reveal,
-.collection-page > .daily-log__capture .daily-log__capture-reveal {
   flex: 1;
 }
 
