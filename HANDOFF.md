@@ -1,4 +1,4 @@
-# Handoff: Daily Reflection landed; Index source correction at review gate (2026-08-28)
+# Handoff: Daily Reflection landed; Index source correction authorized (2026-08-28)
 
 For the next operator session, any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next product
@@ -75,7 +75,7 @@ Daily Reflection subsequently landed.
   refuses stale or crafted requests without disturbing the live chain.
 - The currently landed Collection implementation still creates an unindexed
   page and exposes registration. Dan rejected that digital translation after a
-  2026-08-28 source check; proposed 1.5.2a corrects it before further feature
+  2026-08-28 source check; approved 1.5.2a corrects it before further feature
   work. Entry deletion remains deferred.
 - Monthly Migration is an explicitly opened target-month ritual. It never
   starts on page view or month rollover and never silently carries work.
@@ -171,10 +171,10 @@ Collection. Dan ruled on 2026-08-28 that the web app must create and register a
 Custom Collection in one commitment; normal unindex/re-register and Open by
 Topic go away.
 
-The proposed bounded contract is
+The approved bounded contract is
 `docs/slices/1.5.2a-index-is-the-collection-register.md`; the smallest review
-board is `mockups/IndexSourceCorrection.dc.html`. It proposes four necessary
-digital translations for explicit approval:
+board is `mockups/IndexSourceCorrection.dc.html`. Dan explicitly approved its
+four necessary digital translations on 2026-08-28:
 
 - web Create atomically persists the named UUIDv7 page and its next
   server-owned Index position, even before first capture;
@@ -187,8 +187,9 @@ digital translations for explicit approval:
 
 No broad search, filtering, picker, new entity, Entry behavior, delete scope,
 active sync, or deployment belongs in the correction. The configured
-`six-cg` swarm is stopped. Do not commit/push this planning delta or start it
-until Dan approves the complete amendment and review board.
+`six-cg` swarm is authorized to implement from committed planning baseline
+`f397837`. Passing QA remains terminal only for the isolated candidate; it
+does not authorize integration, push of implementation, or deployment.
 
 The separate authentication track is unblocked but remains unstarted and does
 not run in parallel. After 1.5.2a, the remaining method-spine slice is 1.5.5.
