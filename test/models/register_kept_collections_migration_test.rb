@@ -20,11 +20,13 @@ class RegisterKeptCollectionsMigrationTest < ActiveSupport::TestCase
       assert_equal({
         "u1-ranked" => 2,
         "u1-ranked-tombstone" => 9,
-        "u1-null-a" => 10,
-        "u1-null-b" => 11,
+        "u1-null-z" => 10,
+        "u1-null-a" => 11,
+        "u1-null-b" => 12,
         "u1-null-tombstone" => nil,
         "u2-ranked" => 3,
-        "u2-null" => 4
+        "u2-null" => 4,
+        "u3-null" => 1
       }, after.to_h { |row| [ row.fetch("id"), row.fetch("index_position") ] })
 
       before_by_id = before.index_by { |row| row.fetch("id") }
@@ -136,10 +138,14 @@ class RegisterKeptCollectionsMigrationTest < ActiveSupport::TestCase
       created_at: "2026-08-25 10:00:00")
     insert_collection(database, id: "u1-null-a", user_id: 1, position: nil,
       created_at: "2026-08-25 10:00:00")
+    # Later id, earlier created_at: append order is created_at then id, not id alone.
+    insert_collection(database, id: "u1-null-z", user_id: 1, position: nil,
+      created_at: "2026-08-25 09:00:00")
     insert_collection(database, id: "u1-null-tombstone", user_id: 1, position: nil,
       deleted_at: "2026-08-24 13:00:00")
     insert_collection(database, id: "u2-ranked", user_id: 2, position: 3)
     insert_collection(database, id: "u2-null", user_id: 2, position: nil)
+    insert_collection(database, id: "u3-null", user_id: 3, position: nil)
     database.execute(
       "INSERT INTO entries (id, collection_id, text, updated_at) VALUES (?, ?, ?, ?)",
       [ "entry-1", "u1-null-a", "resident", "2026-08-20 10:00:00" ]

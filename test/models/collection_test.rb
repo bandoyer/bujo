@@ -3,14 +3,14 @@ require "test_helper"
 class CollectionTest < ActiveSupport::TestCase
   class RacingCollection < Collection
     class << self
-      attr_accessor :save_attempts
+      attr_accessor :save_attempts, :fail_until
     end
 
     private
 
     def save_at_index_position!(position)
       self.class.save_attempts += 1
-      if self.class.save_attempts == 1
+      if self.class.save_attempts <= self.class.fail_until
         raise ActiveRecord::RecordNotUnique, "simulated append race"
       end
 
@@ -70,12 +70,38 @@ class CollectionTest < ActiveSupport::TestCase
 
   test "atomic creation retries a position uniqueness race without exposing it" do
     RacingCollection.save_attempts = 0
+    RacingCollection.fail_until = 1
 
     collection = RacingCollection.create_for(user: users(:one), topic: "Retried")
 
     assert_predicate collection, :persisted?
     assert_equal 2, RacingCollection.save_attempts
     assert_equal 2, collection.index_position
+  end
+
+  test "atomic creation keeps retrying through two uniqueness races" do
+    RacingCollection.save_attempts = 0
+    RacingCollection.fail_until = 2
+
+    collection = RacingCollection.create_for(user: users(:one), topic: "Retried twice")
+
+    assert_predicate collection, :persisted?
+    assert_equal 3, RacingCollection.save_attempts
+    assert_equal 2, collection.index_position
+  end
+
+  test "atomic creation refuses after bounded uniqueness races without a raw unique error" do
+    RacingCollection.save_attempts = 0
+    RacingCollection.fail_until = Collection::CREATION_ATTEMPTS
+
+    collection = nil
+    assert_no_difference -> { Collection.count } do
+      collection = RacingCollection.create_for(user: users(:one), topic: "Exhausted")
+    end
+
+    assert_not_predicate collection, :persisted?
+    assert_includes collection.errors[:base], "Collection could not be created"
+    assert_equal Collection::CREATION_ATTEMPTS, RacingCollection.save_attempts
   end
 
   test "ordinary creation and assignment cannot author a position or a kept hidden row" do

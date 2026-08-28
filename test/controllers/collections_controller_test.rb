@@ -175,17 +175,33 @@ class CollectionsControllerTest < ActionDispatch::IntegrationTest
 
   test "removed locate register and registration routes return route 404 and write nothing" do
     collection = create_collection("Stable")
-    requests = [
-      -> { post "/collections/locate", params: { topic: collection.name } },
-      -> { post "/collections/#{collection.id}/register" },
-      -> { delete "/collections/#{collection.id}/registration" }
+    removed = [
+      [ "/collections/locate", :post ],
+      [ "/collections/#{collection.id}/register", :get ],
+      [ "/collections/#{collection.id}/register", :post ],
+      [ "/collections/#{collection.id}/register", :put ],
+      [ "/collections/#{collection.id}/register", :patch ],
+      [ "/collections/#{collection.id}/register", :delete ],
+      [ "/collections/#{collection.id}/registration", :get ],
+      [ "/collections/#{collection.id}/registration", :post ],
+      [ "/collections/#{collection.id}/registration", :put ],
+      [ "/collections/#{collection.id}/registration", :patch ],
+      [ "/collections/#{collection.id}/registration", :delete ]
     ]
 
-    requests.each do |request|
+    removed.each do |path, method|
+      assert_raises(ActionController::RoutingError) do
+        Rails.application.routes.recognize_path(path, method: method)
+      end
+
       snapshot = Collection.order(:id).map(&:attributes)
-      request.call
+      process method, path, params: { topic: collection.name, collection: { name: "Hijacked" } }
       assert_response :not_found
       assert_equal snapshot, Collection.order(:id).map(&:attributes)
+    end
+
+    %w[locate register registration].each do |action|
+      assert_not_includes CollectionsController.action_methods, action
     end
   end
 
