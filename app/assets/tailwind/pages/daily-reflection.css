@@ -75,17 +75,10 @@
   color: var(--accent);
 }
 
-.daily-reflection .daily-reflection__mode[autofocus],
-.daily-reflection #reflection_line[autofocus],
-.daily-reflection .entry__toggle[autofocus],
-.daily-reflection .entry__line[autofocus],
-.daily-reflection .entry__schedule input[autofocus] {
+.daily-reflection [autofocus] {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.daily-reflection [autofocus] {
-  /* Reserve the fixed tabs plus the controls below Schedule's focused field. */
+  /* Keep the focused control and the rest of Schedule's step above the 65px tabs. */
   scroll-margin-block: 1rem 8rem;
 }
 
