@@ -13,7 +13,8 @@
     { "file": "MonthlyMigration.dc.html", "title": "Mobile · Monthly Migration review", "x": 0, "y": 2760, "w": 1360, "h": 920 },
     { "file": "PhoneCaptureCorrection.dc.html", "title": "Mobile · Capture and ritual clarity", "x": 0, "y": 3780, "w": 1320, "h": 930 },
     { "file": "PhoneDogfoodCorrections.dc.html", "title": "Mobile · Dogfood entry corrections", "x": 0, "y": 4810, "w": 1320, "h": 930 },
-    { "file": "DailyReflection.dc.html", "title": "Mobile · Daily Reflection", "x": 0, "y": 5840, "w": 1320, "h": 930 }
+    { "file": "DailyReflection.dc.html", "title": "Mobile · Daily Reflection", "x": 0, "y": 5840, "w": 1320, "h": 930 },
+    { "file": "IndexSourceCorrection.dc.html", "title": "Mobile · Index source correction", "x": 0, "y": 6870, "w": 860, "h": 908 }
   ],
   "annotations": [
     { "id": "rapid-log-grammar", "x": 1900, "y": 780, "w": 300, "text": "The shared core is Ryder Carroll's rapid-logging grammar:\n• task   x done   > migrated   < scheduled\n○ event   – note   * priority\n\nIt's plain text, so one parser in Rails can serve the TUI, the web app, and even piped stdin." },

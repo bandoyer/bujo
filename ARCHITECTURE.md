@@ -5,7 +5,7 @@ How one journal stays whole across a terminal on the desk and a phone in your po
 Styled version with figures: https://claude.ai/code/artifact/062d1db5-9c9e-4748-9ae7-e2593626c623
 
 Status: **proposal, draft for discussion** · Aug 23, 2026 · page model
-revised Aug 24 · source-alignment correction Aug 25
+revised Aug 24 · source-alignment corrections Aug 25 and Aug 28
 (operator-approved for slice 1.5.1)
 
 ## What we're designing for
@@ -110,15 +110,19 @@ constraints enforce expressible structure (including one successor per
 predecessor); direct SQL is not claimed to preserve the domain-only
 placement immutability rule.
 
-The deliberate Index is a query over kept Custom Collections with a non-NULL
-`index_position`, not a synced container or membership table. Collection
-snapshots include that field. Clients push register and unregister as semantic
-operations: the Rails authority allocates the next position or clears it,
-rather than trusting a client-authored rank. HLC resolves competing
-registration-state edits on one Collection, and `server_seq` orders the
-resulting snapshots once sync is active. The TUI continues to mirror the
-`collections` rows; the Index introduces no third entity, cursor, HLC, or
-server sequence.
+The deliberate Index is a query over kept Custom Collections, not a synced
+container or membership table. Every kept Custom Collection has a non-NULL
+server-owned `index_position`; the nullable column remains only so tombstones
+and compatible snapshots can preserve prior state. Collection snapshots carry
+that field. Clients push Collection creation intent with an id and Topic, not
+a rank: the Rails authority allocates the next retained position while
+creating the Collection atomically. Rename and soft deletion preserve that
+position. There are no register, unregister, client-authored reorder, or
+hidden-live-Collection operations. HLC will resolve competing editable
+Collection fields, and `server_seq` will order resulting snapshots once sync
+is active; neither is activated by the Index correction. The TUI continues to
+mirror `collections` rows, and the Index introduces no third entity, cursor,
+HLC, or server sequence.
 
 ## The sync protocol
 

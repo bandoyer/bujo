@@ -1,7 +1,7 @@
 # The Method — bujo's binding reference
 
 Distilled from *The Bullet Journal Method*, Parts II–III (operator
-study, 2026-08-24, prompted by dogfooding: derived views were
+study, 2026-08-24; Index source correction 2026-08-28; prompted by dogfooding: derived views were
 surfacing entries nobody placed). **This document binds every future
 spec the way ARCHITECTURE.md binds the schema.** Where the app and
 the book disagree, this file says so out loud, and PLAN.md records
@@ -33,8 +33,10 @@ only when every subtask is done or struck.
   month. Fed two ways: directly at setup, or from Daily captures
   during reflection (capture freely in the Daily Log, then move the
   future-dated bullet here and mark the original `<`).
-- **The Index** — collections registered by topic and page; the map
-  of what you're saying yes to.
+- **The Index** — the container and retrieval map for Collections registered
+  by Topic and page, except the Daily Log. The paper setup says not to add an
+  empty Collection, but a Custom Collection with content belongs here; the
+  method does not define a deliberately hidden active Custom Collection.
 
 **Migration is the engine, and its friction is deliberate.** At
 month's end: set up the new Monthly Log and seed its Tasks page with
@@ -100,7 +102,7 @@ Divergent — each needs a ruling:
    "Place from today" gesture is, in book terms, part of PM
    reflection rather than a free-floating entry action.
 
-## The rulings (operator, 2026-08-24; corrected 2026-08-25)
+## The rulings (operator, 2026-08-24; corrected 2026-08-25 and 2026-08-28)
 
 **Book-faithful v1. Start minimal and true to Ryder's philosophy;
 make it "smarter" later only where real use proves the pain.**
@@ -145,8 +147,8 @@ make it "smarter" later only where real use proves the pain.**
    the structural rules they can actually express, including the
    one-successor chain.
 7. **Build the practice before digital convenience.** After the page
-   model: writable Custom Collections plus a deliberately maintained
-   Index, the monthly migration ritual, AM/PM reflection, and the two
+   model: writable Custom Collections plus the Index that records them,
+   the monthly migration ritual, AM/PM reflection, and the two
    small source gaps (`!` and master-task completion gating). Broad
    search, settings polish, and PWA work wait until this spine exists.
    No bespoke feature is required for every Part III example; generic
@@ -157,3 +159,10 @@ make it "smarter" later only where real use proves the pain.**
    `bujo-conventions` skill's "logs are date queries" invariant
    updates to "logs are residency scopes over immutable page
    columns" only when the schema slice lands.
+9. **A live Custom Collection belongs to the Index.** The Daily Log remains
+   the explicit source exception. In the web app, submitting Create is the
+   deliberate commitment that both persists the named page and appends its
+   server-owned Index position atomically, even before its first resident is
+   captured. There is no normal unindex/re-register lifecycle, hidden live
+   Collection state, or exact-name recovery screen. Rename and page activity
+   preserve append order; broad search and Index filtering remain deferred.

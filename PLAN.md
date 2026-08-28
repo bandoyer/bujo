@@ -7,17 +7,17 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: Tailwind v4 and its Calendar phone correction LANDED
-> (2026-08-27).** Dan approved terminal candidate `8d7ccbd`, then accepted the
-> bounded Calendar resident-baseline correction found during real-device
-> dogfooding. The accepted tree is green at 265 fast tests / 6434 assertions
-> and 95 headless-Chrome system tests / 15234 assertions, with RuboCop clean.
-> Production still runs 1.4.1. Dan chose 1.5.4 Daily Reflection as the next
-> planning track. Dan approved its source-aligned contract, six digital
-> translations, and review board on 2026-08-27. The configured
-> `six-mix-fable-review` swarm is authorized to implement 1.5.4 in isolation;
-> terminal integration still requires separate approval. Authentication Step 1
-> remains separate and unstarted. See `HANDOFF.md`.
+> **Status: 1.5.4 Daily Reflection LANDED (2026-08-28).** Dan approved and
+> root integrated terminal candidate `c2127b5`; the exact merged tree passes
+> 286 fast tests / 6907 assertions, 112 headless-Chrome system tests / 16797
+> assertions, and RuboCop over 114 files. Its completed `mix-*` swarm is
+> retired. Dan then corrected the Custom Collection source ruling: a live
+> Custom Collection belongs to the Index, so web creation and registration are
+> one commitment and deliberate unindex/Open by Topic disappear. The proposed
+> 1.5.2a contract and smallest review board await explicit approval. The
+> repository is configured for the stopped `six-cg` pack. Production still
+> runs 1.4.1; authentication Step 1 remains separate and unstarted. See
+> `HANDOFF.md`.
 
 ## What this is
 
@@ -48,12 +48,12 @@ The working loop, proven on [crap4rb](https://github.com/bandoyer/crap4rb):
    brief with scope, decisions pre-made, tests required, and review criteria.
    Specs live in `docs/slices/` as they are written.
 2. **Build** — the approved swarm or bounded squad implements it:
-   [swarm-forge-herdr](https://github.com/bandoyer/swarm-forge-herdr),
-   compatibility-named pack `six-mix-fable-review` for 1.5.3b. Its experimental
-   roster is Sol Max specifier; Sol High coder; Grok High cleaner; Sol High
-   architect; Grok High hardener; Sol XHigh QA. The proposed Tailwind
-   infrastructure track instead uses the repository's bounded dynamic squad
-   profile and may start only after its specification is explicitly approved.
+   [swarm-forge-herdr](https://github.com/bandoyer/swarm-forge-herdr). The
+   current `six-cg` pack uses Sol Max specifier, Sol High coder, Grok 4.6 High
+   cleaner, Grok 4.6 xhigh architect, Grok 4.6 High hardener, and Sol xhigh QA,
+   all isolated behind human integration. The historical
+   `six-mix-fable-review` roster carried 1.5.3a through 1.5.4; Tailwind used the
+   repository's bounded dynamic squad profile.
 3. **Review** — the architect, hardener, QA, and operator verify parity with
    the spec, quality bars, and mutation spot-checks before human-approved
    integration.
@@ -101,6 +101,9 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-27 | **Tailwind v4 presentation migration landed.** Dan approved terminal candidate `8d7ccbd` after corrected terminal QA pass 2. The presentation-only migration keeps all accepted behavior and geometry, exact-pins `tailwindcss-rails` 4.6.0 and `tailwindcss-ruby` 4.3.3, uses no Node, Preflight, or default Tailwind theme, and serves one fingerprinted application bundle. The merged tree passes 265 fast tests / 6424 assertions, 94 system tests / 15445 assertions, RuboCop, security audits, coverage/CRAP/duplication, immutable T0 parity, production asset, and Docker checks. Deployment remains Dan's action |
 | 2026-08-27 | **Post-Tailwind Calendar baseline correction landed.** Real-device dogfooding exposed Calendar resident ink 13.5 CSS px above the centered date row. The Calendar-only correction brings the date number, weekday, resident glyph, first text line, and metadata within 4 CSS px at 390 px and 320 px; wrapped resident ink grows downward and horizontal geometry and behavior remain unchanged. Dan accepted the corrected phone result and chose Daily Reflection next. The merged tree passes 265 fast tests / 6434 assertions, 95 system tests / 15234 assertions, and RuboCop |
 | 2026-08-27 | **Slice 1.5.4 Daily Reflection approved; implementation authorized.** The current-day, no-schema reference lens keeps Morning to shared capture plus current-month dated-page review through the existing `*` priority, and Evening to shared capture plus today's Daily trees with focused Complete/Strike/Schedule actions and derived progress copy. Dan approved all six digital translations in `docs/slices/1.5.4-daily-reflection.md` and the review board at `mockups/DailyReflection.dc.html`. `six-mix-fable-review` may implement in isolation; terminal integration remains separately gated |
+| 2026-08-28 | **Slice 1.5.4 Daily Reflection landed.** Dan approved terminal candidate `c2127b5` after three QA correction passes. The integrated tree preserves a current-day Morning/Evening reference lens, shared capture, append-only movement, and ephemeral focus state with no schema, JavaScript, parser, sync, or background behavior. Root verification passes 286 fast tests / 6907 assertions, 112 system tests / 16797 assertions, and RuboCop over 114 files; the completed mix swarm is retired |
+| 2026-08-28 | **Index source ruling corrected; implementation not yet authorized.** Ryder's Index is the retrieval container for Collections except Daily, not an optional visibility flag for active Custom Collections. Dan ruled that web Create atomically appends the new Collection to the Index; normal unindex/re-register, hidden live Collections, and Open by Topic go away. Proposed digital transition details are in `docs/slices/1.5.2a-index-is-the-collection-register.md` and `mockups/IndexSourceCorrection.dc.html`; approval remains required before the stopped `six-cg` swarm starts |
+| 2026-08-28 | **Current pack changed to `six-cg`.** Sol Max specifies; Sol High codes; Grok 4.6 High cleans; Grok 4.6 xhigh architects; Grok 4.6 High hardens; Sol xhigh QAs. All roles remain isolated and passing QA remains terminal only for implementation |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -268,16 +271,24 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             4 CSS px on both phone profiles while wrapped ink grows downward.
             Merged-tree receipts: 265 fast tests / 6434 assertions, 95 system
             tests / 15234 assertions, RuboCop clean.
-      - [ ] **IMPLEMENTATION AUTHORIZED: 1.5.4 Daily Reflection**: a current-day,
+      - [x] **1.5.4 Daily Reflection** ✅ (2026-08-28) — a current-day,
             no-schema AM/PM reference lens. Morning captures overnight
             thoughts and reviews current-month dated-page tasks through the
             existing `*` priority; Evening captures missed entries and shows
             today's complete Daily trees with focused Complete, Strike, and
-            Schedule gestures plus quiet derived progress. Proposed contract:
+            Schedule gestures plus quiet derived progress. Contract:
             `docs/slices/1.5.4-daily-reflection.md`; review board:
-            `mockups/DailyReflection.dc.html`. Dan approved all six digital
-            translations on 2026-08-27; `six-mix-fable-review` may implement
-            in isolation, while terminal integration remains separately gated.
+            `mockups/DailyReflection.dc.html`. Terminal candidate `c2127b5`;
+            merged-tree receipts: 286 fast tests / 6907 assertions, 112 system
+            tests / 16797 assertions, and RuboCop clean over 114 files.
+      - [ ] **PROPOSED: 1.5.2a Index source correction** — make Custom
+            Collection creation and server-owned Index registration atomic;
+            backfill existing kept unindexed pages deterministically; remove
+            unindex/re-register and Open by Topic; preserve append order,
+            stable URLs, tenant scoping, and every Entry invariant. Proposed
+            contract: `docs/slices/1.5.2a-index-is-the-collection-register.md`;
+            review board: `mockups/IndexSourceCorrection.dc.html`. The stopped
+            `six-cg` pack may start only after explicit approval.
       - [ ] **1.5.5 Core notation and hierarchy fidelity** — add the
             `!` inspiration signifier and gate a master task's
             completion until every subtask is done or struck. Keep the
@@ -358,9 +369,9 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   like press-start — passkeys first, magic email links second. The
   generator's email/password remains only as a transitional rollback. The
   provider foundation is complete; Step 1 is now unblocked in the separate
-  authentication track. Dan chose 1.5.4 Daily Reflection as the next planning
-  track after accepting the landed Tailwind build and its Calendar phone
-  correction; authentication does not run in parallel.
+  authentication track. Daily Reflection landed on 2026-08-28; the bounded
+  1.5.2a Index source correction and then 1.5.5 remain ahead of authentication,
+  which does not run in parallel.
   `docs/resend-transactional-email.md` owns its live checklist and safety gates.
   Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
   Start. Recovery is proven before password retirement by registering two

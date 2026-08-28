@@ -1,4 +1,4 @@
-# Handoff: Tailwind and Calendar alignment landed; Daily Reflection next (2026-08-27)
+# Handoff: Daily Reflection landed; Index source correction at review gate (2026-08-28)
 
 For the next operator session, any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next product
@@ -28,16 +28,18 @@ on `main`, and its completed six-role swarm is retired. Phone dogfooding then
 produced correction slice 1.5.3b. Its terminal candidate `dc2153c` is now
 integrated on `main`; its contract is
 `docs/slices/1.5.3b-dogfood-entry-corrections.md`, with the approved review
-board at `mockups/PhoneDogfoodCorrections.dc.html`. Nothing from 1.5.3a,
-1.5.3b, or the Tailwind migration has been deployed by this handoff.
+board at `mockups/PhoneDogfoodCorrections.dc.html`. Daily Reflection terminal
+candidate `c2127b5` is also integrated and pushed on `main` after Dan's explicit
+2026-08-28 approval. Nothing from 1.5.3a onward has been deployed by this
+handoff.
 
 Tailwind terminal candidate `8d7ccbde93f02f9a7afcc643d7547a43490792fa`
 is integrated on `main` with Dan's 2026-08-27 approval. Its complete T0 receipt
 remains at `docs/tailwind-v4-baseline/README.md` and its landed contract at
 `docs/slices/tailwind-v4-presentation-migration.md`. Deployment is not
 authorized; Dan runs deployments himself. Real-device dogfooding then found a
-bounded Calendar resident-baseline defect. Dan accepted its correction and
-chose Daily Reflection as the next planning track.
+bounded Calendar resident-baseline defect. Dan accepted its correction, and
+Daily Reflection subsequently landed.
 
 ## Exact landed state
 
@@ -71,8 +73,10 @@ chose Daily Reflection as the next planning track.
 - Each Monthly Migration resolution offers one immediate Undo. Undo is a
   tenant-scoped compensating append for movement, never history mutation, and
   refuses stale or crafted requests without disturbing the live chain.
-- A newly created Collection remains deliberately unindexed and shows the next
-  deliberate registration step. Entry deletion remains deferred.
+- The currently landed Collection implementation still creates an unindexed
+  page and exposes registration. Dan rejected that digital translation after a
+  2026-08-28 source check; proposed 1.5.2a corrects it before further feature
+  work. Entry deletion remains deferred.
 - Monthly Migration is an explicitly opened target-month ritual. It never
   starts on page view or month rollover and never silently carries work.
 - Setup gives the ritual alone a task-only admission context for target Monthly
@@ -100,6 +104,19 @@ chose Daily Reflection as the next planning track.
   tests / 1640 assertions; RuboCop clean; all 234 measured methods at CRAP ≤ 6;
   jscpd zero clones; `Bujo::RapidLog*` mutation 1105/1105. Root repeated the
   fast and system lanes plus RuboCop after integration.
+- Daily Reflection is a current-day reference lens, not a residency page.
+  Morning embeds shared Daily capture then reviews current-month Calendar,
+  Tasks, and Daily trees through Mark/Clear priority only. Evening embeds the
+  same capture and reviews today's complete Daily trees through the ruled
+  Complete/Strike/Schedule matrix with derived progress copy.
+- Daily Reflection stores no ritual progress, focus state, copied entries,
+  schema, JavaScript, notification, background sweep, or automatic movement.
+  All entry changes retain the landed same-user, append-only, and immutable
+  residency boundaries.
+- Daily Reflection terminal candidate `c2127b5` passed three QA correction
+  rounds. Root repeated the exact final tree at 286 fast tests / 6907
+  assertions, 112 headless-Chrome system tests / 16797 assertions, and 114
+  RuboCop-clean files before integration.
 - Architect review recorded one non-blocking dogfood seam: a populated
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
@@ -120,10 +137,10 @@ bundle is public, manifested, and rendered; no stale, legacy, T0, or second
 application stylesheet is served. The Dockerfile needed no correction.
 
 The bounded squad is down, every transient worker is retired, and only the main
-worktree remains. The repository's persistent pack configuration is restored
-to committed `six-mix-fable-review`; `swarmforge/squad.conf` remains as the
-historical Tailwind squad policy. Do not touch unrelated SwarmForge processes
-from other repositories.
+worktree remains. Daily Reflection's completed `mix-*` role worktrees are also
+retired. The repository's persistent pack configuration is now the stopped
+`six-cg` pack; `swarmforge/squad.conf` remains as the historical Tailwind squad
+policy. Do not touch unrelated SwarmForge processes from other repositories.
 
 ## Accepted post-Tailwind phone correction
 
@@ -143,64 +160,59 @@ assertions, and RuboCop clean. The correction is documented as a post-T0
 product amendment in `docs/slices/1.5.3b-dogfood-entry-corrections.md`; frozen
 Tailwind T0 artifacts remain unchanged.
 
-## Next work: 1.5.4 Daily Reflection planning
+## Next work: 1.5.2a Index source correction
 
-Dan chose **1.5.4 Daily Reflection** rather than authentication Step 1 as the
-next track. A source-aligned draft now exists at
-`docs/slices/1.5.4-daily-reflection.md`, with the smallest review board at
-`mockups/DailyReflection.dc.html`. Dan approved both and all six digital
-translations on 2026-08-27. The planning baseline may be committed and pushed,
-then the configured `six-mix-fable-review` swarm may implement in isolation.
-Terminal integration and deployment remain separately gated.
+Phone dogfooding exposed a conceptual problem rather than a missing hint: a
+new Custom Collection could exist outside the Index, so returning through the
+fixed Index tab made a successful creation appear lost. The source check found
+that Ryder describes the Index as the container/retrieval map for Collections
+except Daily and does not define a deliberately hidden active Custom
+Collection. Dan ruled on 2026-08-28 that the web app must create and register a
+Custom Collection in one commitment; normal unindex/re-register and Open by
+Topic go away.
 
-The source check returned to the complete Morning and Evening Reflection
-passages. They establish overnight capture, review of the current month's open
-tasks, today's complete Daily record, individual assessment, completion,
-strike, future scheduling, and appreciation of progress. The proposed lens is:
+The proposed bounded contract is
+`docs/slices/1.5.2a-index-is-the-collection-register.md`; the smallest review
+board is `mockups/IndexSourceCorrection.dc.html`. It proposes four necessary
+digital translations for explicit approval:
 
-- Morning embeds today's shared capture, then shows current-month Calendar,
-  Tasks, and Daily trees in paper order. It persists only Mark/Clear of the
-  existing `*` priority and never copies a task to Today;
-- Evening embeds today's shared capture, then shows today's complete Daily
-  trees with Complete/Strike/Schedule only where appropriate and quiet derived
-  completed-task copy;
-- reflection references resident entries and never becomes another page,
-  duplicate residency, background sweep, notification system, or automatic
-  movement.
+- web Create atomically persists the named UUIDv7 page and its next
+  server-owned Index position, even before first capture;
+- a one-way migration registers existing kept NULL-position Collections in
+  deterministic per-user `created_at, id` order after every retained rank;
+- append order becomes permanent—rename, capture, movement, and soft deletion
+  preserve it, with no reorder or unindex workaround; and
+- the nullable column remains for tombstones/wire compatibility while a check
+  constraint forbids NULL on a kept Collection.
 
-The six approved translations are binding: current-day route/mode behavior,
-exact Morning scope/order, priority as the only Morning choice state, focused
-Evening controls, derived progress only, and embedded shared capture. Commit
-and push the planning baseline before starting `six-mix-fable-review`; do not
-reinterpret them during implementation.
+No broad search, filtering, picker, new entity, Entry behavior, delete scope,
+active sync, or deployment belongs in the correction. The configured
+`six-cg` swarm is stopped. Do not commit/push this planning delta or start it
+until Dan approves the complete amendment and review board.
 
-The separate authentication track is also unblocked: Step 1 is Resend delivery
-plus short-lived, single-use magic links, governed by
-`docs/resend-transactional-email.md`. It remains unstarted and does not run in
-parallel. Planning does not authorize a swarm or implementation: present the
-source-aligned Daily Reflection boundary and any necessary mock to Dan for
-explicit approval first.
+The separate authentication track is unblocked but remains unstarted and does
+not run in parallel. After 1.5.2a, the remaining method-spine slice is 1.5.5.
 
 ## Build and review
 
 Keep the proven loop: source-aligned spec and smallest review mock → Dan's
-explicit approval → `six-mix-fable-review` swarm → operator review → Dan's
+explicit approval → `six-cg` swarm → operator review → Dan's
 explicit integration approval → merge and push. Do not deploy for Dan.
 
-For 1.5.3b the compatibility-named pack used this experimental roster:
-Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok
-High hardener, and Sol XHigh QA. Passing QA is terminal only for implementation;
-it does not authorize root integration or push.
+The current `six-cg` roster is Sol Max specifier, Sol High coder, Grok 4.6
+High cleaner, Grok 4.6 xhigh architect, Grok 4.6 High hardener, and Sol xhigh
+QA. All roles use isolated `cg-*` worktrees. Passing QA is terminal only for
+implementation; it does not authorize root integration or push.
 
 Herdr roles have no Codex Desktop in-app Browser backend. QA must not attempt
 or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-The 1.5.3b terminal candidate `dc2153c` is integrated. Its completed six-role
-swarm, role worktrees, and daemons are retired. Do not start another swarm
-before its source-aligned specification and any necessary review mock are
-approved.
+Daily Reflection terminal candidate `c2127b5` is integrated and pushed. Its
+completed six-role swarm, role worktrees, and daemons are retired. Do not start
+another swarm before its source-aligned specification and any necessary review
+mock are approved.
 
 The completed Tailwind track used a dynamic squad, not the old six persistent worktrees:
 at most two transient workers; Sol Max leader/specifier; Sol High coder and
@@ -210,9 +222,9 @@ canonical SwarmForge `main` at `b5b17bd` and passed its complete 375-check
 smoke suite. Dan's 2026-08-27 approval landed terminal candidate `8d7ccbd`; the
 squad is down and every transient worker is retired.
 
-After Daily Reflection, the remaining method-spine slice is `!` inspiration
-and master-task completion gating (1.5.5). Settings polish, broad search,
-grammar expansion, and PWA work remain deferred.
+After the bounded 1.5.2a correction, the remaining method-spine slice is `!`
+inspiration and master-task completion gating (1.5.5). Settings polish, broad
+search, grammar expansion, and PWA work remain deferred.
 
 ## Deployment boundary
 
