@@ -372,7 +372,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
     end
   end
 
-  test "14 keyboard Morning capture returns focus to the cleared or preserved field" do
+  test "14 keyboard capture returns both modes to the cleared or preserved field" do
     travel_to TODAY do
       sign_in_through_browser @user
       visit reflection_path
@@ -387,6 +387,17 @@ class DailyReflectionTest < ApplicationSystemTestCase
       field.fill_in with: "-"
       field.send_keys(:enter)
       assert_field "What surfaced overnight?", with: "-"
+      assert_focused "#reflection_line"
+      assert_selector "main > h1:first-child", count: 1
+      assert_selector ".flash--alert", text: "That entry can't do that."
+
+      visit evening_reflection_path
+      keyboard_tab_to("button[aria-label='Event']")
+      keyboard_activate
+      keyboard_tab_to("#reflection_line")
+      keyboard_type_and_submit("-")
+      assert_field "What did you miss?", with: "-"
+      assert_selector "button[aria-label='Event'][aria-pressed='true']"
       assert_focused "#reflection_line"
       assert_selector "main > h1:first-child", count: 1
       assert_selector ".flash--alert", text: "That entry can't do that."
@@ -722,6 +733,21 @@ class DailyReflectionTest < ApplicationSystemTestCase
     assert focused, "Expected #{selector} to own focus"
     outline = page.evaluate_script("getComputedStyle(document.activeElement).outlineStyle")
     assert_not_equal "none", outline
+    geometry = page.evaluate_script(<<~JAVASCRIPT)
+      (() => {
+        const target = document.activeElement.getBoundingClientRect()
+        const tabs = document.querySelector(".tab-bar").getBoundingClientRect()
+        return {
+          top: target.top,
+          bottom: target.bottom,
+          viewportBottom: document.documentElement.clientHeight,
+          unobscuredBottom: tabs.top
+        }
+      })()
+    JAVASCRIPT
+    assert_operator geometry.fetch("top"), :>=, 0
+    assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("viewportBottom")
+    assert_operator geometry.fetch("bottom"), :<=, geometry.fetch("unobscuredBottom")
   end
 
   def assert_not_focused(selector)
