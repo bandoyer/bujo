@@ -7,13 +7,13 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: Tailwind v4 presentation migration APPROVED (2026-08-27).** The T0
-> parity receipt and source-aligned contract are approved, including the
-> repository-resident screenshots. Implementation is authorized only on the
-> bounded squad's `codex/tailwind-v4` branch; root integration and deployment
-> remain behind later explicit approval. The baseline is green at 230 fast
-> tests / 3822 assertions and 81 headless-Chrome system tests / 1640 assertions,
-> with RuboCop clean; production still runs 1.4.1. See `HANDOFF.md`.
+> **Status: Tailwind v4 presentation migration LANDED (2026-08-27).** Dan
+> approved terminal candidate `8d7ccbd`, now integrated on `main`. The accepted
+> tree is green at 265 fast tests / 6424 assertions and 94 headless-Chrome
+> system tests / 15445 assertions, with RuboCop and the complete security and
+> presentation parity bars clean. Production still runs 1.4.1. Phone
+> dogfooding is the immediate gate before choosing 1.5.4 Daily Reflection or
+> authentication Step 1. See `HANDOFF.md`.
 
 ## What this is
 
@@ -94,6 +94,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-27 | **Tailwind squad tooling prerequisite landed; launch still withheld.** Deterministic leader/default/template/assignment profiles are now on canonical SwarmForge `main` at `b5b17bd` and pass its complete 375-check smoke suite. Bujo's repository-owned `swarmforge/squad.conf` records the approved two-worker roster and `codex/tailwind-v4` integration branch |
 | 2026-08-27 | **Tailwind T0 and source-aligned specification prepared; implementation not authorized.** Baseline `434a9a9` is frozen in `docs/tailwind-v4-baseline/` with 135 screenshots, computed geometry, selector ownership, assets, and green quality receipts. The proposed contract at `docs/slices/tailwind-v4-presentation-migration.md` fixes exact Ruby-hosted v4 gems, no Node/Preflight/default theme, staged legacy parity, stable product behavior, and the bounded squad graph. No mock change is needed for parity; no squad starts until explicit approval |
 | 2026-08-27 | **Tailwind v4 presentation migration approved.** Dan approved the complete source-aligned contract and keeping all 135 T0 screenshots in the repository. Commit/push of the planning baseline and `swarm squad up` are authorized. Work remains isolated on `codex/tailwind-v4`; passing terminal QA does not authorize root integration or deployment |
+| 2026-08-27 | **Tailwind v4 presentation migration landed.** Dan approved terminal candidate `8d7ccbd` after corrected terminal QA pass 2. The presentation-only migration keeps all accepted behavior and geometry, exact-pins `tailwindcss-rails` 4.6.0 and `tailwindcss-ruby` 4.3.3, uses no Node, Preflight, or default Tailwind theme, and serves one fingerprinted application bundle. The merged tree passes 265 fast tests / 6424 assertions, 94 system tests / 15445 assertions, RuboCop, security audits, coverage/CRAP/duplication, immutable T0 parity, production asset, and Docker checks. Deployment remains Dan's action |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -244,15 +245,16 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             board at `mockups/PhoneDogfoodCorrections.dc.html`. Terminal
             candidate `dc2153c`; merged-tree receipts: 230 fast tests / 3822
             assertions, 81 system tests / 1640 assertions, RuboCop clean.
-      - [ ] **Tailwind CSS v4 presentation migration** — APPROVED
-            infrastructure interlude before more UI work. Preserve the exact
-            1.5.3b product/phone behavior while replacing the standalone CSS
-            with exact-pinned `tailwindcss-rails`, no Node, no Preflight, no
-            default theme, one compiled bundle, and staged component/page
-            parity. T0 receipt at `docs/tailwind-v4-baseline/README.md`; approved
-            contract at `docs/slices/tailwind-v4-presentation-migration.md`.
-            Implement only through the bounded `codex/tailwind-v4` squad;
-            integration and deployment remain separately gated.
+      - [x] **Tailwind CSS v4 presentation migration** ✅ (2026-08-27) —
+            presentation-only infrastructure interlude preserving the exact
+            1.5.3b product/phone behavior. The app now uses exact-pinned
+            `tailwindcss-rails` 4.6.0 and `tailwindcss-ruby` 4.3.3, no Node,
+            no Preflight, no default theme, and one compiled bundle with
+            component/page ownership. T0 receipt at
+            `docs/tailwind-v4-baseline/README.md`; landed contract at
+            `docs/slices/tailwind-v4-presentation-migration.md`. Terminal
+            candidate `8d7ccbd`; merged-tree receipts: 265 fast tests / 6424
+            assertions, 94 system tests / 15445 assertions, RuboCop clean.
       - [ ] **1.5.4 Daily Reflection** — a small first-class AM/PM
             review: AM sees the current month's open tasks; PM walks
             today's entries to complete, strike, or schedule and makes
@@ -338,8 +340,8 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   like press-start — passkeys first, magic email links second. The
   generator's email/password remains only as a transitional rollback. The
   provider foundation is complete; Step 1 is now unblocked in the separate
-  authentication track. The immediate product gate is phone dogfooding of
-  landed 1.5.3b; 1.5.4 remains the next method-spine slice.
+  authentication track. The immediate product gate is phone dogfooding of the
+  landed Tailwind build; 1.5.4 remains the next method-spine slice.
   `docs/resend-transactional-email.md` owns its live checklist and safety gates.
   Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
   Start. Recovery is proven before password retirement by registering two

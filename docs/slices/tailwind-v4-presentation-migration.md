@@ -1,10 +1,10 @@
 # Infrastructure slice — Tailwind CSS v4 presentation migration
 
-- **Status:** APPROVED by Dan on 2026-08-27
+- **Status:** LANDED 2026-08-27, terminal candidate `8d7ccbd`
 - **Planning baseline:** `434a9a9478a5581494773c5660583e4d8f3cfa4e`
 - **T0 receipt:** [`docs/tailwind-v4-baseline/README.md`](../tailwind-v4-baseline/README.md)
 - **Integration branch:** `codex/tailwind-v4`
-- **Implementation:** authorized only through the bounded squad below
+- **Implementation:** completed through the bounded squad below
 - **Deployment:** not authorized
 
 ## Outcome
