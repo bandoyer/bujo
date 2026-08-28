@@ -243,10 +243,7 @@ class EntriesController < ApplicationController
   end
 
   def respond_to_capture
-    if reflection_return
-      redirect_to capture_destination, status: :see_other
-      return
-    end
+    return redirect_to(capture_destination, status: :see_other) if reflection_return
 
     respond_to do |format|
       format.turbo_stream do
@@ -258,10 +255,8 @@ class EntriesController < ApplicationController
   end
 
   def capture_destination
-    return reflection_destination if reflection_return
-    return collection_path(@collection) if @placement == "collection"
-
-    page_path(@placement, @capture_date)
+    fallback = @placement == "collection" ? collection_path(@collection) : page_path(@placement, @capture_date)
+    command_return_path(fallback)
   end
 
   # The screen showing one page kind, so a reader lands back on the page the
@@ -287,17 +282,17 @@ class EntriesController < ApplicationController
   # it persists, so no crafted parameter can send the reader elsewhere. Dated
   # pages keep the parameter-driven destination the reader navigated from.
   def redirect_to_viewed_page(**response_options)
-    return redirect_to(reflection_destination, **response_options) if reflection_return
-    return redirect_to(collection_path(@collection), **response_options) if @entry.page_kind == "collection"
-
-    return_page = params[:return_to].presence_in(RETURN_PAGE_KINDS)
-    redirect_to page_path(return_page, viewed_date), **response_options
+    redirect_to command_return_path(viewed_page_path), **response_options
   end
 
   def redirect_to_entry_page(**response_options)
-    return redirect_to(reflection_destination, **response_options) if reflection_return
+    redirect_to command_return_path(entry_page_path), **response_options
+  end
 
-    redirect_to entry_page_path, **response_options
+  def viewed_page_path
+    return collection_path(@collection) if @entry.page_kind == "collection"
+
+    page_path(params[:return_to].presence_in(RETURN_PAGE_KINDS), viewed_date)
   end
 
   def reflection_return
@@ -306,6 +301,10 @@ class EntriesController < ApplicationController
 
   def reflection_destination
     public_send(REFLECTION_RETURN_PATHS.fetch(reflection_return))
+  end
+
+  def command_return_path(fallback)
+    reflection_return ? reflection_destination : fallback
   end
 
   def entry_page_path
@@ -339,13 +338,7 @@ class EntriesController < ApplicationController
   end
 
   def refuse_capture
-    if reflection_return
-      flash[:alert] = REFUSAL_ALERT
-      flash[:reflection_line] = params[:line].to_s
-      flash[:reflection_kind] = default_kind.to_s
-      redirect_to reflection_destination, status: :see_other
-      return
-    end
+    return refuse_reflection_capture if reflection_return
 
     respond_to do |format|
       format.turbo_stream do
@@ -360,5 +353,12 @@ class EntriesController < ApplicationController
         end
       end
     end
+  end
+
+  def refuse_reflection_capture
+    flash[:alert] = REFUSAL_ALERT
+    flash[:reflection_line] = params[:line].to_s
+    flash[:reflection_kind] = default_kind.to_s
+    redirect_to reflection_destination, status: :see_other
   end
 end

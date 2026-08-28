@@ -28,17 +28,20 @@
   gap: 0;
 }
 
-.daily-reflection__date,
 .daily-reflection__stage p,
-.daily-reflection__open-count,
-.daily-reflection__progress {
+.daily-reflection__open-count {
   color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.daily-reflection__date,
+.daily-reflection__progress {
+  color: var(--accent);
   font-size: 0.72rem;
 }
 
 .daily-reflection__date {
   margin: 0.45rem 0 0;
-  color: var(--accent);
 }
 
 .daily-reflection__preferences {
@@ -150,7 +153,6 @@
 
 .daily-reflection__progress {
   margin: 0.65rem 0 0;
-  color: var(--accent);
 }
 
 .daily-reflection__closing {

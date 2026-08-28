@@ -1,1 +1,23 @@
-<%= render "shell", mode: :evening %>
+<%= render layout: "daily_reflections/shell", locals: { mode: :evening } do %>
+  <section class="daily-reflection__stage" aria-labelledby="reflection-stage">
+    <h2 id="reflection-stage">Review the day</h2>
+    <p>Update today's record, consider each entry, and notice what moved forward.</p>
+  </section>
+  <%= render "daily_reflections/capture",
+             aria_label: "Evening rapid log",
+             label: "What did you miss?",
+             return_to: "reflection_evening" %>
+  <div class="daily-reflection__section-heading"><h2>Today's entries</h2></div>
+  <% if @daily_roots.empty? %>
+    <p class="daily-reflection__empty state-text state-text--empty state-text--handwritten">Nothing logged today yet.</p>
+  <% else %>
+    <div class="daily-reflection__tree">
+      <%= render partial: "daily_reflections/tree_entry", collection: @daily_roots, as: :entry,
+                 locals: { mode: :evening } %>
+    </div>
+  <% end %>
+  <% if @done_task_count.positive? %>
+    <p class="daily-reflection__progress"><%= pluralize(@done_task_count, "task") %> marked complete.</p>
+  <% end %>
+  <p class="daily-reflection__closing">Notice what moved forward today.</p>
+<% end %>

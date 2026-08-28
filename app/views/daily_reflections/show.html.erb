@@ -1,1 +1,24 @@
-<%= render "shell", mode: :morning %>
+<%= render layout: "daily_reflections/shell", locals: { mode: :morning } do %>
+  <section class="daily-reflection__stage" aria-labelledby="reflection-stage">
+    <h2 id="reflection-stage">Plan the day</h2>
+    <p>Clear your mind, then review what is still open this month.</p>
+  </section>
+  <%= render "daily_reflections/capture",
+             aria_label: "Morning rapid log",
+             label: "What surfaced overnight?",
+             return_to: "reflection_morning" %>
+  <div class="daily-reflection__section-heading">
+    <h2>Open this month</h2>
+    <% if @morning_priority_ids.any? %>
+      <span class="daily-reflection__open-count"><%= @morning_priority_ids.size %> open</span>
+    <% end %>
+  </div>
+  <% if @source_groups.empty? %>
+    <p class="daily-reflection__empty state-text state-text--empty state-text--handwritten">No open tasks on this month's pages.</p>
+  <% else %>
+    <div class="daily-reflection__sources">
+      <%= render partial: "daily_reflections/source_tree", collection: @source_groups, as: :group,
+                 locals: { mode: :morning } %>
+    </div>
+  <% end %>
+<% end %>

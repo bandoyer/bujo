@@ -464,7 +464,8 @@ class Entry < ApplicationRecord
   def transition_priority_to!(new_priority, from:)
     with_lock do
       reload
-      raise LifecycleError unless kept? && kind == "task" && state == "open" && successor.nil?
+      raise LifecycleError unless kept? && kind == "task"
+      ensure_movable!
       raise LifecycleError unless priority? == from
 
       update!(priority: new_priority)

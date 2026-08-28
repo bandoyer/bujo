@@ -1,8 +1,7 @@
 <% priority_action = mode == :morning && morning_priority_eligible?(entry) %>
 <% commands = mode == :evening ? evening_commands(entry) : [] %>
-<% actionable = priority_action || commands.any? %>
 <article id="entry_<%= entry.id %>" class="entry" data-entry-id="<%= entry.id %>">
-  <% if actionable %>
+  <% if priority_action || commands.any? %>
     <% action_strip_id = "entry_#{entry.id}_actions" %>
     <button type="button"
             class="entry__line entry__toggle"

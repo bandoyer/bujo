@@ -1,0 +1,10 @@
+<section class="daily-reflection__capture" aria-label="<%= aria_label %>">
+  <%= render "entries/rapid_log_form",
+             capture_date: @today,
+             form_id: "reflection_capture",
+             line_id: "reflection_line",
+             label: label,
+             return_to: return_to,
+             submitted_line: flash[:reflection_line].to_s,
+             selected_kind: flash[:reflection_kind].presence_in(Entry::KINDS) || "task" %>
+</section>
