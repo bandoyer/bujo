@@ -54,6 +54,9 @@ class RegisterKeptCollectionsMigrationTest < ActiveSupport::TestCase
         insert_collection(database, id: "hidden", user_id: 1, position: nil)
       end
       assert_raises(SQLite3::ConstraintException) do
+        database.execute("UPDATE collections SET index_position = NULL WHERE id = 'kept'")
+      end
+      assert_raises(SQLite3::ConstraintException) do
         insert_collection(database, id: "zero", user_id: 1, position: 0)
       end
       assert_raises(SQLite3::ConstraintException) do

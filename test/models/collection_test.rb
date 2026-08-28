@@ -18,6 +18,22 @@ class CollectionTest < ActiveSupport::TestCase
     end
   end
 
+  class DuplicateTopicRacingCollection < Collection
+    class << self
+      attr_accessor :attempts
+
+      private
+
+      def attempt_create_for(user:, topic:, id:)
+        self.attempts += 1
+        return super unless attempts == 1
+
+        Collection.create_for(user: user, topic: topic, id: id)
+        nil
+      end
+    end
+  end
+
   test "atomic creation normalizes a Topic and allocates the first retained position" do
     collection = Collection.create_for(user: users(:two), topic: "  Reading   List  ")
 
@@ -102,6 +118,23 @@ class CollectionTest < ActiveSupport::TestCase
     assert_not_predicate collection, :persisted?
     assert_includes collection.errors[:base], "Collection could not be created"
     assert_equal Collection::CREATION_ATTEMPTS, RacingCollection.save_attempts
+  end
+
+  test "a duplicate Topic lost race persists one winner without consuming another rank" do
+    DuplicateTopicRacingCollection.attempts = 0
+
+    refused = DuplicateTopicRacingCollection.create_for(
+      user: users(:one),
+      topic: "Contended Topic"
+    )
+    winner = users(:one).collections.with_exact_topic("Contended Topic").sole
+    appended = Collection.create_for(user: users(:one), topic: "After contention")
+
+    assert_not_predicate refused, :persisted?
+    assert_includes refused.errors[:name], "has already been taken"
+    assert_equal 2, DuplicateTopicRacingCollection.attempts
+    assert_equal 2, winner.index_position
+    assert_equal 3, appended.index_position
   end
 
   test "ordinary creation and assignment cannot author a position or a kept hidden row" do
