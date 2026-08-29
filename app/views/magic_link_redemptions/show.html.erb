@@ -1,0 +1,22 @@
+<% content_for :title, "Open your journal" %>
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+
+<main class="auth-sheet" data-controller="magic-link">
+  <h1>Open your journal</h1>
+  <section class="auth-state">
+    <div class="auth-state__mark" aria-hidden="true">→</div>
+    <p class="auth-state__copy">This link signs you in once.</p>
+    <div class="auth-state__actions">
+      <%= form_with url: open_sign_in_link_path, class: "auth-redeem-form" do |form| %>
+        <%= form.hidden_field :token, value: "", data: { magic_link_target: "token" } %>
+        <%= form.button "Open your journal", class: "auth-primary", disabled: true,
+          data: { magic_link_target: "button" } %>
+      <% end %>
+      <p class="auth-note">If you requested more than one link, use the newest email.</p>
+      <%= link_to "Back to sign in", new_session_path, class: "auth-secondary" %>
+    </div>
+  </section>
+  <%= render "shared/auth_brand" %>
+</main>

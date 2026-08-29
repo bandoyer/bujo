@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
+  post "sign-in-link", to: "magic_links#create", as: :sign_in_link
+  get "sign-in-link/sent", to: "magic_links#sent", as: :sent_sign_in_link
+  get "sign-in-link/open", to: "magic_link_redemptions#show", as: :open_sign_in_link
+  post "sign-in-link/open", to: "magic_link_redemptions#create"
 
   get "daily(/:date)", to: "daily_logs#show", as: :daily_log
   get "reflection", to: "daily_reflections#show", as: :reflection

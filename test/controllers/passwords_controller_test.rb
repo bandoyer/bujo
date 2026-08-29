@@ -1,7 +1,10 @@
 require "test_helper"
 
 class PasswordsControllerTest < ActionDispatch::IntegrationTest
-  setup { @user = User.take }
+  setup do
+    @user = User.take
+    Rails.cache.clear
+  end
 
   test "new" do
     get new_password_path
@@ -40,11 +43,15 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "update" do
-    assert_changes -> { @user.reload.password_digest } do
+    magic_token = @user.generate_token_for(:magic_link)
+
+    assert_changes -> { [ @user.reload.password_digest, @user.magic_link_version ] },
+      from: [ @user.password_digest, 0 ] do
       put password_path(@user.password_reset_token), params: { password: "new", password_confirmation: "new" }
       assert_redirected_to new_session_path
     end
 
+    assert_nil User.find_by_token_for(:magic_link, magic_token)
     follow_redirect!
     assert_notice "Password has been reset"
   end
@@ -58,6 +65,40 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_notice "Passwords did not match"
+  end
+
+  test "password reset uses the shared outbound-mail address budget" do
+    Rails.cache.clear
+    5.times { post passwords_path, params: { email_address: @user.email_address } }
+
+    assert_no_enqueued_emails do
+      post passwords_path, params: { email_address: @user.email_address.upcase }
+    end
+
+    assert_redirected_to new_password_path
+  end
+
+  test "password reset cannot bypass address capacity already used by magic links" do
+    post sign_in_link_path, params: { email_address: @user.email_address }
+    4.times { post passwords_path, params: { email_address: @user.email_address } }
+
+    assert_no_enqueued_emails do
+      post passwords_path, params: { email_address: @user.email_address }
+    end
+
+    assert_redirected_to new_password_path
+  end
+
+  test "password reset cannot bypass IP capacity already used by magic links" do
+    10.times do |attempt|
+      post sign_in_link_path, params: { email_address: "missing-#{attempt}@example.com" }
+    end
+
+    assert_no_enqueued_emails do
+      post passwords_path, params: { email_address: @user.email_address }
+    end
+
+    assert_redirected_to new_password_path
   end
 
   private
