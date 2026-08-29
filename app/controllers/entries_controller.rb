@@ -80,12 +80,13 @@ class EntriesController < ApplicationController
     @submitted_edit_line = params[:line].to_s
     raise Entry::LifecycleError if forbidden_correction_claim?
 
+    kind = requested_kind
     parsed = Bujo::RapidLog.parse(
       @submitted_edit_line,
       today: correction_parser_today,
-      default_kind: correction_kind.to_sym
+      default_kind: kind.to_sym
     )
-    @entry.correct!(parsed, kind: correction_kind)
+    @entry.correct!(parsed, kind: kind)
     redirect_to_entry_page
   end
 
@@ -130,7 +131,7 @@ class EntriesController < ApplicationController
   # Writes one rapid-log line beneath the routed persisted parent.
   def children
     @submitted_child_line = params[:line].to_s
-    @submitted_child_kind = child_kind
+    @submitted_child_kind = requested_kind
     raise Entry::LifecycleError if forbidden_child_claim?
 
     child = Entry.capture_child!(
@@ -174,17 +175,13 @@ class EntriesController < ApplicationController
     end
   end
 
-  def child_kind
+  def requested_kind
     params[:default_kind].presence_in(Entry::KINDS) || raise(Entry::LifecycleError)
   end
 
   def correction_claim_keys(claims)
     nested = claims["entry"]
     claims.keys + (nested.respond_to?(:keys) ? nested.keys : [])
-  end
-
-  def correction_kind
-    params[:default_kind].presence_in(Entry::KINDS) || raise(Entry::LifecycleError)
   end
 
   def correction_parser_today

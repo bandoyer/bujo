@@ -30,9 +30,7 @@ export default class extends Controller {
   }
 
   showEdit(event) {
-    const strip = this.stripFor(event.currentTarget)
-    this.showStep(strip, "edit")
-    strip.querySelector("[data-step='edit'] [data-rapid-log-target='line']")?.focus()
+    this.showLineStep(event, "edit")
   }
 
   showMove(event) {
@@ -40,9 +38,7 @@ export default class extends Controller {
   }
 
   showChild(event) {
-    const strip = this.stripFor(event.currentTarget)
-    this.showStep(strip, "child")
-    strip.querySelector("[data-step='child'] [data-rapid-log-target='line']")?.focus()
+    this.showLineStep(event, "child")
   }
 
   // Every step rewinds to the same place, so one handler serves them all.
@@ -72,6 +68,12 @@ export default class extends Controller {
     strip.querySelectorAll("[data-step]").forEach((element) => {
       element.hidden = element.dataset.step !== step
     })
+  }
+
+  showLineStep(event, step) {
+    const strip = this.stripFor(event.currentTarget)
+    this.showStep(strip, step)
+    strip.querySelector(`[data-step='${step}'] [data-rapid-log-target='line']`)?.focus()
   }
 
   stripFor(control) {

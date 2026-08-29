@@ -54,8 +54,8 @@ module EntryCommandAuthorization
   # with nothing in it.
   def offered_entry_commands(entry)
     lifecycle_commands(entry).select do |command|
-      command != "complete" || entry.completable?
-    end.select { |command| entry_command_allowed?(entry, command) }
+      (command != "complete" || entry.completable?) && entry_command_allowed?(entry, command)
+    end
   end
 
   # An entry that has already moved is finished wherever it sits: the successor

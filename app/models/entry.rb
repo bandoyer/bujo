@@ -112,18 +112,13 @@ class Entry < ApplicationRecord
       return unless parsed
 
       entry = new(
-        user: user,
-        collection: collection,
-        kind: parsed.kind,
-        state: parsed.state,
-        text: parsed.text,
-        priority: parsed.priority,
-        inspiration: parsed.inspiration,
-        tags: parsed.tags,
-        page_kind: page_kind,
-        page_on: page_on,
-        occurs_on: occurs_on || parsed.date,
-        time_of_day: parsed.time
+        attributes_from_parsed(parsed).merge(
+          user: user,
+          collection: collection,
+          page_kind: page_kind,
+          page_on: page_on,
+          occurs_on: occurs_on || parsed.date
+        )
       )
       enforce_capture_admission!(entry, as_of, admission_context, target_month)
       entry.save!
@@ -138,18 +133,12 @@ class Entry < ApplicationRecord
       raise LifecycleError unless parent.user == user && parent.child_capture_admitted?(as_of: as_of)
 
       parent.children.create!(
-        user: user,
-        collection: parent.collection,
-        kind: parsed.kind,
-        state: parsed.state,
-        text: parsed.text,
-        priority: parsed.priority,
-        inspiration: parsed.inspiration,
-        tags: parsed.tags,
-        page_kind: parent.page_kind,
-        page_on: parent.page_on,
-        occurs_on: parsed.date,
-        time_of_day: parsed.time
+        attributes_from_parsed(parsed).merge(
+          user: user,
+          collection: parent.collection,
+          page_kind: parent.page_kind,
+          page_on: parent.page_on
+        )
       )
     end
 
@@ -171,6 +160,20 @@ class Entry < ApplicationRecord
     end
 
     private
+
+    # Shared parsed-field mapping for root capture, child capture, and correction.
+    def attributes_from_parsed(parsed)
+      {
+        kind: parsed.kind,
+        state: parsed.state,
+        text: parsed.text,
+        priority: parsed.priority,
+        inspiration: parsed.inspiration,
+        tags: parsed.tags,
+        occurs_on: parsed.date,
+        time_of_day: parsed.time
+      }
+    end
 
     def enforce_capture_admission!(entry, as_of, admission_context, target_month)
       admitted = if admission_context == :monthly_migration
@@ -216,24 +219,22 @@ class Entry < ApplicationRecord
 
   # Answers whether this current open task has no unresolved task descendant.
   def completable?
-    kept? && kind == "task" && state == "open" && successor.nil? && descendants_satisfied?
+    current_open_task? && descendants_satisfied?
   end
 
   # Answers whether an otherwise current open task is blocked only by subtasks.
   def completion_blocked?
-    kept? && kind == "task" && state == "open" && successor.nil? && !descendants_satisfied?
+    current_open_task? && !descendants_satisfied?
   end
 
   # Answers whether this row may receive a web-authored child today.
   def child_capture_admitted?(as_of:)
-    kept? && kind == "task" && state == "open" && successor.nil? && visible_ancestor_path? &&
-      writable_residency?(as_of)
+    current_open_task? && visible_ancestor_path? && writable_residency?(as_of)
   end
 
   # Marks this open task complete after atomically rechecking its descendant graph.
   def complete!
     with_lock do
-      reload
       raise LifecycleError unless completable?
 
       update!(state: "done")
@@ -322,8 +323,7 @@ class Entry < ApplicationRecord
   # order, so reparsing does not depend on the request date.
   def canonical_edit_line
     [
-      ("*" if priority?),
-      ("!" if inspiration?),
+      *signifier_tokens,
       text,
       *tags.map { |tag| "+#{tag}" },
       occurs_on,
@@ -377,7 +377,7 @@ class Entry < ApplicationRecord
 
   # Returns the canonical shared-column ink for independent signifiers.
   def signifier_ink
-    [ ("*" if priority?), ("!" if inspiration?) ].compact.join
+    signifier_tokens.join
   end
 
   # Returns the accessible name paired with the canonical signifier ink.
@@ -391,22 +391,24 @@ class Entry < ApplicationRecord
 
   private
 
+  def current_open_task?
+    kept? && kind == "task" && state == "open" && successor.nil?
+  end
+
+  def signifier_tokens
+    [ ("*" if priority?), ("!" if inspiration?) ].compact
+  end
+
   def ensure_correctable!(requested_kind)
     raise LifecycleError unless kept? && successor.nil?
     raise LifecycleError unless correctable_kinds.include?(requested_kind)
   end
 
   def correction_attributes(parsed, requested_kind)
-    {
+    self.class.send(:attributes_from_parsed, parsed).merge(
       kind: requested_kind,
-      state: corrected_state(requested_kind),
-      text: parsed.text,
-      priority: parsed.priority,
-      inspiration: parsed.inspiration,
-      tags: parsed.tags,
-      occurs_on: parsed.date,
-      time_of_day: parsed.time
-    }
+      state: corrected_state(requested_kind)
+    )
   end
 
   def corrected_state(requested_kind)
@@ -567,15 +569,9 @@ class Entry < ApplicationRecord
   # therefore cuts off its entire branch rather than creating hidden blockers.
   def descendants_satisfied?
     children.kept.all? do |child|
-      structurally_consistent_child?(child) &&
+      structurally_consistent_with?(child) &&
         (child.kind != "task" || task_chain_satisfied?(child)) &&
         child.send(:descendants_satisfied?)
-    end
-  end
-
-  def structurally_consistent_child?(child)
-    child.user_id == user_id && PLACEMENT_ATTRIBUTES.all? do |attribute|
-      child.public_send(attribute) == public_send(attribute)
     end
   end
 
