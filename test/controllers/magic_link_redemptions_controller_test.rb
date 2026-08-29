@@ -24,6 +24,19 @@ class MagicLinkRedemptionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[role='alert']", count: 0
   end
 
+  test "valid POST for one user does not create a session for the other" do
+    other = users(:two)
+    token = @user.generate_token_for(:magic_link)
+
+    assert_no_difference -> { other.sessions.count } do
+      post open_sign_in_link_path, params: { token: token }
+    end
+
+    assert_equal 0, other.reload.magic_link_version
+    assert_equal 1, @user.reload.magic_link_version
+    assert_redirected_to root_path
+  end
+
   test "valid POST consumes the token and creates the ordinary session once" do
     token = @user.generate_token_for(:magic_link)
 
