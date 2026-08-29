@@ -168,7 +168,7 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     assert_match(/SECRET_KEY_BASE_DUMMY=1 RAILS_ENV=production bin\/rails tailwindcss:build/, workflow)
     assert_includes build_stage, 'APP_ORIGIN="https://bujo.blackcat.dev"'
     assert_includes build_stage, 'MAIL_FROM="Bujo <sign-in@bujo.blackcat.dev>"'
-    assert_includes build_stage, 'RESEND_API_KEY="build-only"'
+    assert_includes build_stage, "RESEND_API_KEY=build-only"
     assert_match(/SECRET_KEY_BASE_DUMMY=1 \.\/bin\/rails tailwindcss:build.*assets:precompile/m, build_stage)
     assert_no_match(/\b(node|npm|pnpm|yarn|bun)\b/i, dockerfile)
   end

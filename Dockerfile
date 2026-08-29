@@ -49,19 +49,18 @@ COPY . .
 
 # Production configuration fails closed when Rails boots. Asset compilation
 # boots the production environment too, so give this throw-away build stage the
-# canonical non-secret values and an inert provider key. Runtime secrets still
-# come only from Kamal and none of these build-stage values reach the final stage.
+# canonical non-secret values. Runtime secrets still come only from Kamal and
+# none of these build-stage values reach the final stage.
 ENV APP_ORIGIN="https://bujo.blackcat.dev" \
-    MAIL_FROM="Bujo <sign-in@bujo.blackcat.dev>" \
-    RESEND_API_KEY="build-only"
+    MAIL_FROM="Bujo <sign-in@bujo.blackcat.dev>"
 
 # Precompile bootsnap code for faster boot times.
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 # Precompile the same Tailwind source before Propshaft fingerprints production assets.
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails tailwindcss:build && \
-    SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+RUN RESEND_API_KEY=build-only SECRET_KEY_BASE_DUMMY=1 ./bin/rails tailwindcss:build && \
+    RESEND_API_KEY=build-only SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 
 
