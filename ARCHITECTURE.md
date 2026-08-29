@@ -80,7 +80,7 @@ entries         id uuidv7 · kind task|event|note · text · state open|done|str
                 page_kind daily|monthly_calendar|monthly_tasks|future|collection (immutable)
                 page_on? (daily: the day · monthly pages: first of month · else NULL, immutable)
                 occurs_on? (the date the entry is ABOUT: calendar slot, future-log date)
-                time_of_day · priority · tags · collection_id? (page_kind=collection only)
+                time_of_day · priority · inspiration · tags · collection_id? (page_kind=collection only)
                 parent_id? · migrated_from_id? (unique) · hlc · server_seq · deleted_at?
 entry_revisions entry_id · field · lost_value · lost_hlc · kept_hlc   # conflict losers
 collections     id uuidv7 · user_id · name · index_position? · hlc · server_seq
