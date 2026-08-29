@@ -151,6 +151,7 @@ class TailwindPipelineTest < ActiveSupport::TestCase
   test "test CI production and Docker paths build the same Tailwind source" do
     workflow = Rails.root.join(".github/workflows/ci.yml").read
     dockerfile = Rails.root.join("Dockerfile").read
+    build_stage = dockerfile.match(/^FROM base AS build$(.*?)^FROM base$/m)[1]
     _output, task_trace, status = Open3.capture3(
       Rails.root.join("bin/rails").to_s,
       "test:prepare",
@@ -165,7 +166,10 @@ class TailwindPipelineTest < ActiveSupport::TestCase
     assert_match(/RAILS_ENV:\s*test.*?bin\/rails tailwindcss:build.*?bin\/rails db:test:prepare test/m, workflow)
     assert_match(/RAILS_ENV:\s*test.*?bin\/rails tailwindcss:build.*?bin\/rails db:test:prepare test:system/m, workflow)
     assert_match(/SECRET_KEY_BASE_DUMMY=1 RAILS_ENV=production bin\/rails tailwindcss:build/, workflow)
-    assert_match(/SECRET_KEY_BASE_DUMMY=1 \.\/bin\/rails tailwindcss:build.*assets:precompile/m, dockerfile)
+    assert_includes build_stage, 'APP_ORIGIN="https://bujo.blackcat.dev"'
+    assert_includes build_stage, 'MAIL_FROM="Bujo <sign-in@bujo.blackcat.dev>"'
+    assert_includes build_stage, 'RESEND_API_KEY="build-only"'
+    assert_match(/SECRET_KEY_BASE_DUMMY=1 \.\/bin\/rails tailwindcss:build.*assets:precompile/m, build_stage)
     assert_no_match(/\b(node|npm|pnpm|yarn|bun)\b/i, dockerfile)
   end
 
