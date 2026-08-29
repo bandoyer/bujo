@@ -70,4 +70,16 @@ class UserTest < ActiveSupport::TestCase
 
     assert_equal versions, User.order(:id).pluck(:magic_link_version)
   end
+
+  test "consuming one user's link does not alter the other user" do
+    one = users(:one)
+    two = users(:two)
+    token = one.generate_token_for(:magic_link)
+    two_token = two.generate_token_for(:magic_link)
+
+    assert_equal one, User.consume_magic_link(token)
+    assert_equal 1, one.reload.magic_link_version
+    assert_equal 0, two.reload.magic_link_version
+    assert_equal two, User.find_by_token_for(:magic_link, two_token)
+  end
 end

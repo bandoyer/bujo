@@ -44,9 +44,10 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, @user.email_address
   end
 
-  test "enqueue failure leaves the newer generation committed and keeps public parity" do
+  test "enqueue failure reports without PII and keeps public parity" do
     original_adapter = MagicLinkDeliveryJob.queue_adapter
     MagicLinkDeliveryJob.queue_adapter = FailingQueueAdapter.new
+    reports = subscribe_error_reports
 
     assert_nothing_raised do
       post sign_in_link_path, params: { email_address: @user.email_address }
@@ -54,8 +55,27 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, @user.reload.magic_link_version
     assert_redirected_to sent_sign_in_link_path
+    assert_equal 1, reports.size
+    context = reports.first.fetch(:context)
+    assert_equal "MagicLinkDeliveryJob", context[:job]
+    assert_equal Authentication.email_rate_limit_identity(@user.email_address), context[:user_digest]
+    serialized = reports.inspect
+    assert_not_includes serialized, @user.email_address
+    assert_not_includes serialized, "token"
   ensure
+    unsubscribe_error_reports
     MagicLinkDeliveryJob.queue_adapter = original_adapter if original_adapter
+  end
+
+  test "known and unknown requests wait out the same duration floor" do
+    [ @user.email_address, "missing@example.com" ].each do |email_address|
+      started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      post sign_in_link_path, params: { email_address: email_address }
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+
+      assert_operator elapsed, :>=, MagicLinksController::REQUEST_DURATION_FLOOR - 0.01
+      assert_redirected_to sent_sign_in_link_path
+    end
   end
 
   test "per-address short budget is shared by known and unknown identities" do
@@ -102,5 +122,22 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_match(/\A[0-9a-f]{64}\z/, identity)
     assert_not_includes identity, @user.email_address
     assert_not_equal Authentication.email_rate_limit_identity("other@example.com"), identity
+  end
+
+  private
+
+  def subscribe_error_reports
+    @error_reports = []
+    @error_subscriber = Object.new
+    reports = @error_reports
+    @error_subscriber.define_singleton_method(:report) do |error, handled:, severity:, context:, source:|
+      reports << { error: error, handled: handled, context: context }
+    end
+    Rails.error.subscribe(@error_subscriber)
+    @error_reports
+  end
+
+  def unsubscribe_error_reports
+    Rails.error.unsubscribe(@error_subscriber) if @error_subscriber
   end
 end
