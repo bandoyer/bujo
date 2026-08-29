@@ -140,19 +140,17 @@ class Entry < ApplicationRecord
       parsed = Bujo::RapidLog.parse(line, today: today, default_kind: default_kind)
       return unless parsed
 
-      with_write_contention_retry do
-        parent.with_lock do
-          raise LifecycleError unless parent.user == user && parent.child_capture_admitted?(as_of: as_of)
+      parent.send(:with_locked_write) do
+        raise LifecycleError unless parent.user == user && parent.child_capture_admitted?(as_of: as_of)
 
-          parent.children.create!(
-            attributes_from_parsed(parsed).merge(
-              user: user,
-              collection: parent.collection,
-              page_kind: parent.page_kind,
-              page_on: parent.page_on
-            )
+        parent.children.create!(
+          attributes_from_parsed(parsed).merge(
+            user: user,
+            collection: parent.collection,
+            page_kind: parent.page_kind,
+            page_on: parent.page_on
           )
-        end
+        )
       end
     end
 
@@ -173,18 +171,6 @@ class Entry < ApplicationRecord
     end
 
     private
-
-    def with_write_contention_retry
-      attempts = 0
-      begin
-        yield
-      rescue *WRITE_CONTENTION_ERRORS
-        attempts += 1
-        retry if attempts < WRITE_ATTEMPTS
-
-        raise LifecycleError
-      end
-    end
 
     # Shared parsed-field mapping for root capture, child capture, and correction.
     def attributes_from_parsed(parsed)
@@ -259,12 +245,10 @@ class Entry < ApplicationRecord
 
   # Marks this open task complete after atomically rechecking its descendant graph.
   def complete!
-    with_write_contention_retry do
-      with_lock do
-        raise LifecycleError unless completable?
+    with_locked_write do
+      raise LifecycleError unless completable?
 
-        update!(state: "done")
-      end
+      update!(state: "done")
     end
   end
 
@@ -547,11 +531,9 @@ class Entry < ApplicationRecord
   end
 
   def transition_to!(new_state, from:)
-    with_write_contention_retry do
-      with_lock do
-        ensure_transition_from!(from)
-        update!(state: new_state)
-      end
+    with_locked_write do
+      ensure_transition_from!(from)
+      update!(state: new_state)
     end
   end
 
@@ -613,9 +595,7 @@ class Entry < ApplicationRecord
   end
 
   def visitable_descendant?(child, visited_ids)
-    return false if visited_ids[child.id] || !structurally_consistent_with?(child)
-
-    visited_ids[child.id] = true
+    first_visit?(child.id, visited_ids) && structurally_consistent_with?(child)
   end
 
   def task_chain_satisfied?(task, visited_ids)
@@ -626,9 +606,8 @@ class Entry < ApplicationRecord
       next_entry = current.successor
       return %w[done struck].include?(current.state) unless next_entry
       return false unless valid_task_chain_link?(current, next_entry)
-      return false if visited_ids[next_entry.id]
+      return false unless first_visit?(next_entry.id, visited_ids)
 
-      visited_ids[next_entry.id] = true
       current = next_entry
     end
   end
@@ -646,17 +625,32 @@ class Entry < ApplicationRecord
     current = self
     while current.parent
       parent_entry = current.parent
-      return false if visited_ids[parent_entry.id]
+      return false unless first_visit?(parent_entry.id, visited_ids)
       return false unless parent_entry.kept? && structurally_consistent_with?(parent_entry)
 
-      visited_ids[parent_entry.id] = true
       current = parent_entry
     end
     true
   end
 
-  def with_write_contention_retry(&block)
-    self.class.send(:with_write_contention_retry, &block)
+  def first_visit?(entry_id, visited_ids)
+    return false if visited_ids[entry_id]
+
+    visited_ids[entry_id] = true
+  end
+
+  # Retry brief SQLite writer contention around a row lock so supported races
+  # serialize to a domain result instead of leaking a storage timeout.
+  def with_locked_write
+    attempts = 0
+    begin
+      with_lock { yield }
+    rescue *WRITE_CONTENTION_ERRORS
+      attempts += 1
+      retry if attempts < WRITE_ATTEMPTS
+
+      raise LifecycleError
+    end
   end
 
   def structurally_consistent_with?(other)
