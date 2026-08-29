@@ -54,7 +54,8 @@ class AuthPresentationTest < ApplicationSystemTestCase
     click_button "Sign in"
 
     assert_title_first "Open your journal"
-    assert_selector ".auth-alert[role='alert']", text: "Try another email address or password."
+    assert_no_selector "#flash_messages"
+    assert_selector ".auth-alert[role='alert']", count: 1, text: "Try another email address or password."
 
     visit new_password_path
     assert_title_first "Forgot your password?"

@@ -15,6 +15,7 @@ class MagicLinkRedemptionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal "no-store", response.headers["Cache-Control"]
     assert_equal "no-referrer", response.headers["Referrer-Policy"]
+    assert_select "#flash_messages", 0
     assert_select "meta[name='turbo-cache-control'][content='no-cache']"
     assert_select "form[action='#{open_sign_in_link_path}'][method='post']" do
       assert_select "input[type='hidden'][name='token'][value='']", 1
@@ -107,7 +108,9 @@ class MagicLinkRedemptionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
 
     follow_redirect!
-    assert_select "[role='alert']", "That sign-in link is invalid or has expired."
+    assert_select "main.auth-sheet > h1:first-child", "Open your journal"
+    assert_select "#flash_messages", 0
+    assert_select ".auth-alert[role='alert']", count: 1, text: "That sign-in link is invalid or has expired."
     assert_select "form[action='#{sign_in_link_path}']"
   end
 end

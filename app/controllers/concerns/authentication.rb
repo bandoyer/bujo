@@ -80,10 +80,12 @@ module Authentication
       cookies.delete(:session_id)
     end
 
-    # Scanner-safe auth pages are never stored and never leak through Referer.
+    # Scanner-safe auth pages are never stored, never leak through Referer, and
+    # keep title-first hierarchy by suppressing the journal layout flash.
     def protect_authentication_response
       response.set_header("Cache-Control", "no-store")
       response.set_header("Referrer-Policy", "no-referrer")
+      @defer_layout_flash = true
     end
 
     def normalized_email_address
