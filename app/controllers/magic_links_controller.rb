@@ -11,10 +11,10 @@ class MagicLinksController < ApplicationController
 
   # Advances a known account and queues only its integer identity and generation.
   def create
-    started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    user = User.find_by(email_address: normalized_email_address)
-    enqueue_magic_link(user) if user
-    wait_for_request_floor(started_at)
+    equalize_request_duration do
+      user = User.find_by(email_address: normalized_email_address)
+      enqueue_magic_link(user) if user
+    end
     redirect_to_sent
   end
 
@@ -45,7 +45,9 @@ class MagicLinksController < ApplicationController
     redirect_to sent_sign_in_link_path, status: :see_other
   end
 
-  def wait_for_request_floor(started_at)
+  def equalize_request_duration
+    started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    yield
     remaining = REQUEST_DURATION_FLOOR - (Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at)
     sleep(remaining) if remaining.positive?
   end
