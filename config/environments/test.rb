@@ -20,7 +20,8 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
-  config.cache_store = :null_store
+  # Exercise the same cache-backed authentication budgets used in production.
+  config.cache_store = :memory_store
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
@@ -37,7 +38,9 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { protocol: "https", host: "bujo.test" }
+  config.x.application_origin = "https://bujo.test"
+  config.x.mail_from = "Bujo <sign-in@bujo.blackcat.dev>"
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr

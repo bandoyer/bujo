@@ -6,12 +6,16 @@ class SessionsTest < ApplicationSystemTestCase
     user = users(:one)
 
     visit root_path
+    assert_button "Email me a sign-in link"
+    assert_no_selector "input[type=password]"
+
+    click_link "Use password instead"
     assert_selector "input[type=email][name=email_address]"
     assert_selector "input[type=password][name=password]"
     assert_button "Sign in"
 
     submit_sign_in_form(user, password: "wrong")
-    assert_current_path new_session_path
+    assert_current_path new_session_path(method: "password")
     assert_text "Try another email address or password."
 
     assert_difference -> { user.sessions.count }, 1 do

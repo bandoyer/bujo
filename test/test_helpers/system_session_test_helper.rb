@@ -11,7 +11,7 @@ module SystemSessionTestHelper
 
   # Fills and submits the sign-in form without assuming the attempt succeeds.
   def submit_sign_in_form(user, password:)
-    visit new_session_path
+    visit new_session_path(method: "password")
     fill_in "email_address", with: user.email_address
     fill_in "password", with: password
     click_button "Sign in"

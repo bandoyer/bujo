@@ -1,0 +1,14 @@
+<% content_for :title, "Check your email" %>
+
+<main class="auth-sheet">
+  <h1>Check your email</h1>
+  <section class="auth-state">
+    <div class="auth-state__mark" aria-hidden="true">•</div>
+    <p class="auth-state__copy">If that email belongs to an account, a sign-in link is on its way.</p>
+    <p class="auth-note">It may take a minute to arrive.</p>
+    <div class="auth-state__actions">
+      <%= link_to "Back to sign in", new_session_path, class: "auth-secondary" %>
+    </div>
+  </section>
+  <%= render "shared/auth_brand" %>
+</main>
