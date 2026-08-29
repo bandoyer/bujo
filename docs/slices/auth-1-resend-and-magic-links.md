@@ -133,8 +133,9 @@ route is added.
 Every authentication state uses one shared, responsive auth sheet with the
 page title first. It follows the existing light/dark/system theme and stored
 hand cookie, but exposes no preference selector before authentication. All
-controls are at least 44 CSS pixels tall, labels remain visible, focus is
-obvious, text wraps at 320 CSS pixels, and neither theme has horizontal scroll.
+controls, including text links such as `Forgot password?`, are at least 44 CSS
+pixels tall; labels remain visible, focus is obvious, text wraps at 320 CSS
+pixels, and neither theme has horizontal scroll.
 
 ### Default magic-email state
 
@@ -203,6 +204,11 @@ All refusal reasons converge on the default sign-in page with one non-field
 alert:
 
 `That sign-in link is invalid or has expired.`
+
+Here, `missing` means a redemption `POST` whose token field is absent or blank.
+A fragmentless or JavaScript-disabled `GET /sign-in-link/open` is the distinct
+inert landing state: it stays on the neutral page with the primary button
+disabled, performs no lookup, and shows no refusal alert.
 
 The normal email form follows immediately so recovery does not dead-end. The
 response never distinguishes missing, malformed, expired, newer-link-issued,
@@ -544,14 +550,17 @@ system/default profile, prove:
 2. complete password fallback and existing invalid-password refusal;
 3. generic link-requested state for known and unknown addresses;
 4. a fragment-bearing visit causes only an inert GET, removes the fragment,
-   stages the hidden token, and requires the explicit button;
+   stages the hidden token, and requires the explicit button; a fragmentless
+   GET stays on the inert disabled landing and performs no lookup;
 5. explicit redemption signs in once and returns safely;
-6. reuse/expired/missing states converge on the exact recovery alert;
+6. reuse, expiry, and a blank-token redemption POST converge on the exact
+   recovery alert;
 7. no staged token survives Turbo snapshot/back navigation or appears in the
    visible DOM, current URL, console, or captured test diagnostics;
 8. password request/edit use the same auth sheet;
-9. controls remain at least 44px, labels are associated, keyboard focus is
-   visible, text wraps, and there is no horizontal overflow in either theme;
+9. every visible input, button, and anchor—including `Forgot password?`—has a
+   hit box at least 44px tall; labels are associated, keyboard focus is visible,
+   text wraps, and there is no horizontal overflow in either theme;
 10. no passkey, signup, tab bar, journal content, or preference control appears.
 
 The existing complete quality bars remain binding:

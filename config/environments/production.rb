@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require "uri"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -53,21 +54,29 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
+  application_origin = URI.parse(ENV.fetch("APP_ORIGIN"))
+  canonical_origin = application_origin.is_a?(URI::HTTPS) &&
+    application_origin.host == "bujo.blackcat.dev" &&
+    application_origin.port == 443 &&
+    application_origin.userinfo.nil? &&
+    application_origin.query.nil? &&
+    application_origin.fragment.nil? &&
+    [ "", "/" ].include?(application_origin.path)
+  raise ArgumentError, "APP_ORIGIN must be the canonical Bujo HTTPS origin" unless canonical_origin
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
-
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
+  config.x.application_origin = application_origin.to_s
+  config.x.mail_from = ENV.fetch("MAIL_FROM")
+  unless config.x.mail_from == "Bujo <sign-in@bujo.blackcat.dev>"
+    raise ArgumentError, "MAIL_FROM must be the approved Bujo sender"
+  end
+  config.action_mailer.default_url_options = {
+    protocol: application_origin.scheme,
+    host: application_origin.host,
+    port: application_origin.port
+  }
+  config.action_mailer.delivery_method = :resend
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

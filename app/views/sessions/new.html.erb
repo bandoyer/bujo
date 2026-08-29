@@ -1,11 +1,28 @@
-<%= tag.div(flash[:alert], class: "auth-flash auth-flash--alert") if flash[:alert] %>
-<%= tag.div(flash[:notice], class: "auth-flash auth-flash--notice") if flash[:notice] %>
+<% content_for :title, "Open your journal" %>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
-<% end %>
-<br>
+<main class="auth-sheet">
+  <h1>Open your journal</h1>
+  <%= render "shared/auth_alerts" %>
 
-<%= link_to "Forgot password?", new_password_path %>
+  <% if params[:method] == "password" %>
+    <p class="auth-lede">Use your current password.</p>
+    <%= form_with url: session_path, class: "auth-form auth-form--compact" do |form| %>
+      <%= form.label :email_address, "Email" %>
+      <%= form.email_field :email_address, required: true, autofocus: true,
+        autocomplete: "username", autocapitalize: "none", spellcheck: false,
+        placeholder: "you@example.com", value: params[:email_address] %>
+      <%= form.label :password, "Password" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
+      <%= form.submit "Sign in", class: "auth-primary" %>
+      <%= link_to "Forgot password?", new_password_path, class: "auth-text-link auth-forgot" %>
+    <% end %>
+    <div class="auth-method-switch">
+      <%= link_to "Use email instead", new_session_path, class: "auth-secondary" %>
+    </div>
+  <% else %>
+    <p class="auth-lede">Pick up where you left off.</p>
+    <%= render "shared/magic_email_form" %>
+  <% end %>
+
+  <%= render "shared/auth_brand" %>
+</main>

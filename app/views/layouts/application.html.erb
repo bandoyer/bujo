@@ -28,7 +28,7 @@
   </head>
 
   <body>
-    <% unless content_for?(:deferred_flash) %>
+    <% unless content_for?(:deferred_flash) || @defer_layout_flash %>
       <div id="flash_messages"><%= render "shared/flash_messages" %></div>
     <% end %>
     <%= yield %>

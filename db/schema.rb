@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_28_235100) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_29_100000) do
   create_table "collections", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
@@ -70,9 +70,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_28_235100) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
+    t.integer "magic_link_version", default: 0, null: false
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.check_constraint "magic_link_version >= 0", name: "users_magic_link_version_nonnegative"
   end
 
   add_foreign_key "collections", "users"

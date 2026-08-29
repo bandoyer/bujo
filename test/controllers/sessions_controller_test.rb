@@ -6,6 +6,8 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
   test "new" do
     get new_session_path
     assert_response :success
+    assert_select "main.auth-sheet > h1:first-child", "Open your journal"
+    assert_select "#flash_messages", 0
   end
 
   test "create with valid credentials" do
@@ -18,8 +20,13 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
   test "create with invalid credentials" do
     post session_path, params: { email_address: @user.email_address, password: "wrong" }
 
-    assert_redirected_to new_session_path
+    assert_redirected_to new_session_path(method: "password")
     assert_nil cookies[:session_id]
+
+    follow_redirect!
+    assert_select "main.auth-sheet > h1:first-child", "Open your journal"
+    assert_select "#flash_messages", 0
+    assert_select ".auth-alert[role='alert']", count: 1, text: "Try another email address or password."
   end
 
   test "destroy" do

@@ -51,7 +51,7 @@ class TailwindSharedPrimitivesTest < ApplicationSystemTestCase
       apply_profile(width:, theme:, hand:)
 
       assert_selector "h1", text: "Forgot your password?"
-      assert_field "Enter your email address"
+      assert_field "Email"
       assert_button "Email reset instructions"
       assert_no_selector ".page-shell"
       assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, width

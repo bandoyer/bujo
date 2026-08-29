@@ -2,7 +2,7 @@ require "test_helper"
 
 # Freezes the final T4 page-family boundary. Browser tests own rendered parity;
 # this contract keeps every residual Monthly Migration declaration under its
-# page owner and limits auth-specific CSS to the generator-era flash colors.
+# page owner and keeps the accepted authentication sheet under its own owner.
 class MonthlyMigrationAuthPresentationSourceTest < ActiveSupport::TestCase
   ROOT = Rails.root.join("app/assets/tailwind")
   MIGRATION_OWNER = "pages/monthly-migration.css"
@@ -42,10 +42,15 @@ class MonthlyMigrationAuthPresentationSourceTest < ActiveSupport::TestCase
     ".monthly-migration__button" => %w[padding border-radius flex],
     ".monthly-migration__complete h2" => %w[margin overflow-wrap font-size]
   }.freeze
-  AUTH_DECLARATIONS = {
-    ".auth-flash--alert" => [ [ "color", "red" ] ],
-    ".auth-flash--notice" => [ [ "color", "green" ] ]
-  }.freeze
+  AUTH_SELECTORS = %w[
+    .auth-sheet
+    .auth-alert
+    .auth-notice
+    .auth-primary
+    .auth-secondary
+    .auth-state
+    .auth-brand
+  ].freeze
   T0_SHARED_SELECTORS = {
     ".monthly-migration .entry-list" => ".entry-list"
   }.freeze
@@ -98,12 +103,12 @@ class MonthlyMigrationAuthPresentationSourceTest < ActiveSupport::TestCase
     assert_empty selectors.grep(/\A\.(?:action|field|notice|page-shell|preference|rapid-log|tab-bar)/)
   end
 
-  test "auth-specific flash colors have one page owner and no inline competitor" do
+  test "accepted authentication sheet has one page owner and no inline competitor" do
     rules = authored_rules
     owner = authored_declarations_for(ROOT.join(AUTH_OWNER))
 
-    assert_equal AUTH_DECLARATIONS, owner
-    AUTH_DECLARATIONS.each_key do |selector|
+    AUTH_SELECTORS.each do |selector|
+      assert owner.key?(selector), "#{selector} must be declared by #{AUTH_OWNER}"
       assert_equal [ AUTH_OWNER ], rules.fetch(selector).map(&:first).uniq
     end
 
@@ -111,17 +116,27 @@ class MonthlyMigrationAuthPresentationSourceTest < ActiveSupport::TestCase
       source = path.read
       assert_no_match(/\bstyle\s*(?:=|:)/, source, "#{path.relative_path_from(Rails.root)} retains inline presentation")
     end
-    assert_includes Rails.root.join("app/views/sessions/new.html.erb").read, "auth-flash--notice"
-    assert_equal 3, auth_views.count { |path| path.read.include?("auth-flash--alert") }
-    %w[sessions/new.html.erb passwords/new.html.erb].each do |relative_path|
-      assert_includes Rails.root.join("app/views", relative_path).read, "value: params[:email_address]"
-    end
+    assert_includes Rails.root.join("app/views/sessions/new.html.erb").read, 'render "shared/auth_alerts"'
+    assert_includes Rails.root.join("app/views/shared/_auth_alerts.html.erb").read, 'role: "alert"'
+    assert_includes Rails.root.join("app/views/shared/_magic_email_form.html.erb").read,
+      "value: params[:email_address]"
+    assert_includes Rails.root.join("app/views/sessions/new.html.erb").read,
+      "value: params[:email_address]"
   end
 
   private
 
   def auth_views
-    %w[sessions/new.html.erb passwords/new.html.erb passwords/edit.html.erb].map do |relative_path|
+    %w[
+      sessions/new.html.erb
+      passwords/new.html.erb
+      passwords/edit.html.erb
+      magic_links/sent.html.erb
+      magic_link_redemptions/show.html.erb
+      shared/_auth_alerts.html.erb
+      shared/_auth_brand.html.erb
+      shared/_magic_email_form.html.erb
+    ].map do |relative_path|
       Rails.root.join("app/views", relative_path)
     end
   end
