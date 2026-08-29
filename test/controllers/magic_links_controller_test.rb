@@ -48,11 +48,14 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     original_adapter = MagicLinkDeliveryJob.queue_adapter
     MagicLinkDeliveryJob.queue_adapter = FailingQueueAdapter.new
     reports = subscribe_error_reports
+    started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     assert_nothing_raised do
       post sign_in_link_path, params: { email_address: @user.email_address }
     end
 
+    elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+    assert_operator elapsed, :>=, MagicLinksController::REQUEST_DURATION_FLOOR - 0.01
     assert_equal 1, @user.reload.magic_link_version
     assert_redirected_to sent_sign_in_link_path
     assert_equal 1, reports.size
