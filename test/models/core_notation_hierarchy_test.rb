@@ -1,4 +1,5 @@
 require "test_helper"
+require "timeout"
 
 class CoreNotationHierarchyTest < ActiveSupport::TestCase
   TODAY = Date.new(2026, 8, 28)
@@ -148,6 +149,79 @@ class CoreNotationHierarchyTest < ActiveSupport::TestCase
     assert_equal original, inspired.attributes.except("priority", "updated_at")
   end
 
+  test "a self-pointing task successor blocks completion without hanging or writing" do
+    master = create_entry(text: "Master")
+    task = create_entry(text: "Self cycle", parent: master)
+    task.update_columns(migrated_from_id: task.id, state: "migrated")
+    original = snapshots(master, task)
+
+    assert_completion_refused(master)
+    assert_equal original, snapshots(master, task)
+  end
+
+  test "a two-task successor cycle blocks completion without hanging or writing" do
+    master = create_entry(text: "Master")
+    first = create_entry(text: "First", parent: master)
+    second = create_entry(text: "Second", page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month)
+    first.update_columns(migrated_from_id: second.id, state: "migrated")
+    second.update_columns(migrated_from_id: first.id, state: "migrated")
+    original = snapshots(master, first, second)
+
+    assert_completion_refused(master)
+    assert_equal original, snapshots(master, first, second)
+  end
+
+  test "a longer task successor cycle beneath a valid hierarchy prefix blocks completion" do
+    master = create_entry(text: "Master")
+    first = create_entry(text: "First", parent: master)
+    second = create_entry(text: "Second", page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month)
+    third = create_entry(text: "Third", page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month)
+    first.update_columns(migrated_from_id: third.id, state: "migrated")
+    second.update_columns(migrated_from_id: first.id, state: "migrated")
+    third.update_columns(migrated_from_id: second.id, state: "migrated")
+    original = snapshots(master, first, second, third)
+
+    assert_completion_refused(master)
+    assert_equal original, snapshots(master, first, second, third)
+  end
+
+  test "a parent-child cycle blocks completion without hanging or writing" do
+    master = create_entry(text: "Master")
+    child = create_entry(text: "Child", parent: master, state: "done")
+    master.update_columns(parent_id: child.id)
+    original = snapshots(master, child)
+
+    assert_completion_refused(master)
+    assert_equal original, snapshots(master, child)
+  end
+
+  test "an ancestor cycle blocks child capture without hanging or writing" do
+    parent = create_entry(text: "Parent")
+    ancestor = create_entry(text: "Ancestor", parent: parent)
+    parent.update_columns(parent_id: ancestor.id)
+    original = snapshots(parent, ancestor)
+
+    admitted = Timeout.timeout(1) { parent.reload.child_capture_admitted?(as_of: TODAY) }
+    assert_not admitted
+    assert_raises(Entry::LifecycleError) do
+      Timeout.timeout(1) do
+        Entry.capture_child!("New child", parent: parent, user: users(:one), today: TODAY, as_of: TODAY)
+      end
+    end
+    assert_equal original, snapshots(parent, ancestor)
+  end
+
+  test "a deep acyclic hierarchy remains unbounded and completable" do
+    master = create_entry(text: "Master")
+    parent = master
+    120.times do |depth|
+      parent = create_entry(text: "Context #{depth}", kind: "note", state: nil, parent: parent)
+    end
+    create_entry(text: "Settled endpoint", state: "done", parent: parent)
+
+    assert Timeout.timeout(2) { master.reload.completable? }
+  end
+
   private
 
   def create_entry(overrides = {})
@@ -155,5 +229,15 @@ class CoreNotationHierarchyTest < ActiveSupport::TestCase
       user: users(:one), kind: "task", state: "open", text: "Task",
       priority: false, inspiration: false, tags: [], page_kind: "daily", page_on: TODAY
     }.merge(overrides))
+  end
+
+  def assert_completion_refused(master)
+    assert_not Timeout.timeout(1) { master.reload.completable? }
+    assert Timeout.timeout(1) { master.completion_blocked? }
+    assert_raises(Entry::LifecycleError) { Timeout.timeout(1) { master.complete! } }
+  end
+
+  def snapshots(*entries)
+    entries.map { |entry| entry.reload.attributes }
   end
 end

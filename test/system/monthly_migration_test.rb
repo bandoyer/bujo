@@ -230,7 +230,8 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   test "outgoing Strike Undo reopens the same task" do
-    outgoing = create_entry(text: "undo outgoing strike", page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
+    outgoing = create_entry(text: "undo outgoing strike", inspiration: true,
+      page_kind: "monthly_tasks", page_on: SOURCE_MONTH)
     original_count = @user.entries.count
     sign_in
     visit migration_outgoing_path
@@ -242,13 +243,14 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     assert_undo_offer_consumed
     assert_equal original_count, @user.entries.count
     assert_equal "open", outgoing.reload.state
+    assert_predicate outgoing, :inspiration?
     assert_nil outgoing.successor
     assert_selector "#entry_#{outgoing.id}[aria-label='Review this task']"
   end
 
   test "outgoing target Tasks Undo appends an exact source restoration" do
     outgoing = create_entry(
-      text: "undo outgoing tasks", priority: true, tags: %w[kept],
+      text: "undo outgoing tasks", priority: true, inspiration: true, tags: %w[kept],
       page_kind: "daily", page_on: SOURCE_MONTH + 7.days
     )
     sign_in
@@ -262,7 +264,8 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   test "outgoing exact-Topic Collection Undo appends an exact source restoration" do
     collection = Collection.create_for(user: @user, topic: "Undo Topic")
     outgoing = create_entry(
-      text: "undo outgoing collection", page_kind: "monthly_tasks", page_on: SOURCE_MONTH
+      text: "undo outgoing collection", inspiration: true,
+      page_kind: "monthly_tasks", page_on: SOURCE_MONTH
     )
     sign_in
     visit migration_outgoing_path
@@ -277,7 +280,8 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
 
   test "outgoing Future-date Undo appends an exact source restoration" do
     outgoing = create_entry(
-      text: "undo outgoing future", occurs_on: SOURCE_MONTH + 8.days, time_of_day: "07:40",
+      text: "undo outgoing future", inspiration: true,
+      occurs_on: SOURCE_MONTH + 8.days, time_of_day: "07:40",
       page_kind: "monthly_calendar", page_on: SOURCE_MONTH
     )
     scheduled_on = TARGET_MONTH.next_month + 2.days
@@ -296,7 +300,7 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
 
   test "due Future task Strike Undo reopens the same task" do
     task = create_entry(
-      text: "undo future strike", page_kind: "future", page_on: nil,
+      text: "undo future strike", inspiration: true, page_kind: "future", page_on: nil,
       occurs_on: TARGET_MONTH + 3.days
     )
     original_count = @user.entries.count
@@ -310,13 +314,14 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     assert_undo_offer_consumed
     assert_equal original_count, @user.entries.count
     assert_equal "open", task.reload.state
+    assert_predicate task, :inspiration?
     assert_nil task.successor
     assert_selector "#entry_#{task.id}[aria-label='Review this task']"
   end
 
   test "due Future task target Tasks Undo restores its date and time" do
     task = create_entry(
-      text: "undo future tasks", priority: true, tags: %w[trip],
+      text: "undo future tasks", priority: true, inspiration: true, tags: %w[trip],
       page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH + 5.days,
       time_of_day: "08:25"
     )
@@ -333,7 +338,8 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
 
   test "due Future event target Calendar Undo restores exact NULL-state Future placement" do
     event = create_entry(
-      text: "undo future event", kind: "event", state: nil, priority: true, tags: %w[opening],
+      text: "undo future event", kind: "event", state: nil, priority: true,
+      inspiration: true, tags: %w[opening],
       page_kind: "future", page_on: nil, occurs_on: TARGET_MONTH + 4.days,
       time_of_day: "10:15"
     )
@@ -517,8 +523,10 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
     assert_equal expected_kind_state, restored.values_at(:kind, :state)
     assert_equal expected_source,
       restored.values_at(:page_kind, :page_on, :collection_id, :occurs_on, :time_of_day)
-    assert_equal [ original.text, original.priority, original.tags ],
-      restored.values_at(:text, :priority, :tags)
+    assert_equal [ original.text, original.priority, original.inspiration, original.tags ],
+      moved.values_at(:text, :priority, :inspiration, :tags)
+    assert_equal [ moved.text, moved.priority, moved.inspiration, moved.tags ],
+      restored.values_at(:text, :priority, :inspiration, :tags)
     assert_uuid_v7 restored.id
     assert_selector "#entry_#{restored.id}[aria-label='Review this task']"
   end
@@ -551,7 +559,7 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
   end
 
   def create_entry(user: @user, text:, kind: "task", state: :default, page_kind:, page_on:,
-    parent: nil, occurs_on: nil, time_of_day: nil, priority: false, tags: [])
+    parent: nil, occurs_on: nil, time_of_day: nil, priority: false, inspiration: false, tags: [])
     user.entries.create!(
       user: user,
       text: text,
@@ -559,6 +567,7 @@ class MonthlyMigrationTest < ApplicationSystemTestCase
       state: state == :default ? ("open" if kind == "task") : state,
       tags: tags,
       priority: priority,
+      inspiration: inspiration,
       page_kind: page_kind,
       page_on: page_on,
       parent: parent,

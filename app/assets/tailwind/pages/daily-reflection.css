@@ -20,6 +20,12 @@
   color: var(--accent);
 }
 
+/* Today's fixed Reflection entry point sits above the fixed tabs. Reserve its
+   complete stack so the final wrapped descendant can scroll above both. */
+.daily-log:has(.daily-reflection-entry) {
+  padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+}
+
 .daily-log:has(#rapid_log_panel:not([hidden])) .daily-reflection-entry {
   display: none;
 }

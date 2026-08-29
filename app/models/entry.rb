@@ -35,6 +35,15 @@ class Entry < ApplicationRecord
   PLACEMENT_ATTRIBUTES = %w[page_kind page_on collection_id].freeze
   # Canonical 24-hour time.
   TIME_PATTERN = /\A([01]\d|2[0-3]):[0-5]\d\z/
+  # Supported commands retry brief SQLite writer contention before returning a
+  # domain refusal, so storage lock exceptions never leak through the boundary.
+  WRITE_ATTEMPTS = 3
+  WRITE_CONTENTION_ERRORS = [
+    ActiveRecord::StatementTimeout,
+    ActiveRecord::LockWaitTimeout,
+    ActiveRecord::Deadlocked,
+    SQLite3::BusyException
+  ].freeze
 
   belongs_to :user
   belongs_to :collection, optional: true
@@ -130,22 +139,26 @@ class Entry < ApplicationRecord
     def capture_child!(line, parent:, user:, today:, as_of:, default_kind: :task)
       parsed = Bujo::RapidLog.parse(line, today: today, default_kind: default_kind)
       return unless parsed
-      raise LifecycleError unless parent.user == user && parent.child_capture_admitted?(as_of: as_of)
 
-      parent.children.create!(
-        attributes_from_parsed(parsed).merge(
-          user: user,
-          collection: parent.collection,
-          page_kind: parent.page_kind,
-          page_on: parent.page_on
-        )
-      )
+      with_write_contention_retry do
+        parent.with_lock do
+          raise LifecycleError unless parent.user == user && parent.child_capture_admitted?(as_of: as_of)
+
+          parent.children.create!(
+            attributes_from_parsed(parsed).merge(
+              user: user,
+              collection: parent.collection,
+              page_kind: parent.page_kind,
+              page_on: parent.page_on
+            )
+          )
+        end
+      end
     end
 
     # Answers whether a page admits ordinary capture on the supplied date.
     # Reading screens ask this before offering a writing affordance, so the
-    # control a reader sees and the guard the command enforces are one rule
-    # rather than two that have to be kept in step by hand.
+    # control a reader sees and the guard the command enforces stay aligned.
     def capture_admitted?(page_kind:, as_of:, page_on: nil, occurs_on: nil)
       admission_method = CAPTURE_ADMISSION_METHODS[page_kind]
       return true unless admission_method
@@ -160,6 +173,18 @@ class Entry < ApplicationRecord
     end
 
     private
+
+    def with_write_contention_retry
+      attempts = 0
+      begin
+        yield
+      rescue *WRITE_CONTENTION_ERRORS
+        attempts += 1
+        retry if attempts < WRITE_ATTEMPTS
+
+        raise LifecycleError
+      end
+    end
 
     # Shared parsed-field mapping for root capture, child capture, and correction.
     def attributes_from_parsed(parsed)
@@ -234,10 +259,12 @@ class Entry < ApplicationRecord
 
   # Marks this open task complete after atomically rechecking its descendant graph.
   def complete!
-    with_lock do
-      raise LifecycleError unless completable?
+    with_write_contention_retry do
+      with_lock do
+        raise LifecycleError unless completable?
 
-      update!(state: "done")
+        update!(state: "done")
+      end
     end
   end
 
@@ -520,8 +547,12 @@ class Entry < ApplicationRecord
   end
 
   def transition_to!(new_state, from:)
-    ensure_transition_from!(from)
-    update!(state: new_state)
+    with_write_contention_retry do
+      with_lock do
+        ensure_transition_from!(from)
+        update!(state: new_state)
+      end
+    end
   end
 
   def transition_priority_to!(new_priority, from:)
@@ -568,14 +599,26 @@ class Entry < ApplicationRecord
   # Kept edges define both visible trees and completion scope. A tombstone
   # therefore cuts off its entire branch rather than creating hidden blockers.
   def descendants_satisfied?
-    children.kept.all? do |child|
-      structurally_consistent_with?(child) &&
-        (child.kind != "task" || task_chain_satisfied?(child)) &&
-        child.send(:descendants_satisfied?)
+    visited_ids = { id => true }
+    pending = children.kept.to_a
+
+    until pending.empty?
+      child = pending.pop
+      return false unless visitable_descendant?(child, visited_ids)
+      return false if child.kind == "task" && !task_chain_satisfied?(child, visited_ids)
+
+      pending.concat(child.children.kept.to_a)
     end
+    true
   end
 
-  def task_chain_satisfied?(task)
+  def visitable_descendant?(child, visited_ids)
+    return false if visited_ids[child.id] || !structurally_consistent_with?(child)
+
+    visited_ids[child.id] = true
+  end
+
+  def task_chain_satisfied?(task, visited_ids)
     current = task
     loop do
       return false unless valid_task_chain_member?(current)
@@ -583,7 +626,9 @@ class Entry < ApplicationRecord
       next_entry = current.successor
       return %w[done struck].include?(current.state) unless next_entry
       return false unless valid_task_chain_link?(current, next_entry)
+      return false if visited_ids[next_entry.id]
 
+      visited_ids[next_entry.id] = true
       current = next_entry
     end
   end
@@ -597,14 +642,21 @@ class Entry < ApplicationRecord
   end
 
   def visible_ancestor_path?
+    visited_ids = { id => true }
     current = self
     while current.parent
       parent_entry = current.parent
+      return false if visited_ids[parent_entry.id]
       return false unless parent_entry.kept? && structurally_consistent_with?(parent_entry)
 
+      visited_ids[parent_entry.id] = true
       current = parent_entry
     end
     true
+  end
+
+  def with_write_contention_retry(&block)
+    self.class.send(:with_write_contention_retry, &block)
   end
 
   def structurally_consistent_with?(other)
