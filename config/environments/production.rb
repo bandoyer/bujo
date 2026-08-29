@@ -55,11 +55,14 @@ Rails.application.configure do
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
   application_origin = URI.parse(ENV.fetch("APP_ORIGIN"))
-  valid_origin = application_origin.is_a?(URI::HTTPS) && application_origin.host.present? &&
-    application_origin.userinfo.nil? && application_origin.query.nil? && application_origin.fragment.nil? &&
-    [ "", "/" ].include?(application_origin.path) && application_origin.host == "bujo.blackcat.dev" &&
-    application_origin.port == 443
-  raise ArgumentError, "APP_ORIGIN must be the canonical Bujo HTTPS origin" unless valid_origin
+  canonical_origin = application_origin.is_a?(URI::HTTPS) &&
+    application_origin.host == "bujo.blackcat.dev" &&
+    application_origin.port == 443 &&
+    application_origin.userinfo.nil? &&
+    application_origin.query.nil? &&
+    application_origin.fragment.nil? &&
+    [ "", "/" ].include?(application_origin.path)
+  raise ArgumentError, "APP_ORIGIN must be the canonical Bujo HTTPS origin" unless canonical_origin
 
   config.x.application_origin = application_origin.to_s
   config.x.mail_from = ENV.fetch("MAIL_FROM")

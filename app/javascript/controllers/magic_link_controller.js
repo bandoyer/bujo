@@ -5,8 +5,8 @@ export default class extends Controller {
   static targets = ["token", "button"]
 
   connect() {
-    this.clear = this.clear.bind(this)
-    document.addEventListener("turbo:before-cache", this.clear)
+    this.onBeforeCache = this.clear.bind(this)
+    document.addEventListener("turbo:before-cache", this.onBeforeCache)
     this.clear()
 
     const encodedToken = window.location.hash.slice(1)
@@ -21,7 +21,7 @@ export default class extends Controller {
   }
 
   disconnect() {
-    document.removeEventListener("turbo:before-cache", this.clear)
+    document.removeEventListener("turbo:before-cache", this.onBeforeCache)
     this.clear()
   }
 

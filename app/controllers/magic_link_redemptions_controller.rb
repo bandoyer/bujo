@@ -3,8 +3,7 @@ class MagicLinkRedemptionsController < ApplicationController
   INVALID_LINK_ALERT = "That sign-in link is invalid or has expired."
 
   allow_unauthenticated_access
-  before_action :prevent_authentication_caching
-  before_action :prevent_authentication_referrers
+  before_action :protect_authentication_response
 
   rate_limit to: 20, within: 10.minutes, only: :create, with: :refuse_redemption
 

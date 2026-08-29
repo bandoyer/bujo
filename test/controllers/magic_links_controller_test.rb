@@ -70,7 +70,7 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "per-address daily budget returns the same acknowledgement without queueing" do
-    identity = MagicLinksController.email_rate_limit_identity(@user.email_address)
+    identity = Authentication.email_rate_limit_identity(@user.email_address)
     Rails.cache.write(
       "rate-limit:#{Authentication::OUTBOUND_MAIL_RATE_LIMIT_SCOPE}:daily-email:#{identity}",
       20,
@@ -97,10 +97,10 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "email limit keys are keyed digests and never contain the address" do
-    identity = MagicLinksController.email_rate_limit_identity(@user.email_address)
+    identity = Authentication.email_rate_limit_identity(@user.email_address)
 
     assert_match(/\A[0-9a-f]{64}\z/, identity)
     assert_not_includes identity, @user.email_address
-    assert_not_equal MagicLinksController.email_rate_limit_identity("other@example.com"), identity
+    assert_not_equal Authentication.email_rate_limit_identity("other@example.com"), identity
   end
 end

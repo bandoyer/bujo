@@ -1,3 +1,5 @@
+require "openssl"
+
 module Authentication
   extend ActiveSupport::Concern
 
@@ -13,6 +15,26 @@ module Authentication
     def allow_unauthenticated_access(**options)
       skip_before_action :require_authentication, **options
     end
+
+    # Shared per-IP and per-address budgets for magic-link and password-reset mail.
+    def rate_limit_outbound_authentication_mail(only:, with:)
+      rate_limit to: 10, within: 3.minutes, name: "ip",
+        scope: Authentication::OUTBOUND_MAIL_RATE_LIMIT_SCOPE, only: only, with: with
+      rate_limit to: 5, within: 15.minutes, name: "short-email",
+        scope: Authentication::OUTBOUND_MAIL_RATE_LIMIT_SCOPE, only: only,
+        by: -> { Authentication.email_rate_limit_identity(params[:email_address]) },
+        with: with
+      rate_limit to: 20, within: 24.hours, name: "daily-email",
+        scope: Authentication::OUTBOUND_MAIL_RATE_LIMIT_SCOPE, only: only,
+        by: -> { Authentication.email_rate_limit_identity(params[:email_address]) },
+        with: with
+    end
+  end
+
+  # Keyed digest for per-address mail budgets; never use the raw address as a cache key.
+  def self.email_rate_limit_identity(email_address)
+    normalized = User.normalize_value_for(:email_address, email_address.to_s)
+    OpenSSL::HMAC.hexdigest("SHA256", Rails.application.secret_key_base, normalized)
   end
 
   private
@@ -58,12 +80,14 @@ module Authentication
       cookies.delete(:session_id)
     end
 
-    def prevent_authentication_caching
+    # Scanner-safe auth pages are never stored and never leak through Referer.
+    def protect_authentication_response
       response.set_header("Cache-Control", "no-store")
+      response.set_header("Referrer-Policy", "no-referrer")
     end
 
-    def prevent_authentication_referrers
-      response.set_header("Referrer-Policy", "no-referrer")
+    def normalized_email_address
+      User.normalize_value_for(:email_address, params[:email_address].to_s)
     end
 
     def safe_internal_path(candidate)
