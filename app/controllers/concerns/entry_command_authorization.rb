@@ -42,10 +42,15 @@ module EntryCommandAuthorization
   private
 
   # Unknown commands have no residency row and are refused by default.
+  # Child capture still consults that table, then the Entry predicate that
+  # also guards the model command, so a view cannot offer what residency or
+  # temporal admission would refuse.
   def entry_command_allowed?(entry, command)
-    return entry.child_capture_admitted?(as_of: @today) if command.to_s == "children"
+    command = command.to_s
+    return false unless COMMAND_RESIDENCIES.fetch(command, NO_RESIDENCIES).include?(entry.page_kind)
+    return entry.child_capture_admitted?(as_of: @today) if command == "children"
 
-    entry.successor.nil? && COMMAND_RESIDENCIES.fetch(command.to_s, NO_RESIDENCIES).include?(entry.page_kind)
+    entry.successor.nil?
   end
 
   # Every command this row may be offered: what its lifecycle supports, kept
