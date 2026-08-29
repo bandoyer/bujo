@@ -109,10 +109,14 @@ class AuthPresentationTest < ApplicationSystemTestCase
   end
 
   def assert_accessible_phone_geometry
-    assert page.evaluate_script(<<~JAVASCRIPT), "an auth control is shorter than 44px"
-      [...document.querySelectorAll("main :is(input, button, a.auth-secondary)")]
-        .every((element) => element.getBoundingClientRect().height >= 44)
+    controls = page.evaluate_script(<<~JAVASCRIPT)
+      [...document.querySelectorAll("main :is(input, button, a)")]
+        .filter((element) => element.getClientRects().length > 0)
+        .map((element) => ({ label: element.innerText || element.value, height: element.getBoundingClientRect().height }))
     JAVASCRIPT
+    undersized = controls.select { |control| control.fetch("height") < 44 }
+
+    assert_empty undersized, "undersized auth controls: #{undersized.inspect}"
     assert page.evaluate_script(<<~JAVASCRIPT), "authentication sheet overflows horizontally"
       document.documentElement.scrollWidth <= document.documentElement.clientWidth
     JAVASCRIPT
