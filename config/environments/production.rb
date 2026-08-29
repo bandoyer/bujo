@@ -34,6 +34,14 @@ Rails.application.configure do
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
+  # TLS terminates at Kamal proxy, but every Rails session cookie still carries
+  # its own transport and browser protections explicitly.
+  config.session_store :cookie_store,
+    key: "_bujo_session",
+    httponly: true,
+    same_site: :lax,
+    secure: true
+
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
   config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)

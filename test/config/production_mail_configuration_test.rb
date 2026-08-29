@@ -20,6 +20,7 @@ class ProductionMailConfigurationTest < ActiveSupport::TestCase
         ActionMailer::Base.perform_deliveries,
         Rails.application.config.action_mailer.default_url_options,
         Rails.application.config.x.mail_from,
+        Rails.application.config.session_options.slice(:secure, :httponly, :same_site),
         Resend.api_key == "re_test_key"
       ].inspect
     RUBY
@@ -27,6 +28,9 @@ class ProductionMailConfigurationTest < ActiveSupport::TestCase
     assert status.success?, stderr
     assert_includes stdout, ":resend"
     assert_includes stdout, "bujo.blackcat.dev"
+    assert_includes stdout, "secure: true"
+    assert_includes stdout, "httponly: true"
+    assert_includes stdout, "same_site: :lax"
     assert_includes stdout, "true"
   end
 
