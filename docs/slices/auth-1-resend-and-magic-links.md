@@ -133,8 +133,9 @@ route is added.
 Every authentication state uses one shared, responsive auth sheet with the
 page title first. It follows the existing light/dark/system theme and stored
 hand cookie, but exposes no preference selector before authentication. All
-controls are at least 44 CSS pixels tall, labels remain visible, focus is
-obvious, text wraps at 320 CSS pixels, and neither theme has horizontal scroll.
+controls, including text links such as `Forgot password?`, are at least 44 CSS
+pixels tall; labels remain visible, focus is obvious, text wraps at 320 CSS
+pixels, and neither theme has horizontal scroll.
 
 ### Default magic-email state
 
@@ -557,8 +558,9 @@ system/default profile, prove:
 7. no staged token survives Turbo snapshot/back navigation or appears in the
    visible DOM, current URL, console, or captured test diagnostics;
 8. password request/edit use the same auth sheet;
-9. controls remain at least 44px, labels are associated, keyboard focus is
-   visible, text wraps, and there is no horizontal overflow in either theme;
+9. every visible input, button, and anchor—including `Forgot password?`—has a
+   hit box at least 44px tall; labels are associated, keyboard focus is visible,
+   text wraps, and there is no horizontal overflow in either theme;
 10. no passkey, signup, tab bar, journal content, or preference control appears.
 
 The existing complete quality bars remain binding:
