@@ -1,4 +1,4 @@
-# Handoff: 1.5.5 approved; six-cg implementation starting (2026-08-28)
+# Handoff: Auth Step 1 implementation authorized; blackcat.dev live (2026-08-29)
 
 For the next operator session, any agent or human. `PLAN.md` is the living
 status document; this file records the landed boundary and the next product
@@ -22,6 +22,14 @@ preserved `.swarmforge/` audit logs.
 Never seed work from the historical `recovered/1.5.1-accepted-spec` branch;
 it remains a recovery artifact only.
 
+`main` and `origin/main` are aligned at
+`867e3b28e07ef92ad295acd006a549d930c2f5e2` before the current uncommitted
+planning edits. Both `handoffd` and `squadd` are stopped. The six existing `cg-*` role
+worktrees remain from the completed 1.5.5 run: QA points at the integration
+commit and the other five point at terminal candidate `70b9c742`. They are
+inactive, not alternate sources of truth. Do not start or retire a pack until
+Dan approves the next contract and orchestration step.
+
 Slice 1.5.3's approved terminal candidate is `329b8f6` and is integrated on
 `main`. Slice 1.5.3a's terminal candidate is `92c43e2`; it is also integrated
 on `main`, and its completed six-role swarm is retired. Phone dogfooding then
@@ -34,6 +42,13 @@ candidate `c2127b5` is also integrated and pushed on `main` after Dan's explicit
 also integrated and pushed after Dan's explicit approval; its completed
 `six-cg` swarm is retired. Nothing from 1.5.3a onward has been deployed by
 this handoff.
+
+Core notation/hierarchy terminal candidate `70b9c742ccc988575122dfc0b1388ac35235abdf`
+is integrated with the operator-owned architecture amendment on `main` at
+`867e3b28e07ef92ad295acd006a549d930c2f5e2` after Dan's explicit approval.
+Slice 1.5.5 completes the planned method spine. Its contract is
+`docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md` and its review
+board is `mockups/CoreNotationHierarchy.dc.html`.
 
 Tailwind terminal candidate `8d7ccbde93f02f9a7afcc643d7547a43490792fa`
 is integrated on `main` with Dan's 2026-08-27 approval. Its complete T0 receipt
@@ -130,6 +145,19 @@ Daily Reflection subsequently landed.
 - Architect review recorded one non-blocking dogfood seam: a populated
   outgoing month currently derives trees with per-node child/successor queries.
   Preserve ruled ordering; optimize only if real journals make it hot.
+- Inspiration is an independent Entry signifier and may coexist with priority;
+  canonical ink is `*` then `!`. Capture, correction, movement, Undo, render,
+  and dormant sync-shaped fields preserve it exactly.
+- Completing a master task now refuses while any kept descendant task's live
+  append-only chain remains unresolved. Traversal crosses contextual Event and
+  Note rows, soft-deleted branches are cut off, and no parent/child state
+  cascades.
+- An eligible open task exposes the approved `Add below…` gesture using the
+  shared Task/Event/Note rapid-log anatomy. Residency and ownership derive from
+  the persisted parent; indentation text never creates hierarchy.
+- Slice 1.5.5 terminal/root receipts: 309 fast tests / 6916 assertions, 124
+  headless-Chrome system tests / 15661 assertions, and RuboCop clean over 121
+  files. Terminal QA additionally killed 1167/1167 RapidLog mutants.
 
 ## Tailwind landing
 
@@ -146,11 +174,12 @@ Only the public/served asset boundary is binding: one fingerprinted Tailwind
 bundle is public, manifested, and rendered; no stale, legacy, T0, or second
 application stylesheet is served. The Dockerfile needed no correction.
 
-The bounded squad is down, every transient worker is retired, and only the main
-worktree remains. Daily Reflection's completed `mix-*` role worktrees are also
-retired. The repository's persistent pack configuration is now the stopped
-`six-cg` pack; `swarmforge/squad.conf` remains as the historical Tailwind squad
-policy. Do not touch unrelated SwarmForge processes from other repositories.
+The bounded Tailwind squad is down and every transient squad worker is retired.
+Daily Reflection's completed `mix-*` role worktrees are also retired. The
+repository's persistent pack configuration is the stopped `six-cg` pack; its
+inactive worktrees remain as recorded above. `swarmforge/squad.conf` remains as
+the historical Tailwind squad policy. Do not touch unrelated SwarmForge
+processes from other repositories.
 
 ## Accepted post-Tailwind phone correction
 
@@ -170,30 +199,71 @@ assertions, and RuboCop clean. The correction is documented as a post-T0
 product amendment in `docs/slices/1.5.3b-dogfood-entry-corrections.md`; frozen
 Tailwind T0 artifacts remain unchanged.
 
-## Next work: implement 1.5.5 Core notation and hierarchy fidelity
+## Current detour: approved Authentication Step 1
 
-The approved source-aligned contract lives at
-`docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md`; its smallest
-review board is `mockups/CoreNotationHierarchy.dc.html`. It adds Ryder's `!`
-inspiration signifier, follows append-only successor chains when deciding
-whether every subtask is done or struck, and preserves the no-cascade rule.
+The approved source-aligned contract is
+`docs/slices/auth-1-resend-and-magic-links.md`; its smallest review board is
+`mockups/MagicLinkTransition.dc.html`. It puts the verified Resend provider
+behind Action Mailer and adds a scanner-safe, 15-minute,
+generation-invalidated magic-email path while keeping password sign-in/reset
+as rollback.
 
-The audit found one prior planning gap: Rails renders `parent_id` trees but has
-no normal gesture to create a child. Dan approved the explicit `Add below…`
-step using the existing three-kind rapid-log anatomy, along with independent,
-coexisting `*` + `!` signifiers. The `six-cg` swarm may implement that complete
-contract in isolated worktrees.
+The operator foundation completed 2026-08-29: `bujo.blackcat.dev` is verified
+in Resend `us-east-1`, tracking is not configured, `bujo-production` is
+Sending-only and restricted to that exact domain, and Kamal safely resolves
+`op://Personal/bujo-production/credential`. No secret was printed or committed.
+
+Dan approved magic email as the default sign-in method with password one
+explicit tap away, along with the complete security, failure, and transition
+contract, on 2026-08-29. Passkeys remain Step 3 and must not appear as a
+disabled or fake control. After the canonical cutover and production password
+re-proof, Dan authorized the planning commit/push and isolated `six-cg`
+implementation run on 2026-08-29. Terminal integration, deployment, provider
+delivery, and the live magic-link round trip remain separately gated.
+
+Dan separately authorized the canonical web-origin cutover from
+`bujo.questlog.dev` to `bujo.blackcat.dev`. Active Kamal configuration now
+names the blackcat host and its future explicit `APP_ORIGIN`/`MAIL_FROM`. The
+cutover completed 2026-08-29: public DNS resolves the DNS-only A record to
+`174.138.85.202`; TLS and `/up` are healthy; the root redirects to the new
+host's `/session/new`; and Kamal proxy serves the unchanged deployed image
+`48631001093af1ebd2fb323a0242905da11f1b1c`. The old proxy host and exact
+`bujo.questlog.dev` A record were retired only after the overlap verification.
+No application image was built, replaced, or deployed.
+
+## Parked proposal: slice 1.6 Installable PWA
+
+The proposed source-aligned contract is
+`docs/slices/1.6-installable-pwa.md`; its smallest review board is
+`mockups/PwaInstallOffline.dc.html`. It activates an origin-neutral manifest
+and minimal service worker, replaces the red generator icons, vendors the seven
+font families the live app actually uses, and supplies a neutral offline page
+only when a top-level page fetch genuinely fails.
+
+The boundary is intentionally honest: service-worker CacheStorage contains
+only the public fallback and its default marker font. No journal HTML or data
+is cached, and no failed capture/action is queued or described as saved. Phone
+rapid-log outbox/replay stays in phase 5 after the sync spine.
+
+Dan must approve the paper/dot-grid Rapid Log app mark shown under square,
+circle, and rounded masks before implementation. The deployment timing is now
+settled: first production enablement follows the canonical
+`bujo.blackcat.dev` cutover.
 
 Keep the parked date-grammar expansion, Entry deletion, search, settings
-polish, PWA work, authentication, active sync, and deployment outside this
-slice unless Dan separately changes the plan. The authentication track is
-unblocked but remains unstarted and does not run in parallel.
+polish, authentication, active sync, and deployment outside
+1.6. The PWA and authentication tracks do not run in parallel; 1.6 remains
+parked while the explicitly chosen authentication detour awaits its separate
+implementation gate.
 
 ## Build and review
 
 Keep the proven loop: source-aligned spec and smallest review mock → Dan's
-explicit approval → `six-cg` swarm → operator review → Dan's
-explicit integration approval → merge and push. Do not deploy for Dan.
+explicit approval → approved orchestration → operator review → Dan's explicit
+integration approval → merge and push. Do not perform a normal application
+release for Dan; the exact-image domain-only transition is the explicit
+exception recorded above. Authentication Step 1 is the sole authorized swarm
+scope; no 1.6 swarm is authorized.
 
 The current `six-cg` roster is Sol Max specifier, Sol High coder, Grok 4.6
 High cleaner, Grok 4.6 xhigh architect, Grok 4.6 High hardener, and Sol xhigh
@@ -205,10 +275,12 @@ or disclaim that surface; `bin/rails test:system` is the authoritative
 headless-Chrome acceptance lane, supplemented by screenshots,
 DOM/geometry/accessibility checks, and direct request/domain probes.
 
-Daily Reflection terminal candidate `c2127b5` and Index source correction
-candidate `12f8164` are integrated and pushed. Both completed six-role swarms
-and role worktrees are retired. The approved 1.5.5 contract is the sole
-authorized work for the new `six-cg` run.
+Daily Reflection terminal candidate `c2127b5`, Index source correction
+candidate `12f8164`, and Core notation/hierarchy candidate `70b9c742` are
+integrated and pushed. The first two completed role-worktree sets are retired;
+the stopped `cg-*` worktrees from 1.5.5 must be retired before the authorized
+Authentication Step 1 run is seeded from the new planning baseline. Proposed
+1.6 remains parked and is not authorized work.
 
 The completed Tailwind track used a dynamic squad, not the old six persistent worktrees:
 at most two transient workers; Sol Max leader/specifier; Sol High coder and
@@ -218,14 +290,20 @@ canonical SwarmForge `main` at `b5b17bd` and passed its complete 375-check
 smoke suite. Dan's 2026-08-27 approval landed terminal candidate `8d7ccbd`; the
 squad is down and every transient worker is retired.
 
-The current method-spine slice is `!` inspiration, master-task completion
-gating, and the approved write-beneath gesture (1.5.5). Settings polish, broad
-search, grammar expansion, and PWA work remain deferred.
+The book-faithful 1.5 method spine is complete. Authentication Step 1 is the
+current approved and implementation-authorized detour; the bounded 1.6
+installable PWA and truthful offline fallback remains parked as proposed.
+Settings polish, broad search, grammar
+expansion, offline capture/outbox, and active sync remain deferred.
 
 ## Deployment boundary
 
-Production at https://bujo.questlog.dev still runs through 1.4.1. Dan runs
-deployments himself; hand him `kamal deploy` and do not execute it for him.
+Production still runs the 1.4.1 image, unchanged, at
+`https://bujo.blackcat.dev`. The 2026-08-29 domain-only operation moved the
+existing image `48631001093af1ebd2fb323a0242905da11f1b1c` through a verified
+two-host overlap, then removed the old proxy host and `bujo.questlog.dev` A
+record. It did not turn the dirty planning checkout into an application
+release. Normal code deployments remain Dan's action via `kamal deploy`.
 
 After deployment, inspect the few rows created by 1.4.1's Future month-add.
 The irreversible migration deliberately backfills them as Daily residents

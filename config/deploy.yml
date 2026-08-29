@@ -1,5 +1,5 @@
 # Kamal deploy: single DO droplet, image on GHCR, TLS via kamal-proxy
-# and Let's Encrypt (bujo.questlog.dev must resolve to the droplet,
+# and Let's Encrypt (bujo.blackcat.dev must resolve to the droplet,
 # DNS-only/grey-cloud so the HTTP-01 challenge reaches the proxy).
 service: bujo
 image: bandoyer/bujo
@@ -10,7 +10,7 @@ servers:
 
 proxy:
   ssl: true
-  host: bujo.questlog.dev
+  host: bujo.blackcat.dev
 
 registry:
   server: ghcr.io
@@ -21,9 +21,12 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - RESEND_API_KEY
   clear:
     # Solid Queue runs inside Puma until job volume argues otherwise.
     SOLID_QUEUE_IN_PUMA: true
+    APP_ORIGIN: https://bujo.blackcat.dev
+    MAIL_FROM: "Bujo <sign-in@bujo.blackcat.dev>"
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"

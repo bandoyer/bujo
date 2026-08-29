@@ -7,12 +7,20 @@ never do (their slice specs bound their file scope).** A future session (human o
 file top to bottom and know exactly where things stand and what happens
 next.
 
-> **Status: 1.5.5 Core notation and hierarchy fidelity APPROVED
-> (2026-08-28).** Dan approved independent/coexisting `*` + `!` signifiers and
-> the `Add below…` hierarchy-writing gesture. The `six-cg` swarm may implement
-> the source-aligned contract in isolation; terminal integration remains a
-> separate operator gate. Production still runs 1.4.1 and authentication Step
-> 1 remains separate and unstarted. See `HANDOFF.md`.
+> **Status: the 1.5 method spine LANDED; Authentication Step 1 IMPLEMENTATION
+> AUTHORIZED;
+> canonical blackcat.dev cutover COMPLETE; 1.6 Installable PWA PARKED AS
+> PROPOSED (2026-08-29).** Slice 1.5.5 terminal
+> candidate `70b9c742` is integrated on `main` at `867e3b28`; root verification
+> is green. Dan authorized the `six-cg` authentication implementation run on
+> 2026-08-29; terminal integration and deployment remain separate gates.
+> Production now serves the unchanged 1.4.1 image at
+> `https://bujo.blackcat.dev`; the old `bujo.questlog.dev` proxy route and A
+> record are retired. The approved authentication contract is
+> `docs/slices/auth-1-resend-and-magic-links.md` and
+> `mockups/MagicLinkTransition.dc.html`. No authentication or 1.6
+> implementation is authorized; no 1.6 implementation/swarm is authorized.
+> See `HANDOFF.md`.
 
 ## What this is
 
@@ -87,7 +95,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-26 | **Slice 1.5.3b implementation authorized.** Continue the `six-mix-fable-review` roster unchanged: Sol Max specifier, Sol High coder, Grok High cleaner, Sol High architect, Grok High hardener, Sol XHigh QA. The Rails headless-Chrome system lane is authoritative; terminal QA still requires operator review and explicit integration approval |
 | 2026-08-26 | **Slice 1.5.3b landed.** Terminal candidate `dc2153c` is integrated on `main` after one complete QA correction loop. The merged tree passes 230 fast tests / 3822 assertions, 81 headless-Chrome system tests / 1640 assertions, and RuboCop; terminal QA also recorded CRAP ≤ 6 over 234 methods, zero clones, and RapidLog mutation 1105/1105. Hands-on phone dogfooding is the next gate; Entry deletion remains deferred |
 | 2026-08-26 | **`blackcat.dev` acquired and will replace `questlog.dev` as the umbrella domain.** Bujo's planned origin is `bujo.blackcat.dev`; Press Start is tentatively `lift.blackcat.dev`, pending its own deployment ruling. Resend's Cloudflare setup installed DKIM, SPF, and return-path MX, monitoring-mode DMARC is saved, and the aggregate domain is verified. Bujo's domain-restricted production key is stored in 1Password; application implementation and production cutover remain, while Press Start gets its own key only during its later slice |
-| 2026-08-26 | **Transactional email provider selected: Resend over HTTPS.** Bujo and Press Start will share the one verified `blackcat.dev` sending domain and free-plan quota, using `bujo@blackcat.dev` and `lift@blackcat.dev`, but keep separate domain-restricted Sending access keys, code, secrets, and deployments. See `docs/resend-transactional-email.md` |
+| 2026-08-26 | **Transactional email provider selected: Resend over HTTPS.** The original shared-root-domain plan was superseded on 2026-08-29 after the free tier expanded to three verified domains. See `docs/resend-transactional-email.md` for the current app-specific boundary. |
 | 2026-08-26 | **Rails authentication rollout fixed at five ordered steps.** (1) Resend delivery plus short-lived, single-use magic links; (2) canonical cutover to `bujo.blackcat.dev`; (3) discoverable passkey registration/sign-in with exact RP ID `bujo.blackcat.dev`; (4) prove two passkeys plus email recovery; (5) retire the password UI. Provider/DNS/key setup is complete and Step 1 is unblocked in the separate authentication track. The approved direction is `mockups/SignIn.dc.html`; full gates live in `docs/resend-transactional-email.md` |
 | 2026-08-26 | **Tailwind migration orchestration selected; migration not yet authorized.** If approved, the proposed Tailwind v4 conversion runs as a dynamic squad with at most two transient workers, a `codex/tailwind-v4` integration branch, and explicit operator approval before `main`. The roster uses Sol Max for leadership and specification workers, Sol High for implementation and architecture, Grok 4.6 High for cleanup and hardening, and Sol XHigh for terminal QA. At selection time the squad launcher still needed deterministic per-leader/per-template model-and-effort support. See `docs/tailwind-v4-migration-plan.md` |
 | 2026-08-27 | **Tailwind squad tooling prerequisite landed; launch still withheld.** Deterministic leader/default/template/assignment profiles are now on canonical SwarmForge `main` at `b5b17bd` and pass its complete 375-check smoke suite. Bujo's repository-owned `swarmforge/squad.conf` records the approved two-worker roster and `codex/tailwind-v4` integration branch |
@@ -103,6 +111,13 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 | 2026-08-28 | **Slice 1.5.2a Index source correction landed.** Dan approved terminal candidate `12f8164` after the complete `six-cg` chain and independent root review. Creation now atomically appends every live Custom Collection to the complete Index; the irreversible migration deterministically registers prior kept hidden rows; normal unindex/re-register and Open by Topic are gone. Root passes 281 fast tests / 6644 assertions, 112 system tests / 16796 assertions, focused Collection/migration/controller tests, and RuboCop; terminal QA additionally records CRAP ≤ 6 over 262 methods, zero clones, and RapidLog mutation 1105/1105. The completed swarm is retired; deployment remains Dan's action |
 | 2026-08-28 | **Slice 1.5.5 proposed; implementation not authorized.** The contract adds Ryder's `!` inspiration signifier and gates master completion through kept descendant task successor chains. It recommends independent/coexisting `*` + `!` fields and exposes the previously missed Rails hierarchy-writing gap through one proposed `Add below…` gesture. Approval must settle both translations before the stopped `six-cg` swarm starts. Contract: `docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md`; review board: `mockups/CoreNotationHierarchy.dc.html` |
 | 2026-08-28 | **Slice 1.5.5 approved; implementation authorized.** Dan approved independent/coexisting `*` + `!` fields with canonical `*!` rendering and the `Add below…` gesture using the shared three-kind rapid-log anatomy. The planning baseline may be committed and pushed, and `six-cg` may implement in isolated `cg-*` worktrees. Terminal QA still requires Dan's explicit approval before root integration; deployment remains separate. |
+| 2026-08-29 | **Slice 1.5.5 landed; the method spine is complete.** Dan approved terminal candidate `70b9c742`; root integrated it with the operator-owned architecture amendment at `867e3b28`. The merged tree passes 309 fast tests / 6916 assertions, 124 headless-Chrome system tests / 15661 assertions, and RuboCop over 121 files. Terminal QA additionally killed 1167/1167 RapidLog mutants. The `six-cg` daemons are stopped; deployment remains Dan's action. |
+| 2026-08-29 | **Slice 1.6 Installable PWA proposed; implementation not authorized.** The contract activates a minimal manifest and root service worker, vendors the seven live font families, replaces generator icons, and shows a tenant-neutral offline fallback only when a page fetch genuinely fails. It explicitly defers cached journal reads, offline capture, outbox/replay, and sync. First production enablement is settled on `bujo.blackcat.dev`; approval must still settle the proposed icon. Contract: `docs/slices/1.6-installable-pwa.md`; review board: `mockups/PwaInstallOffline.dc.html`. |
+| 2026-08-29 | **Resend moved to an app-specific sending boundary.** Resend's free tier now permits three verified domains, so `bujo.blackcat.dev` is independently verified in `us-east-1`, tracking remains disabled, and `bujo-production` is Sending-only and restricted to that exact domain. Bujo sends as `Bujo <sign-in@bujo.blackcat.dev>`. The unchanged secret remains in `op://Personal/bujo-production/credential`; Kamal resolves it without committing or printing it. The verified root domain remains temporarily and Press Start configures its own subdomain/key only in its project. This supersedes shared `blackcat.dev` sending. |
+| 2026-08-29 | **Authentication Step 1 proposed as the current planning detour; implementation not authorized.** The contract adds Resend Action Mailer delivery and scanner-safe, 15-minute, generation-invalidated magic links while retaining password rollback. It recommends magic email as the default with password one tap away and no premature passkey control. Contract: `docs/slices/auth-1-resend-and-magic-links.md`; review board: `mockups/MagicLinkTransition.dc.html`. PWA 1.6 remains intact but parked as proposed until this detour is resolved. |
+| 2026-08-29 | **Authentication Step 1 approved; implementation remains separately gated.** Dan accepted magic-email-first, one-tap password fallback, exact transition copy, 15-minute generation-invalidated globally single-use tokens, fragment staging plus explicit POST, enumeration/rate limits, and the Resend failure boundary. He separately authorized moving the canonical web origin to `bujo.blackcat.dev` now; that operational cutover does not start authentication implementation or a swarm. |
+| 2026-08-29 | **`bujo.blackcat.dev` is the live canonical production origin.** Cloudflare DNS points the DNS-only A record to `174.138.85.202`; Kamal proxy obtained working TLS and serves the unchanged deployed image `48631001093af1ebd2fb323a0242905da11f1b1c`. Root redirects to `/session/new` on the new host and `/up` returns 200. The old proxy host was removed and the exact `bujo.questlog.dev` A record retired; no application build, code release, or swarm occurred. The live magic-link round trip remains gated on Step 1 implementation. |
+| 2026-08-29 | **Authentication Step 1 implementation authorized.** After the canonical-origin cutover and successful production password re-proof, Dan authorized committing and pushing the planning baseline and launching `six-cg` for the approved Resend/magic-link contract. Work remains isolated in `cg-*` role worktrees; terminal integration, production deployment, provider delivery, and the live magic-link round trip remain separately gated. |
 | 2026-08-24 | **Route by gesture, not by parsing.** The rapid-log grammar freezes at its 1.1 forms; dating an entry is a deliberate act — write on the day's page (capture logs onto the page you opened, superseding the 1.3 capture-always-today ruling) or write under a Future Log month. The drafted grammar expansion is parked unbuilt (`docs/slices/1.4.3`); parse preview deferred with it |
 
 ## Phases and slices
@@ -192,7 +207,7 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
       route-by-gesture decision.) The 1.5.1 spec now supersedes its
       future-day Daily writing and corrects its Future boundary from
       after-today to after-current-month.
-- [ ] **1.5 The book-faithful realignment** (see decisions log +
+- [x] **1.5 The book-faithful realignment** ✅ (completed 2026-08-29; see decisions log +
       `docs/METHOD.md`):
       - [x] **1.5.1 The page model and its pages** ✅ (2026-08-25) —
             schema uses immutable-through-domain `page_kind`/`page_on`;
@@ -290,20 +305,42 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
             candidate `12f8164`; merged-tree receipts: 281 fast tests / 6644
             assertions, 112 system tests / 16796 assertions, and RuboCop clean
             over 116 files. The completed `cg-*` swarm is retired.
-      - [ ] **1.5.5 Core notation and hierarchy fidelity** — approved contract
+      - [x] **1.5.5 Core notation and hierarchy fidelity** ✅ (2026-08-29) —
+            the landed contract
             adds the `!` inspiration signifier and gates a master task's
             completion until every kept subtask chain ends done or struck.
             It also closes the Rails app's missing hierarchy-writing gap with
             an explicit `Add below…` gesture using the shared three-kind
             rapid-log anatomy. Keep the parked date-grammar expansion
-            separate. Approved contract:
+            separate. Landed contract:
             `docs/slices/1.5.5-core-notation-and-hierarchy-fidelity.md`;
-            review board: `mockups/CoreNotationHierarchy.dc.html`. The
-            `six-cg` swarm is authorized; integration remains separately gated.
-- [ ] **1.6 PWA** — manifest/service worker, vendor the fonts for
-      offline. (The deploy, Kamal, and Litestream landed early, with
-      1.3 — done 2026-08-24 per the dogfood-first ruling; Phase 1 gets
-      built under real use.)
+            review board: `mockups/CoreNotationHierarchy.dc.html`. Terminal
+            candidate `70b9c742`; integration commit `867e3b28`; merged-tree
+            receipts: 309 fast tests / 6916 assertions, 124 system tests /
+            15661 assertions, RuboCop clean over 121 files, and terminal
+            RapidLog mutation 1167/1167.
+- [ ] **1.6 Installable PWA and truthful offline boundary** — proposed,
+      parked during the authentication detour and not authorized. Activate an
+      origin-neutral manifest and minimal root service worker, replace
+      placeholder icons, vendor the seven live font families, and provide a
+      neutral system-themed Offline page after an actual page-fetch failure.
+      Do not cache journal pages or add offline capture/outbox/sync behavior.
+      Proposed contract:
+      `docs/slices/1.6-installable-pwa.md`; review board:
+      `mockups/PwaInstallOffline.dc.html`. First production enablement is now
+      settled on the canonical `bujo.blackcat.dev` origin; approval must still
+      settle the icon. (Deploy, Kamal, and Litestream landed early with 1.3 on
+      2026-08-24 per the dogfood-first ruling; Phase 1 is built under real use.)
+- [ ] **Authentication Step 1 - Resend delivery and magic links** — approved
+      and authorized for implementation through the `six-cg` swarm. Configure
+      the verified Resend sender behind Action
+      Mailer and add scanner-safe, 15-minute, generation-invalidated,
+      single-use email sign-in for known accounts. Keep password sign-in/reset
+      as rollback and show no unavailable passkey. The independently authorized
+      canonical-origin cutover completed first, outside this implementation.
+      Approved contract: `docs/slices/auth-1-resend-and-magic-links.md`;
+      review board: `mockups/MagicLinkTransition.dc.html`. Terminal integration
+      and deployment remain separately gated.
 
 ### Phase 2 — the sync spine
 
@@ -332,38 +369,40 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
   database to R2 bucket `bujo-litestream` (came forward from 1.7);
   creds at `~/.config/cloudflare/bujo-r2-credentials` (mode 600).
   `doctl` is authed for droplet management
-- Domain: **questlog.dev** purchased 2026-08-24 (Cloudflare Registrar;
+- Historical domain: **questlog.dev** purchased 2026-08-24 (Cloudflare Registrar;
   DNS at Cloudflare). Zone carries the no-email lockdown (SPF `-all`,
   DMARC reject, empty wildcard DKIM, null MX) as of 2026-08-24.
-  **`bujo.questlog.dev` live 2026-08-24**: A record → 174.138.85.202,
-  DNS-only/grey-cloud so Let's Encrypt HTTP-01 reaches kamal-proxy —
-  don't flip it to proxied without rethinking certs. Zone-scoped DNS
+  `bujo.questlog.dev` was live from 2026-08-24 through 2026-08-29; its
+  application A record and Kamal proxy host are now retired. Zone-scoped DNS
   token at `~/.config/cloudflare/questlog-dns-token` (mode 600, never
-  committed). **Replacement acquired 2026-08-26 but not cut over:**
-  `blackcat.dev`, with Bujo at `bujo.blackcat.dev` and Press Start likely at
-  `lift.blackcat.dev`. Resend's generated Cloudflare records were installed
-  and individually verified 2026-08-26; aggregate domain status is verified.
-  Web-origin DNS and the production cutover remain pending. This
-  supersedes the earlier thought that Press Start would need its own
+  committed). **Replacement acquired 2026-08-26 and canonical cutover
+  completed 2026-08-29:** `blackcat.dev`, with Bujo live at
+  `https://bujo.blackcat.dev` and Press Start likely at
+  `lift.blackcat.dev`. Root Resend records were verified 2026-08-26;
+  `bujo.blackcat.dev` was independently verified in `us-east-1` on 2026-08-29.
+  Its DNS-only A record points to `174.138.85.202`; TLS, the canonical redirect,
+  and `/up` were verified before the old record was removed. This supersedes
+  the earlier thought that Press Start would need its own
   registrable domain; its hostname remains tentative until Press Start's own
   deployment decision
-- Transactional email: **Resend selected 2026-08-26**, using its HTTPS
-  API because DigitalOcean blocks outbound SMTP. Bujo and Press Start will
-  share one exact verified sending domain so the current free plan can cover
-  both; each gets its own domain-restricted Sending access key and From
-  identity: `bujo@blackcat.dev` and `lift@blackcat.dev`. Provider DNS records
-  and monitoring-mode DMARC are installed, the domain is verified, and Bujo's
-  scoped production key is stored in 1Password. Implementation happens before
-  the web cutover; Press Start gets its own key later. Full cross-app plan and gates:
+- Transactional email: **Resend selected 2026-08-26; app-specific boundary
+  adopted 2026-08-29**, using its HTTPS API because DigitalOcean blocks
+  outbound SMTP. Bujo owns verified `bujo.blackcat.dev`, sends as
+  `Bujo <sign-in@bujo.blackcat.dev>`, and has a Sending-only key restricted to
+  that exact domain. The unchanged secret remains in 1Password and Kamal
+  resolves `op://Personal/bujo-production/credential`. Tracking is disabled,
+  monitoring-mode DMARC remains installed, and the root sending domain is kept
+  temporarily. Press Start gets its own verified subdomain/key later. Full
+  cross-app plan and gates:
   `docs/resend-transactional-email.md`
 - Packwerk (boundaries bar): deferred until the app has a boundary
   worth defending (slice 1.1 added a require-graph boundary test for
   `lib/bujo/` in its place)
 - ~~Project skills~~ done 2026-08-24: `.claude/skills/bujo-conventions`
   and `.claude/skills/testing`
-- Fonts served from Google Fonts as of 1.3; vendor locally in 1.6
-  (PWA/offline) — the existing `TODO(1.7)` marker must be
-  renamed when that slice touches the link site
+- Fonts are still served from Google Fonts; proposed 1.6 vendors the seven
+  live families locally and removes the stale `TODO(1.7)`. Newsreader remains
+  absent after the accepted all-sans hand replacement
 - Settings/session polish (`/settings`, sign-out, preference controls,
   perhaps lines) follows the 1.5 method spine; it no longer interrupts
   source realignment as the next UI slice
@@ -375,10 +414,11 @@ comes from swarm-forge-herdr's `toolsets/ruby.edn`.
 - Auth direction (decided 2026-08-24, build later): go passwordless
   like press-start — passkeys first, magic email links second. The
   generator's email/password remains only as a transitional rollback. The
-  provider foundation is complete; Step 1 is now unblocked in the separate
-  authentication track. Daily Reflection and the bounded 1.5.2a Index source
-  correction landed on 2026-08-28; approved 1.5.5 remains ahead of
-  authentication, which does not run in parallel.
+  provider foundation and Kamal secret seam are complete. Step 1 is approved
+  at `docs/slices/auth-1-resend-and-magic-links.md` and authorized for the
+  isolated `six-cg` implementation run. Terminal integration and deployment
+  remain separately gated. The canonical-origin cutover completed independently
+  on 2026-08-29 without an application release. Proposed 1.6 remains parked.
   `docs/resend-transactional-email.md` owns its live checklist and safety gates.
   Bujo passkeys bind exactly to `bujo.blackcat.dev`, never the old host or Press
   Start. Recovery is proven before password retirement by registering two
