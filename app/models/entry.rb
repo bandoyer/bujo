@@ -633,6 +633,8 @@ class Entry < ApplicationRecord
     true
   end
 
+  # One walk may see an Entry once. A repeated id is a cycle, which the
+  # command must refuse rather than treat as already satisfied.
   def first_visit?(entry_id, visited_ids)
     return false if visited_ids[entry_id]
 
