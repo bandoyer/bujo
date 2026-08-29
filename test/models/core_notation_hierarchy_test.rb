@@ -85,16 +85,67 @@ class CoreNotationHierarchyTest < ActiveSupport::TestCase
 
   test "child capture refuses unwritable or stale parents and blank input is a no-op" do
     future_daily = create_entry(text: "Tomorrow", page_on: TODAY.next_day)
+    future_log = create_entry(text: "Later", page_kind: "future", page_on: nil, occurs_on: TODAY.next_month)
     done = create_entry(text: "Done", state: "done")
     moved = create_entry(text: "Moved")
     moved.move_to!(page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month, as_of: TODAY)
+    hidden_root = create_entry(text: "Hidden root")
+    nested_parent = create_entry(text: "Hidden child", parent: hidden_root)
+    hidden_root.soft_delete!
 
     assert_nil Entry.capture_child!("   ", parent: create_entry, user: users(:one), today: TODAY, as_of: TODAY)
-    [ future_daily, done, moved ].each do |parent|
+    [ future_daily, future_log, done, moved, nested_parent.reload ].each do |parent|
       assert_raises(Entry::LifecycleError) do
         Entry.capture_child!("child", parent: parent, user: users(:one), today: TODAY, as_of: TODAY)
       end
     end
+  end
+
+  test "event and note children never block while a foreign done successor still does" do
+    master = create_entry(text: "Master")
+    note = create_entry(text: "Context", kind: "note", state: nil, parent: master)
+    event = create_entry(text: "Date", kind: "event", state: nil, parent: master)
+    assert_predicate master.reload, :completable?
+
+    blocker = create_entry(text: "Moved", parent: master)
+    successor = blocker.move_to!(
+      page_kind: "monthly_tasks", page_on: TODAY.next_month.beginning_of_month, as_of: TODAY
+    )
+    successor.update_columns(user_id: users(:two).id, state: "done")
+    original = [ master, note, event, blocker, successor ].map { |row| row.reload.attributes }
+
+    assert_not master.reload.completable?
+    assert_raises(Entry::LifecycleError) { master.complete! }
+    assert_equal original, [ master, note, event, blocker, successor ].map { |row| row.reload.attributes }
+  end
+
+  test "done and struck children admit complete without cascading or reopening later work" do
+    master = create_entry(text: "Master")
+    done_child = create_entry(text: "Done child", state: "done", parent: master)
+    struck_child = create_entry(text: "Struck child", state: "struck", parent: master)
+
+    master.complete!
+    late = create_entry(text: "Afterward", parent: master)
+    assert_equal [ "done", "done", "struck", "open" ],
+      [ master.reload, done_child.reload, struck_child.reload, late ].map(&:state)
+    assert_not master.completable?
+  end
+
+  test "collection child capture copies the parent's collection and mark priority keeps inspiration" do
+    parent = create_entry(
+      text: "Pack", page_kind: "collection", page_on: nil, collection: collections(:camping)
+    )
+    child = Entry.capture_child!(
+      "• Nested chore", parent: parent, user: users(:one), today: TODAY, as_of: TODAY
+    )
+    assert_equal [ users(:one), parent, "collection", nil, collections(:camping) ],
+      child.values_at(:user, :parent, :page_kind, :page_on, :collection)
+
+    inspired = create_entry(text: "Keep this", inspiration: true)
+    original = inspired.attributes.except("priority", "updated_at")
+    inspired.mark_priority!
+    assert_equal [ true, true ], inspired.reload.values_at(:priority, :inspiration)
+    assert_equal original, inspired.attributes.except("priority", "updated_at")
   end
 
   private

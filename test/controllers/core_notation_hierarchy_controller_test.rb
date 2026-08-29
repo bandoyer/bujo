@@ -19,6 +19,18 @@ class CoreNotationHierarchyControllerTest < ActionDispatch::IntegrationTest
       text: "Complete or strike every subtask first."
   end
 
+  test "crafted complete of a blocked master refuses without changing the tree" do
+    master = create_open_task("Master", page_on: @today)
+    child = create_open_task("Open child", page_on: @today, parent: master)
+    original = [ master, child ].map { |row| row.reload.attributes }
+
+    post complete_entry_path(master)
+
+    assert_redirected_to daily_log_path(date: @today.iso8601)
+    assert_equal "That entry can't do that.", flash[:alert]
+    assert_equal original, [ master, child ].map { |row| row.reload.attributes }
+  end
+
   test "add below creates a child from the persisted parent and returns canonically" do
     parent = create_open_task("Parent", page_on: @today)
 

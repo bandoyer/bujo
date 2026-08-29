@@ -57,6 +57,7 @@ class EntrySchemaTest < ActiveSupport::TestCase
     assert_index entry_indexes, %w[server_seq]
     assert_index entry_indexes, %w[migrated_from_id], unique: true
     assert_index collection_indexes, %w[server_seq]
+    assert_nil entry_indexes.find { |index| index.columns == [ "inspiration" ] }
   end
 
   test "enforces every declared foreign key" do
