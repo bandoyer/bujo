@@ -6,6 +6,17 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["toggle", "strip"]
 
+  connect() {
+    const focused = this.element.querySelector("[autofocus]")
+    if (!focused) return
+
+    // Let native autofocus and font layout settle, then correct only clipped
+    // edges. Deep wrapped trees can otherwise leave the focus cue just
+    // above the phone viewport after a full-page command response.
+    this.revealFocus(focused)
+    requestAnimationFrame(() => this.revealFocus(focused))
+  }
+
   toggle(event) {
     const toggle = event.currentTarget
     const shouldOpen = toggle.getAttribute("aria-expanded") === "false"
@@ -21,11 +32,17 @@ export default class extends Controller {
   showEdit(event) {
     const strip = this.stripFor(event.currentTarget)
     this.showStep(strip, "edit")
-    strip.querySelector("[data-rapid-log-target='line']")?.focus()
+    strip.querySelector("[data-step='edit'] [data-rapid-log-target='line']")?.focus()
   }
 
   showMove(event) {
     this.showStep(this.stripFor(event.currentTarget), "move")
+  }
+
+  showChild(event) {
+    const strip = this.stripFor(event.currentTarget)
+    this.showStep(strip, "child")
+    strip.querySelector("[data-step='child'] [data-rapid-log-target='line']")?.focus()
   }
 
   // Every step rewinds to the same place, so one handler serves them all.
@@ -59,5 +76,12 @@ export default class extends Controller {
 
   stripFor(control) {
     return control.closest(".entry__action-strip")
+  }
+
+  revealFocus(focused) {
+    const rectangle = focused.getBoundingClientRect()
+    const clearance = 5
+    const verticalCorrection = Math.min(0, rectangle.top - clearance)
+    window.scrollBy({ left: -window.scrollX, top: verticalCorrection })
   }
 }

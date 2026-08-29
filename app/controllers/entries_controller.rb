@@ -17,6 +17,8 @@ class EntriesController < ApplicationController
   # reads the wall clock instead: a Tasks page names a month rather than a day,
   # and a Custom Collection carries no date at all.
   CLOCK_PARSED_PAGE_KINDS = %w[monthly_tasks collection].freeze
+  # Commands whose safe refusal return derives from persisted residency.
+  ENTRY_PAGE_REFUSALS = %w[update schedule children].freeze
   # Placements whose capture refreshes in place instead of re-rendering a screen.
   TURBO_CAPTURE_TEMPLATES = { "daily" => :create, "future" => :create_future }.freeze
   # Any presence of these ownership, residency, tree, history, deletion, or
@@ -25,6 +27,9 @@ class EntriesController < ApplicationController
     id user_id page_kind page_on collection_id parent_id migrated_from_id
     created_at deleted_at hlc server_seq state
   ].freeze
+  # Child capture accepts only the form's rapid-log inputs. Every journal field
+  # derives from the route's current-user parent.
+  CHILD_REQUEST_PARAMS = %w[authenticity_token line default_kind commit].freeze
 
   # Both filters cover every member action rather than naming them, so a
   # command added later arrives gated instead of silently reachable from any
@@ -122,6 +127,30 @@ class EntriesController < ApplicationController
     redirect_to_viewed_page
   end
 
+  # Writes one rapid-log line beneath the routed persisted parent.
+  def children
+    @submitted_child_line = params[:line].to_s
+    @submitted_child_kind = child_kind
+    raise Entry::LifecycleError if forbidden_child_claim?
+
+    child = Entry.capture_child!(
+      @submitted_child_line,
+      parent: @entry,
+      user: Current.user,
+      today: correction_parser_today,
+      as_of: @today,
+      default_kind: @submitted_child_kind.to_sym
+    )
+    raise Entry::LifecycleError if child.nil? && @submitted_child_line.present?
+
+    if child
+      flash[:child_focus_id] = child.id
+    else
+      flash[:child_parent_id] = @entry.id
+    end
+    redirect_to_entry_page
+  end
+
   private
 
   # Resolves the command's subject: the entry, and for a Collection resident
@@ -137,6 +166,16 @@ class EntriesController < ApplicationController
     [ request.request_parameters, request.query_parameters ].any? do |claims|
       correction_claim_keys(claims).intersect?(FORBIDDEN_CORRECTION_PARAMS)
     end
+  end
+
+  def forbidden_child_claim?
+    [ request.request_parameters, request.query_parameters ].any? do |claims|
+      claims.keys.any? { |key| !CHILD_REQUEST_PARAMS.include?(key) }
+    end
+  end
+
+  def child_kind
+    params[:default_kind].presence_in(Entry::KINDS) || raise(Entry::LifecycleError)
   end
 
   def correction_claim_keys(claims)
@@ -330,14 +369,26 @@ class EntriesController < ApplicationController
   end
 
   def refuse_lifecycle_change
-    if action_name == "update"
-      flash[:edit_entry_id] = @entry.id
-      flash[:edit_line] = @submitted_edit_line || params[:line].to_s
-    end
-
-    return redirect_to_entry_page(alert: REFUSAL_ALERT) if action_name.in?(%w[update schedule])
+    remember_refused_form
+    return redirect_to_entry_page(alert: REFUSAL_ALERT) if action_name.in?(ENTRY_PAGE_REFUSALS)
 
     redirect_to_viewed_page(alert: REFUSAL_ALERT)
+  end
+
+  def remember_refused_form
+    remember_refused_edit if action_name == "update"
+    remember_refused_child if action_name == "children"
+  end
+
+  def remember_refused_edit
+    flash[:edit_entry_id] = @entry.id
+    flash[:edit_line] = @submitted_edit_line || params[:line].to_s
+  end
+
+  def remember_refused_child
+    flash[:child_parent_id] = @entry.id
+    flash[:child_line] = @submitted_child_line || params[:line].to_s
+    flash[:child_kind] = @submitted_child_kind || params[:default_kind].to_s
   end
 
   def refuse_capture

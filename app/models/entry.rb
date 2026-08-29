@@ -118,6 +118,7 @@ class Entry < ApplicationRecord
         state: parsed.state,
         text: parsed.text,
         priority: parsed.priority,
+        inspiration: parsed.inspiration,
         tags: parsed.tags,
         page_kind: page_kind,
         page_on: page_on,
@@ -127,6 +128,29 @@ class Entry < ApplicationRecord
       enforce_capture_admission!(entry, as_of, admission_context, target_month)
       entry.save!
       entry
+    end
+
+    # Writes one parsed entry beneath a persisted parent, deriving all journal
+    # authority from that parent rather than accepting authored placement.
+    def capture_child!(line, parent:, user:, today:, as_of:, default_kind: :task)
+      parsed = Bujo::RapidLog.parse(line, today: today, default_kind: default_kind)
+      return unless parsed
+      raise LifecycleError unless parent.user == user && parent.child_capture_admitted?(as_of: as_of)
+
+      parent.children.create!(
+        user: user,
+        collection: parent.collection,
+        kind: parsed.kind,
+        state: parsed.state,
+        text: parsed.text,
+        priority: parsed.priority,
+        inspiration: parsed.inspiration,
+        tags: parsed.tags,
+        page_kind: parent.page_kind,
+        page_on: parent.page_on,
+        occurs_on: parsed.date,
+        time_of_day: parsed.time
+      )
     end
 
     # Answers whether a page admits ordinary capture on the supplied date.
@@ -190,9 +214,30 @@ class Entry < ApplicationRecord
     end
   end
 
-  # Marks this open task complete.
+  # Answers whether this current open task has no unresolved task descendant.
+  def completable?
+    kept? && kind == "task" && state == "open" && successor.nil? && descendants_satisfied?
+  end
+
+  # Answers whether an otherwise current open task is blocked only by subtasks.
+  def completion_blocked?
+    kept? && kind == "task" && state == "open" && successor.nil? && !descendants_satisfied?
+  end
+
+  # Answers whether this row may receive a web-authored child today.
+  def child_capture_admitted?(as_of:)
+    kept? && kind == "task" && state == "open" && successor.nil? && visible_ancestor_path? &&
+      writable_residency?(as_of)
+  end
+
+  # Marks this open task complete after atomically rechecking its descendant graph.
   def complete!
-    transition_to!("done", from: "open")
+    with_lock do
+      reload
+      raise LifecycleError unless completable?
+
+      update!(state: "done")
+    end
   end
 
   # Strikes this open task without deleting its history.
@@ -278,6 +323,7 @@ class Entry < ApplicationRecord
   def canonical_edit_line
     [
       ("*" if priority?),
+      ("!" if inspiration?),
       text,
       *tags.map { |tag| "+#{tag}" },
       occurs_on,
@@ -329,6 +375,20 @@ class Entry < ApplicationRecord
     "•"
   end
 
+  # Returns the canonical shared-column ink for independent signifiers.
+  def signifier_ink
+    [ ("*" if priority?), ("!" if inspiration?) ].compact.join
+  end
+
+  # Returns the accessible name paired with the canonical signifier ink.
+  def signifier_name
+    return "Priority and inspiration" if priority? && inspiration?
+    return "Priority" if priority?
+    return "Inspiration" if inspiration?
+
+    "No signifier"
+  end
+
   private
 
   def ensure_correctable!(requested_kind)
@@ -342,6 +402,7 @@ class Entry < ApplicationRecord
       state: corrected_state(requested_kind),
       text: parsed.text,
       priority: parsed.priority,
+      inspiration: parsed.inspiration,
       tags: parsed.tags,
       occurs_on: parsed.date,
       time_of_day: parsed.time
@@ -490,6 +551,7 @@ class Entry < ApplicationRecord
       state: ("open" if kind == "task"),
       text: text,
       priority: priority,
+      inspiration: inspiration,
       tags: tags.dup,
       parent: nil
     }
@@ -499,6 +561,67 @@ class Entry < ApplicationRecord
     return if kind == "task" && Array(states).include?(state)
 
     raise LifecycleError
+  end
+
+  # Kept edges define both visible trees and completion scope. A tombstone
+  # therefore cuts off its entire branch rather than creating hidden blockers.
+  def descendants_satisfied?
+    children.kept.all? do |child|
+      structurally_consistent_child?(child) &&
+        (child.kind != "task" || task_chain_satisfied?(child)) &&
+        child.send(:descendants_satisfied?)
+    end
+  end
+
+  def structurally_consistent_child?(child)
+    child.user_id == user_id && PLACEMENT_ATTRIBUTES.all? do |attribute|
+      child.public_send(attribute) == public_send(attribute)
+    end
+  end
+
+  def task_chain_satisfied?(task)
+    current = task
+    loop do
+      return false unless valid_task_chain_member?(current)
+
+      next_entry = current.successor
+      return %w[done struck].include?(current.state) unless next_entry
+      return false unless valid_task_chain_link?(current, next_entry)
+
+      current = next_entry
+    end
+  end
+
+  def valid_task_chain_member?(current)
+    current.kept? && current.user_id == user_id && current.kind == "task"
+  end
+
+  def valid_task_chain_link?(current, next_entry)
+    current.state == "migrated" && next_entry.predecessor == current
+  end
+
+  def visible_ancestor_path?
+    current = self
+    while current.parent
+      parent_entry = current.parent
+      return false unless parent_entry.kept? && structurally_consistent_with?(parent_entry)
+
+      current = parent_entry
+    end
+    true
+  end
+
+  def structurally_consistent_with?(other)
+    other.user_id == user_id && PLACEMENT_ATTRIBUTES.all? do |attribute|
+      other.public_send(attribute) == public_send(attribute)
+    end
+  end
+
+  def writable_residency?(as_of)
+    return false if page_kind == "future"
+    return collection&.kept? if page_kind == "collection"
+
+    self.class.capture_admitted?(page_kind: page_kind, page_on: page_on, occurs_on: occurs_on, as_of: as_of)
   end
 
   def moved_glyph

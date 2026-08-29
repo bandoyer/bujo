@@ -303,7 +303,9 @@ class DailyReflectionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label='Daily Reflection mode'] a[aria-current='page']", text: "Evening"
     assert_select "label[for='reflection_line']", text: "What did you miss?"
     [ root, child, nested_open, event, note ].each { |entry| assert_select "#entry_#{entry.id}", count: 1 }
-    assert_select "#entry_#{root.id} form[action='#{complete_entry_path(root)}']"
+    assert_select "#entry_#{root.id} form[action='#{complete_entry_path(root)}']", count: 0
+    assert_select "#entry_#{root.id} .entry__completion-blocked",
+      text: "Complete or strike every subtask first."
     assert_select "#entry_#{root.id} form[action='#{strike_entry_path(root)}']"
     assert_select "#entry_#{root.id} form[action='#{schedule_entry_path(root)}']"
     assert_select "#entry_#{nested_open.id} form[action='#{complete_entry_path(nested_open)}']"

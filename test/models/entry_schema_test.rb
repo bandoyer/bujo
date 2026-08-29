@@ -18,6 +18,8 @@ class EntrySchemaTest < ActiveSupport::TestCase
     assert_not columns.fetch("text").null
     assert_not columns.fetch("priority").null
     assert_not columns.fetch("priority").default
+    assert_not columns.fetch("inspiration").null
+    assert_not columns.fetch("inspiration").default
     assert_not columns.fetch("tags").null
     assert_equal [], Entry.type_for_attribute("tags").deserialize(columns.fetch("tags").default)
     assert_not columns.fetch("page_kind").null

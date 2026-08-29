@@ -1,3 +1,3 @@
 <%# The journal line is shared by interactive task toggles and static rows. %>
-<span class="entry__signifier" aria-label="<%= entry.priority? ? "Priority" : "Not priority" %>"><%= "*" if entry.priority? %></span>
+<span class="entry__signifier" aria-label="<%= entry.signifier_name %>"><%= entry.signifier_ink %></span>
 <%= render "entries/entry_body", entry: entry %>

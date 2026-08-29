@@ -195,6 +195,7 @@ class EntriesControllerTest < ActionDispatch::IntegrationTest
     travel_to today do
       complete = create_open_task("evening complete", page_on: today)
       child = create_open_task("nested complete child", page_on: today, parent: complete)
+      child.complete!
       post complete_entry_path(complete), params: { return_to: "reflection_evening", viewed_on: today.iso8601 }
       assert_redirected_to evening_reflection_path
       assert_equal "entry:#{complete.id}", flash[:reflection_focus]

@@ -20,6 +20,10 @@ class TailwindSelectorLedgerTest < ActiveSupport::TestCase
   POST_T0_REPLACEMENTS = {
     [ ".monthly-calendar__day", "align-items", "center" ] => {
       selector: ".monthly-calendar__day", value: "start", owner: "pages/monthly.css"
+    },
+    [ ".entry__line", "grid-template-columns", "1rem 1.25rem minmax(0, 1fr) fit-content(45%)" ] => {
+      selector: ".entry__line", value: "1.5rem 1.25rem minmax(0, 1fr) fit-content(45%)",
+      owner: "components/entries.css"
     }
   }.freeze
   T0_STYLESHEET_BYTES = 23_218

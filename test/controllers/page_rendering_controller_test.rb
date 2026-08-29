@@ -212,7 +212,7 @@ class PageRenderingControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_operator response.body.index("<h1"), :<, response.body.index("role=\"alert\"")
       assert_select "[role='alert']", text: "That entry can't do that."
-      assert_select "#entry_#{entry.id} input[name='line'][value='']", count: 1
+      assert_select "#entry_#{entry.id} input[id^='edit_line_'][name='line'][value='']", count: 1
     end
   end
 

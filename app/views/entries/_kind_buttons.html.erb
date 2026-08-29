@@ -1,5 +1,6 @@
 <%# Shared kind circles for capture and correction. The allowed list is the page
     vocabulary, or a single locked kind for a movement live end. %>
+<% allowed_kinds = local_assigns.fetch(:allowed_kinds, Entry::KINDS) %>
 <% selected_kind = local_assigns.fetch(:selected_kind, "task") %>
 <div class="rapid-log__kinds" aria-label="Entry kind">
   <% { "task" => "•", "event" => hand_glyph("○"), "note" => "–" }.each do |kind, glyph| %>

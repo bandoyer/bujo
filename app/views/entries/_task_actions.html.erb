@@ -4,8 +4,10 @@
 <% viewed_on_iso = viewed_on.iso8601 %>
 <% return_params = { viewed_on: viewed_on_iso, return_to: return_to }.compact %>
 <% schedule_open = local_assigns.fetch(:schedule_open, false) %>
-<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" <%= "hidden" unless edit_open || schedule_open %>>
-  <div class="action-row entry__actions" data-step="actions" <%= "hidden" if edit_open || schedule_open %>>
+<% child_open = local_assigns.fetch(:child_open, false) %>
+<% actions_open = local_assigns.fetch(:actions_open, false) %>
+<div id="<%= action_strip_id %>" class="entry__action-strip" data-task-actions-target="strip" <%= "hidden" unless edit_open || schedule_open || child_open || actions_open %>>
+  <div class="action-row entry__actions" data-step="actions" <%= "hidden" if edit_open || schedule_open || child_open %>>
     <% if offered_commands.include?("update") %>
       <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showEdit">Edit</button>
     <% end %>
@@ -33,7 +35,38 @@
     <% if offered_commands.include?("move_to_collection") %>
       <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showMove">Move to Collection…</button>
     <% end %>
+    <% if offered_commands.include?("children") %>
+      <button type="button" class="action action--surface action--muted entry-action" data-action="task-actions#showChild">Add below…</button>
+    <% end %>
+    <% if entry.completion_blocked? %>
+      <p class="entry__completion-blocked">Complete or strike every subtask first.</p>
+    <% end %>
   </div>
+
+  <% if offered_commands.include?("children") %>
+    <% selected_child_kind = child_open ? flash[:child_kind].presence_in(Entry::KINDS) || "task" : "task" %>
+    <div class="action-row entry__child-step" data-step="child" <%= "hidden" unless child_open %>>
+      <%= form_with url: children_entry_path(entry), class: "entry__child", data: { controller: "rapid-log" } do |form| %>
+        <%= render "entries/kind_buttons", selected_kind: selected_child_kind %>
+        <%= form.hidden_field :default_kind, value: selected_child_kind, data: { rapid_log_target: "kind" } %>
+        <%= form.label :line, "Add below", for: "child_line_#{entry.id}", class: "field-label" %>
+        <div class="entry__child-row">
+          <%= form.text_field :line,
+                              id: "child_line_#{entry.id}",
+                              value: (child_open ? flash[:child_line] : ""),
+                              autofocus: child_open,
+                              autocomplete: "off",
+                              placeholder: "Rapid log…",
+                              class: "field",
+                              data: { rapid_log_target: "line" } %>
+          <%= form.submit "Log", class: "action action--surface action--muted entry-action" %>
+        </div>
+      <% end %>
+      <button type="button"
+              class="action action--surface action--muted entry-action entry-action--cancel"
+              data-action="task-actions#cancelStep">Cancel</button>
+    </div>
+  <% end %>
 
   <% if offered_commands.include?("update") %>
     <div class="action-row entry__edit-step" data-step="edit" <%= "hidden" unless edit_open %>>

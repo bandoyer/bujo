@@ -7,6 +7,11 @@
   padding: 0.65rem 0;
 }
 
+.entry,
+.entry__children {
+  min-width: 0;
+}
+
 .entry--selected {
   border-radius: 0.5rem;
   background: var(--selected-row);
@@ -18,7 +23,7 @@
   min-height: 44px;
   /* Capping metadata keeps a long destination Topic from starving the text
      track; both minmax and fit-content remain shrinkable at phone widths. */
-  grid-template-columns: 1rem 1.25rem minmax(0, 1fr) fit-content(45%);
+  grid-template-columns: 1.5rem 1.25rem minmax(0, 1fr) fit-content(45%);
   gap: 0.25rem;
   align-items: baseline;
 }
@@ -74,6 +79,7 @@
    owner defines only their row-specific spacing and multi-step anatomy. */
 .entry__actions,
 .entry__edit-step,
+.entry__child-step,
 .entry__schedule-step,
 .entry__schedule-actions,
 .entry__move-step,
@@ -119,6 +125,35 @@
 .entry__edit {
   min-width: 0;
   flex: 1 1 15rem;
+}
+
+.entry__child {
+  min-width: 0;
+  flex: 1 1 15rem;
+}
+
+.entry__child label,
+.entry__completion-blocked {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.entry__completion-blocked {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+}
+
+.entry__child-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem;
+}
+
+.entry__child-row input[type="text"] {
+  padding: 0 0.6rem;
+  border-radius: 0.5rem;
 }
 
 .entry__schedule {

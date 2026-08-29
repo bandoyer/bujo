@@ -124,7 +124,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
 
       reveal_actions(first)
       within("#entry_#{first.id}") { click_button "Clear priority" }
-      assert_selector "#entry_#{first.id} .entry__signifier[aria-label='Not priority']", visible: :all
+      assert_selector "#entry_#{first.id} .entry__signifier[aria-label='No signifier']", visible: :all
       assert_not first.reload.priority?
 
       first.complete!
@@ -310,7 +310,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
         assert_phone_state(theme: theme, hand: hand, mode: "Morning")
 
         within("#entry_#{morning.id}") { find_button("Clear priority").send_keys(:enter) }
-        assert_selector "#entry_#{morning.id} .entry__signifier[aria-label='Not priority']", visible: :all
+        assert_selector "#entry_#{morning.id} .entry__signifier[aria-label='No signifier']", visible: :all
         assert_focused "#entry_#{morning.id} .entry__toggle"
         keyboard_entry_command(morning, "Mark priority")
         assert_selector "#entry_#{morning.id} .entry__signifier[aria-label='Priority']"
@@ -521,7 +521,7 @@ class DailyReflectionTest < ApplicationSystemTestCase
       assert_selector "#entry_#{priority.id} .entry__signifier[aria-label='Priority']"
       assert_focused "#entry_#{priority.id} .entry__toggle"
       keyboard_entry_command(priority, "Clear priority")
-      assert_selector "#entry_#{priority.id} .entry__signifier[aria-label='Not priority']", visible: :all
+      assert_selector "#entry_#{priority.id} .entry__signifier[aria-label='No signifier']", visible: :all
       assert_focused "#entry_#{priority.id} .entry__toggle"
 
       keyboard_tab_to("#reflection_evening_mode")

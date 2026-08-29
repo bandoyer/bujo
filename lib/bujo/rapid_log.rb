@@ -4,7 +4,7 @@ module Bujo
   # Parses and canonically renders the one-line rapid-log grammar.
   module RapidLog
     # Immutable result of parsing one rapid-log line.
-    Parsed = Data.define(:kind, :state, :priority, :text, :date, :time, :tags, :raw)
+    Parsed = Data.define(:kind, :state, :priority, :inspiration, :text, :date, :time, :tags, :raw)
 
     ALLOWED_DEFAULT_KINDS = %i[task event note].freeze
     GLYPHS = {
@@ -66,7 +66,7 @@ module Bujo
         raw = line.to_s.dup.force_encoding(Encoding::UTF_8).scrub
         content = raw.strip
 
-        content, kind, state, priority = consume_prefix(content, default_kind)
+        content, kind, state, priority, inspiration = consume_prefix(content, default_kind)
         text, date, time, tags = consume_end_zone(content, today)
         return if text.empty?
 
@@ -74,6 +74,7 @@ module Bujo
           kind: kind,
           state: state,
           priority: priority,
+          inspiration: inspiration,
           text: text,
           date: date,
           time: time,
@@ -90,6 +91,7 @@ module Bujo
         # what lets a rendered line reparse to the same date under any today.
         tokens << parsed.date if parsed.date
         tokens << parsed.time if parsed.time
+        tokens.unshift("!") if parsed.inspiration
         tokens.unshift("*") if parsed.priority
 
         tokens.join(" ")
@@ -104,24 +106,30 @@ module Bujo
       end
 
       def consume_prefix(content, default_kind)
-        content, priority = consume_priority(content)
+        content, priority, inspiration = consume_signifiers(content)
         match = content.match(/\A(#{GLYPH_PATTERN})(?:\s+|\z)/)
-        return default_prefix(content, default_kind, priority) unless match
+        return default_prefix(content, default_kind, priority, inspiration) unless match
 
         kind, state = GLYPHS.fetch(match[1])
-        [ match.post_match, kind, state, priority ]
+        [ match.post_match, kind, state, priority, inspiration ]
       end
 
-      def consume_priority(content)
-        match = content.match(/\A\*(?:\s+|\z)/)
-        return [ content, false ] unless match
+      def consume_signifiers(content)
+        priority = false
+        inspiration = false
 
-        [ match.post_match, true ]
+        while (match = content.match(/\A([*!])(?:\s+|\z)/))
+          priority = true if match[1] == "*"
+          inspiration = true if match[1] == "!"
+          content = match.post_match
+        end
+
+        [ content, priority, inspiration ]
       end
 
-      def default_prefix(content, default_kind, priority)
+      def default_prefix(content, default_kind, priority, inspiration)
         state = :open if default_kind == :task
-        [ content, default_kind, state, priority ]
+        [ content, default_kind, state, priority, inspiration ]
       end
 
       # The end zone is consumed from the right in the order the grammar

@@ -15,13 +15,14 @@ module EntryCommandAuthorization
     "strike" => %w[daily monthly_calendar monthly_tasks collection],
     "migrate" => %w[daily monthly_calendar monthly_tasks],
     "schedule" => %w[daily monthly_calendar monthly_tasks],
-    "move_to_collection" => %w[daily monthly_calendar monthly_tasks]
+    "move_to_collection" => %w[daily monthly_calendar monthly_tasks],
+    "children" => %w[daily monthly_calendar monthly_tasks collection]
   }.transform_values(&:freeze).freeze
   # What a task's own lifecycle could support, before residency narrows it, in
   # the order a strip renders them. A state absent here - a migrated task -
   # supports nothing.
   TASK_COMMANDS_BY_STATE = {
-    "open" => %w[complete strike migrate schedule move_to_collection],
+    "open" => %w[complete strike migrate schedule move_to_collection children],
     "done" => %w[reopen],
     "struck" => %w[reopen]
   }.transform_values(&:freeze).freeze
@@ -42,6 +43,8 @@ module EntryCommandAuthorization
 
   # Unknown commands have no residency row and are refused by default.
   def entry_command_allowed?(entry, command)
+    return entry.child_capture_admitted?(as_of: @today) if command.to_s == "children"
+
     entry.successor.nil? && COMMAND_RESIDENCIES.fetch(command.to_s, NO_RESIDENCIES).include?(entry.page_kind)
   end
 
@@ -50,7 +53,9 @@ module EntryCommandAuthorization
   # both read this one list, so a row can never become a toggle over a strip
   # with nothing in it.
   def offered_entry_commands(entry)
-    lifecycle_commands(entry).select { |command| entry_command_allowed?(entry, command) }
+    lifecycle_commands(entry).select do |command|
+      command != "complete" || entry.completable?
+    end.select { |command| entry_command_allowed?(entry, command) }
   end
 
   # An entry that has already moved is finished wherever it sits: the successor

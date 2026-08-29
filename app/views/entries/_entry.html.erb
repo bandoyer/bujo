@@ -1,17 +1,20 @@
 <%# One journal row: its bullet line, its hidden lifecycle controls, then its children. %>
 <% return_to = local_assigns[:return_to] %>
 <% edit_open = flash[:edit_entry_id] == entry.id %>
+<% child_open = flash[:child_parent_id] == entry.id %>
+<% actions_open = flash[:child_focus_id] == entry.id %>
 <%# One list decides both the toggle and the strip's contents, so a row is a
     toggle exactly when there is something behind it to reach. %>
 <% offered_commands = offered_entry_commands(entry) %>
-<article id="entry_<%= entry.id %>" class="entry <%= "entry--selected" if edit_open %>" data-entry-id="<%= entry.id %>">
+<article id="entry_<%= entry.id %>" class="entry <%= "entry--selected" if edit_open || child_open || actions_open %>" data-entry-id="<%= entry.id %>">
   <%# An actionable row is a toggle and the strip it controls; anything else is
       a plain line. The strip sits between the line and the children region. %>
   <% if offered_commands.any? %>
     <% action_strip_id = "entry_#{entry.id}_actions" %>
     <button type="button"
             class="entry__line entry__toggle"
-            aria-expanded="<%= edit_open %>"
+            aria-expanded="<%= edit_open || child_open || actions_open %>"
+            <%= "autofocus" if actions_open %>
             aria-controls="<%= action_strip_id %>"
             data-task-actions-target="toggle"
             data-action="task-actions#toggle">
@@ -23,7 +26,9 @@
                return_to: return_to,
                offered_commands: offered_commands,
                action_strip_id: action_strip_id,
-               edit_open: edit_open %>
+               edit_open: edit_open,
+               child_open: child_open,
+               actions_open: actions_open %>
   <% else %>
     <div class="entry__line">
       <%= render "entries/entry_line", entry: entry %>

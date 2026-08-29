@@ -6,26 +6,26 @@ class RapidLogParseTest < ActiveSupport::TestCase
 
   TODAY = Date.new(2026, 8, 24)
   RULED_CASES = [
-    [ "Review the auth PR +work", :task, :open, false, "Review the auth PR", nil, nil, %w[work] ],
-    [ "* • Ship bujo v0.1", :task, :open, true, "Ship bujo v0.1", nil, nil, [] ],
-    [ "x Email Sarah the invoice", :task, :done, false, "Email Sarah the invoice", nil, nil, [] ],
-    [ "o Dinner w/ Lena tomorrow 6pm", :event, nil, false, "Dinner w/ Lena", Date.new(2026, 8, 25), "18:00", [] ],
-    [ "○ RVA Ruby meetup sep 2 18:30", :event, nil, false, "RVA Ruby meetup", Date.new(2026, 9, 2), "18:30", [] ],
-    [ "– idea: one parser everywhere", :note, nil, false, "idea: one parser everywhere", nil, nil, [] ],
-    [ "- pick up dry cleaning", :note, nil, false, "pick up dry cleaning", nil, nil, [] ],
-    [ "call the vet friday", :task, :open, false, "call the vet", Date.new(2026, 8, 28), nil, [] ],
-    [ "renew passport jan 5", :task, :open, false, "renew passport", Date.new(2027, 1, 5), nil, [] ],
-    [ "pay invoice 2026-08-30", :task, :open, false, "pay invoice", Date.new(2026, 8, 30), nil, [] ],
-    [ "buy fuel +camping +errands", :task, :open, false, "buy fuel", nil, nil, %w[camping errands] ],
-    [ "call vet +home tomorrow", :task, :open, false, "call vet", Date.new(2026, 8, 25), nil, %w[home] ],
-    [ "standup 2pm", :task, :open, false, "standup", nil, "14:00", [] ],
-    [ "xylophone practice", :task, :open, false, "xylophone practice", nil, nil, [] ],
-    [ "party feb 30", :task, :open, false, "party feb 30", nil, nil, [] ],
-    [ "x o meeting", :task, :done, false, "o meeting", nil, nil, [] ],
-    [ ". tune bike brakes", :task, :open, false, "tune bike brakes", nil, nil, [] ],
-    [ "monday", nil, nil, false, nil, nil, nil, [] ],
-    [ "   ", nil, nil, false, nil, nil, nil, [] ],
-    [ "o standup", :event, nil, false, "standup", nil, nil, [] ]
+    [ "Review the auth PR +work", :task, :open, false, false, "Review the auth PR", nil, nil, %w[work] ],
+    [ "* • Ship bujo v0.1", :task, :open, true, false, "Ship bujo v0.1", nil, nil, [] ],
+    [ "x Email Sarah the invoice", :task, :done, false, false, "Email Sarah the invoice", nil, nil, [] ],
+    [ "o Dinner w/ Lena tomorrow 6pm", :event, nil, false, false, "Dinner w/ Lena", Date.new(2026, 8, 25), "18:00", [] ],
+    [ "○ RVA Ruby meetup sep 2 18:30", :event, nil, false, false, "RVA Ruby meetup", Date.new(2026, 9, 2), "18:30", [] ],
+    [ "– idea: one parser everywhere", :note, nil, false, false, "idea: one parser everywhere", nil, nil, [] ],
+    [ "- pick up dry cleaning", :note, nil, false, false, "pick up dry cleaning", nil, nil, [] ],
+    [ "call the vet friday", :task, :open, false, false, "call the vet", Date.new(2026, 8, 28), nil, [] ],
+    [ "renew passport jan 5", :task, :open, false, false, "renew passport", Date.new(2027, 1, 5), nil, [] ],
+    [ "pay invoice 2026-08-30", :task, :open, false, false, "pay invoice", Date.new(2026, 8, 30), nil, [] ],
+    [ "buy fuel +camping +errands", :task, :open, false, false, "buy fuel", nil, nil, %w[camping errands] ],
+    [ "call vet +home tomorrow", :task, :open, false, false, "call vet", Date.new(2026, 8, 25), nil, %w[home] ],
+    [ "standup 2pm", :task, :open, false, false, "standup", nil, "14:00", [] ],
+    [ "xylophone practice", :task, :open, false, false, "xylophone practice", nil, nil, [] ],
+    [ "party feb 30", :task, :open, false, false, "party feb 30", nil, nil, [] ],
+    [ "x o meeting", :task, :done, false, false, "o meeting", nil, nil, [] ],
+    [ ". tune bike brakes", :task, :open, false, false, "tune bike brakes", nil, nil, [] ],
+    [ "monday", nil, nil, false, false, nil, nil, nil, [] ],
+    [ "   ", nil, nil, false, false, nil, nil, nil, [] ],
+    [ "o standup", :event, nil, false, false, "standup", nil, nil, [] ]
   ].freeze
   DEFAULT_KIND_OVERRIDES = { "o standup" => :note }.freeze
 
@@ -36,16 +36,42 @@ class RapidLogParseTest < ActiveSupport::TestCase
   end
 
   test "parses every ruled example" do
-    RULED_CASES.each_with_index do |(input, kind, state, priority, text, date, time, tags), index|
+    assert_equal %i[kind state priority inspiration text date time tags raw], Bujo::RapidLog::Parsed.members
+
+    RULED_CASES.each_with_index do |(input, kind, state, priority, inspiration, text, date, time, tags), index|
       default_kind = RapidLogParseTest.default_kind_for(input)
       parsed = Bujo::RapidLog.parse(input, today: TODAY, default_kind: default_kind)
 
       if kind
         values = Bujo::RapidLog::Parsed.members.map { |member| parsed.public_send(member) }
-        assert_equal [ kind, state, priority, text, date, time, tags, input ], values, "row #{index + 1}"
+        assert_equal [ kind, state, priority, inspiration, text, date, time, tags, input ], values, "row #{index + 1}"
       else
         assert_nil parsed, "row #{index + 1}"
       end
+    end
+  end
+
+  test "parses independent whitespace-delimited signifiers in either order" do
+    cases = {
+      "! – Keep the recovery path simple" => [ :note, nil, false, true, "Keep the recovery path simple" ],
+      "! A calmer morning" => [ :note, nil, false, true, "A calmer morning" ],
+      "* ! • Protect the quiet hour" => [ :task, :open, true, true, "Protect the quiet hour" ],
+      "! * o First day of camp" => [ :event, nil, true, true, "First day of camp" ],
+      "! ! – One insight" => [ :note, nil, false, true, "One insight" ],
+      "* * ! ! supporting context" => [ :task, :open, true, true, "supporting context" ],
+      "!important" => [ :task, :open, false, false, "!important" ],
+      "!* ordinary" => [ :task, :open, false, false, "!* ordinary" ],
+      "Plan! then act" => [ :task, :open, false, false, "Plan! then act" ]
+    }
+
+    cases.each do |input, expected|
+      parsed = Bujo::RapidLog.parse(input, today: TODAY, default_kind: input == "! A calmer morning" ? :note : :task)
+      actual = %i[kind state priority inspiration text].map { |member| parsed.public_send(member) }
+      assert_equal expected, actual, input
+    end
+
+    [ "!", "! !", "* !", "! •" ].each do |input|
+      assert_nil Bujo::RapidLog.parse(input, today: TODAY), input
     end
   end
 
@@ -236,14 +262,14 @@ class RapidLogRenderTest < ActiveSupport::TestCase
 
   test "renders every kind in canonical token order" do
     cases = [
-      [ [ :task, :open, false ], "• words +home +work 2026-09-02 09:05" ],
-      [ [ :task, :done, true ], "* x words +home +work 2026-09-02 09:05" ],
-      [ [ :event, nil, false ], "○ words +home +work 2026-09-02 09:05" ],
-      [ [ :note, nil, true ], "* – words +home +work 2026-09-02 09:05" ]
+      [ [ :task, :open, false, false ], "• words +home +work 2026-09-02 09:05" ],
+      [ [ :task, :done, true, false ], "* x words +home +work 2026-09-02 09:05" ],
+      [ [ :event, nil, false, true ], "! ○ words +home +work 2026-09-02 09:05" ],
+      [ [ :note, nil, true, true ], "* ! – words +home +work 2026-09-02 09:05" ]
     ]
 
-    cases.each do |((kind, state, priority), expected)|
-      entry = entry_with(kind: kind, state: state, priority: priority,
+    cases.each do |((kind, state, priority, inspiration), expected)|
+      entry = entry_with(kind: kind, state: state, priority: priority, inspiration: inspiration,
         date: Date.new(2026, 9, 2), time: "09:05", tags: %w[home work])
 
       assert_equal expected, Bujo::RapidLog.render(entry)
@@ -272,11 +298,12 @@ class RapidLogRenderTest < ActiveSupport::TestCase
 
   # Renders are checked field by field, so each case names only the fields it
   # is about and this fills in the parts render treats identically.
-  def entry_with(kind:, state:, priority: false, date: nil, time: nil, tags: [])
+  def entry_with(kind:, state:, priority: false, inspiration: false, date: nil, time: nil, tags: [])
     Bujo::RapidLog::Parsed.new(
       kind: kind,
       state: state,
       priority: priority,
+      inspiration: inspiration,
       text: "words",
       date: date,
       time: time,

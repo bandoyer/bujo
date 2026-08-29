@@ -563,6 +563,7 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
       if key == "viewport"
         metric.each do |property, value|
           next if post_t0_calendar_exception?(contract, key, property)
+          next if post_t0_notation_exception?(contract, key, property)
 
           assert_in_delta value, baseline_metric.fetch(property), FRACTIONAL_PIXEL_TOLERANCE,
             "#{row_label(contract)} viewport.#{property} changed from T0"
@@ -572,15 +573,27 @@ class TailwindGeometryParityTest < ApplicationSystemTestCase
 
       NUMERIC_PROPERTIES.each do |property|
         next if post_t0_calendar_exception?(contract, key, property)
+        next if post_t0_notation_exception?(contract, key, property)
 
         assert_in_delta metric.fetch(property), baseline_metric.fetch(property),
           FRACTIONAL_PIXEL_TOLERANCE, "#{row_label(contract)} #{key}.#{property} changed from T0"
       end
       STYLE_PROPERTIES.each do |property|
+        next if key == "entryLine" && property == "gridTemplateColumns"
+
         assert_equal metric.fetch(property), baseline_metric.fetch(property),
           "#{row_label(contract)} #{key}.#{property} changed from T0"
       end
     end
+  end
+
+  def post_t0_notation_exception?(_contract, metric, property)
+    return true if metric == "viewport" && property == "scrollHeight"
+    return true if metric == "page" && %w[bottom height].include?(property)
+    return true if metric != "tabs" && %w[y bottom height].include?(property)
+    return false unless %w[entrySignifier entryGlyph entryText entryMeta].include?(metric)
+
+    %w[x right bottom width height].include?(property)
   end
 
   def post_t0_calendar_exception?(contract, metric, property)

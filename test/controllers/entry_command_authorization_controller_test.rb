@@ -4,14 +4,14 @@ require "test_helper"
 # lives. Request parameters may choose an established reader return only for
 # Daily and Monthly pages; they never grant a command.
 class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
-  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection update].freeze
+  COMMANDS = %w[complete reopen strike migrate schedule move_to_collection update children].freeze
   PAGE_KINDS = %w[daily monthly_calendar monthly_tasks future collection].freeze
   ALLOWED_COMMANDS = {
     "daily" => COMMANDS,
     "monthly_calendar" => COMMANDS,
     "monthly_tasks" => COMMANDS,
     "future" => %w[update],
-    "collection" => %w[complete reopen strike update]
+    "collection" => %w[complete reopen strike update children]
   }.freeze
 
   setup do
@@ -120,7 +120,16 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
   def assert_command_succeeds(command, entry)
     expected_destination = command_destination(entry, command)
 
-    if command.in?(%w[migrate schedule move_to_collection])
+    if command == "children"
+      child = nil
+      assert_difference -> { Entry.count }, 1 do
+        post_command(command, entry, standard_params(command, entry.page_kind))
+        child = entry.children.last
+      end
+      assert_equal entry, child.parent
+      assert_equal entry.values_at(:user_id, :page_kind, :page_on, :collection_id),
+        child.values_at(:user_id, :page_kind, :page_on, :collection_id)
+    elsif command.in?(%w[migrate schedule move_to_collection])
       assert_difference -> { Entry.count }, 1 do
         post_command(command, entry, standard_params(command, entry.page_kind))
       end
@@ -175,6 +184,8 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
   end
 
   def standard_params(command, page_kind)
+    return { line: "child #{SecureRandom.hex(2)}", default_kind: "task" } if command == "children"
+
     params = if command == "update" && page_kind == "collection"
       {}
     else
@@ -225,7 +236,7 @@ class EntryCommandAuthorizationControllerTest < ActionDispatch::IntegrationTest
     when "collection"
       collection_path(@collection)
     when "future"
-      command.in?(%w[update schedule]) ? future_log_path : daily_log_path(date: Time.zone.today.iso8601)
+      command.in?(%w[update schedule children]) ? future_log_path : daily_log_path(date: Time.zone.today.iso8601)
     else
       daily_log_path(date: Time.zone.today.iso8601)
     end
